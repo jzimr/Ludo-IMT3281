@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 
+import no.ntnu.imt3281.ludo.Exceptions.NoRoomForMorePlayersException;
 import no.ntnu.imt3281.ludo.Exceptions.NotEnoughPlayersException;
 import org.junit.Test;
 import org.mockito.InOrder;
@@ -81,7 +82,7 @@ public class LudoTest {
 	 */
 	@Test
 	public void addingRemovingPlayers() {
-/*		Ludo ludo = new Ludo();
+		Ludo ludo = new Ludo();
 		ludo.addPlayer("Player A");
 		ludo.addPlayer("Player B");
 		ludo.addPlayer("Player C");
@@ -105,7 +106,7 @@ public class LudoTest {
 		assertEquals(3, ludo.activePlayers(), 0);
 		assertEquals("Player D", ludo.getPlayerName(Ludo.GREEN));
 		assertEquals("Inactive: Player B", ludo.getPlayerName(Ludo.BLUE));
-*/	}
+	}
 
 	/**
 	 * Test initial positions for all pieces for all players. All pieces for all
