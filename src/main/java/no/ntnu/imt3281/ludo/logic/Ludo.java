@@ -232,6 +232,9 @@ public class Ludo {
      */
     int throwDice(int rolled){
         boolean allPiecesAtHome = Arrays.stream(piecesPosition[playerTurn]).allMatch(n -> n == 0);
+        int piecesAtHome = (int)Arrays.stream(piecesPosition[playerTurn]).filter(n -> n == 0).count();
+
+        diceRolled = rolled;
 
         // Update game state.
         if (gameState == GAME_STATE_INITIATED) {
@@ -249,7 +252,13 @@ public class Ludo {
                 }
             }
         } else {
-
+            // if we can only move 1 piece atm
+            for(int i = 0; i < 4; i++){
+                int piecePos = piecesPosition[playerTurn][i];
+                if(piecePos+rolled > 59){
+                    nextPlayerTurn();
+                }
+            }
         }
 
         diceRolled = rolled;
@@ -293,7 +302,13 @@ public class Ludo {
             return true;
         }
 
-        // move anywhere
+        // move over the board limit
+        if(to > 59){
+            nextPlayerTurn();
+            return false;
+        }
+
+        // move anywhere else
         if(from + diceRolled == to){
             piecesPosition[playerID][pieceToBeMoved] = to;
 
