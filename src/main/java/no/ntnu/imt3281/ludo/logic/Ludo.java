@@ -4,6 +4,7 @@ import no.ntnu.imt3281.ludo.Exceptions.NoRoomForMorePlayersException;
 import no.ntnu.imt3281.ludo.Exceptions.NotEnoughPlayersException;
 
 import java.util.Arrays;
+import java.util.Random;
 
 public class Ludo {
     final static int RED = 0;
@@ -16,14 +17,16 @@ public class Ludo {
     private String[] players = new String[4];       // [0] = RED, [1] = BLUE, [2] = YELLOW, [3] = GREEN
     private boolean[] activePlayers = new boolean[4];     // same indexing as line above. default = true
     private int[][] piecesPosition = new int[4][4];       // [playerID][pieceID] = position of piece
-    private int playerTurn = 0;                     // red always starts first
+    private int playerTurn = 0;                         // whose turn is it? default = red
+    private int timesRolled = 0;                          // times of dices rolled in a player's turn
+    private int diceRolled = 0;                            // which dice the player has rolled
 
     /**
      * Empty contructor
      */
     public Ludo(){
-        // all players are "active" on start
-        Arrays.fill(activePlayers, true);
+        // all players are "inactive" on start here
+        Arrays.fill(activePlayers, false);
         // all pieces start on local position 0
         for (int[] player: piecesPosition)
             Arrays.fill(player, 0);
@@ -48,8 +51,10 @@ public class Ludo {
         players[2] = user3;
         players[3] = user4;
 
-        // all players are "active" on start
-        Arrays.fill(activePlayers, true);
+        // joined players are "active" on start
+        for(int i = 0; i < 4; i++){
+            activePlayers[i] = players[i] != null;
+        }
         // all pieces start on local position 0
         for (int[] player: piecesPosition)
             Arrays.fill(player, 0);
@@ -76,8 +81,8 @@ public class Ludo {
         if(ID < 0 || ID > 3)
             return null;
 
-        // if player not active
-        if(!activePlayers[ID]){
+        // if player exists but is not active
+        if(!activePlayers[ID] && players[ID] != null){
             return "Inactive: " + players[ID];
         }
 
@@ -111,6 +116,7 @@ public class Ludo {
             throw new NoRoomForMorePlayersException("This game is full!");
         }
 
+        activePlayers[nrOfPlayers()] = true;
         players[nrOfPlayers()] = playerName;
     }
 
@@ -131,7 +137,7 @@ public class Ludo {
      */
     int activePlayers(){
         // if has player and player is active
-        return (int)Arrays.stream(players).filter(n -> n != null && activePlayers[getPlayerID(n)]).count();
+        return (int)Arrays.stream(players).filter(n -> activePlayers[getPlayerID(n)]).count();
     }
 
     /**
@@ -150,5 +156,112 @@ public class Ludo {
      */
     int activePlayer(){
         return playerTurn;
+    }
+
+    /**
+     * Give turn to the next player who is active
+     */
+    private void nextPlayerTurn(){
+        for(int i = playerTurn == 3 ? 0 : playerTurn+1; i < 4; i++){
+            if(activePlayers[i]){
+                playerTurn = i;
+                break;
+            }
+            if(i == 3) i = -1;
+        }
+
+        timesRolled = 0;
+        diceRolled = -1;
+    }
+
+    /**
+     * Throw a random die
+     * @return number from the die thrown
+     */
+    int throwDice(){
+        Random rand = new Random();
+        // get number between 1 and 6
+        int randThrow = rand.nextInt(6) + 1;
+        throwDice(randThrow);
+        return randThrow;
+    }
+
+    /**
+     * Throw a die with a specific number
+     * <p>
+     *     If all pieces are at home, the player will get 3 throws.
+     *     If no 6 has been thrown after 3 throws, it's the next player's turn.
+     * </p>
+     * @param rolled the number that was rolled
+     */
+    void throwDice(int rolled){
+        boolean allPiecesAtHome = Arrays.stream(piecesPosition[playerTurn]).allMatch(n -> n == 0);
+
+        // if all pieces at home, player gets 3 throws
+        if(allPiecesAtHome) {
+            if (timesRolled < 3) {
+                timesRolled++;
+
+                // if player rolled 3 times and it's not 6 then next player's turn
+                if(timesRolled == 3 && rolled != 6){
+                    nextPlayerTurn();
+                }
+            }
+        } else {
+        }
+        diceRolled = rolled;
+    }
+
+    /**
+     * Check if the player can move any pieces
+     * <p>
+     *     If player rolled a six, he will be able to move a piece from home -> pos 1 or to whereever else.
+     *     If no move is available on any pieces AND the player did not throw a 6, it's the next player's turn.
+     * </p>
+     * @param playerID the ID of the player
+     * @param from position to move the piece from
+     * @param to position to move the piece to
+     * @return if move is legal or not
+     */
+    boolean movePiece(int playerID, int from, int to){
+        // player has not thrown dice yet
+        if(diceRolled == -1){
+            return false;
+        }
+        int pieceToBeMoved = -1;
+
+        for(int i = 0; i < 4; i++){
+            if(piecesPosition[playerID][i] == from){
+                pieceToBeMoved = i; break;
+            }
+        }
+
+        // if no piece can be moved, go to next player's turn
+        if(pieceToBeMoved == -1){
+            nextPlayerTurn();
+            return false;
+        }
+
+        // move home => start position
+        if(diceRolled == 6 && from == 0 && to == 1){
+            piecesPosition[playerID][pieceToBeMoved] = to;
+            nextPlayerTurn();
+            return true;
+        }
+
+        // move anywhere
+        if(from + diceRolled == to){
+            piecesPosition[playerID][pieceToBeMoved] = to;
+
+            // if did not throw 6, go to next player
+            if(diceRolled != 6){
+                nextPlayerTurn();
+            }
+
+            return true;
+        }
+
+        nextPlayerTurn();
+        return false;
     }
 }

@@ -148,7 +148,7 @@ public class LudoTest {
 	 */
 	@Test
 	public void needASixToGetStarted() {
-/*		Ludo ludo = new Ludo("Player1", "Player2", null, null);
+		Ludo ludo = new Ludo("Player1", "Player2", null, null);
 
 		assertEquals(Ludo.RED, ludo.activePlayer(), 0);
 		ludo.throwDice(1);
@@ -184,7 +184,7 @@ public class LudoTest {
 			assertEquals(Ludo.BLUE, ludo.activePlayer(), 0);
 		else // If not it should be REDs turn
 			assertEquals(Ludo.RED, ludo.activePlayer(), 0);
-*/	}
+	}
 
 	/**
 	 * Checks that player need exact number of eyes on the dice to move to finish.
