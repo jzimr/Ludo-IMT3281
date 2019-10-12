@@ -13,10 +13,17 @@ public class Ludo {
 
     final static String INACTIVE_PLAYER = "inactive";       // todo: remember to check that no player actually can register as this name
 
+    final static String GAME_STATE_CREATED = "Created";
+    final static String GAME_STATE_INITIATED = "Initiated";
+    final static String GAME_STATE_STARTED = "Started";
+    final static String GAME_STATE_FINISHED = "Finished";
+
+
     private String[] players = new String[4];       // [0] = RED, [1] = BLUE, [2] = YELLOW, [3] = GREEN
     private boolean[] activePlayers = new boolean[4];     // same indexing as line above. default = true
     private int[][] piecesPosition = new int[4][4];       // [playerID][pieceID] = position of piece
     private int playerTurn = 0;                     // red always starts first
+    private String gameState;                  //"Created", "Initiated", "Started", "Finished"
 
     /**
      * Empty contructor
@@ -27,6 +34,9 @@ public class Ludo {
         // all pieces start on local position 0
         for (int[] player: piecesPosition)
             Arrays.fill(player, 0);
+
+        // sets the game state
+        gameState = GAME_STATE_CREATED;
     }
 
     /**
@@ -53,6 +63,9 @@ public class Ludo {
         // all pieces start on local position 0
         for (int[] player: piecesPosition)
             Arrays.fill(player, 0);
+
+        // sets the game state
+        gameState = GAME_STATE_INITIATED;
     }
 
     /**
@@ -112,6 +125,12 @@ public class Ludo {
         }
 
         players[nrOfPlayers()] = playerName;
+
+        //Update game state if game was created without players
+        if (gameState == GAME_STATE_CREATED) {
+            gameState = GAME_STATE_INITIATED;
+        }
+
     }
 
     /**
@@ -150,5 +169,13 @@ public class Ludo {
      */
     int activePlayer(){
         return playerTurn;
+    }
+
+    /**
+     * Returns the state of the game
+     * @return gameState
+     */
+    String getStatus(){
+        return gameState;
     }
 }

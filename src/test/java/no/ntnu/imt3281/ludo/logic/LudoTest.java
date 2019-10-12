@@ -194,13 +194,13 @@ public class LudoTest {
 	 */
 	@Test
 	public void gameStates() {
-/*		Ludo ludo = new Ludo();
+		Ludo ludo = new Ludo();
 		assertEquals("Created", ludo.getStatus()); // A game with no players are created
 		ludo.addPlayer("Player1");
 		assertEquals("Initiated", ludo.getStatus()); // A game with players are Initiated
 		ludo = new Ludo("Player1", "Player2", null, null);
 		assertEquals("Initiated", ludo.getStatus());
-
+/*
 		// Move first piece from start to finish (player RED)
 		ludo.throwDice(6);
 		assertEquals("Started", ludo.getStatus()); // A game where the dice has been thrown is started
