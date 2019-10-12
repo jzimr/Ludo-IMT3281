@@ -323,4 +323,25 @@ public class Ludo {
         nextPlayerTurn();
         return false;
     }
+
+    /**
+     * Convert local Player position to global Board positions
+     * @param playerID the id of the player
+     * @param position the local player position
+     * @return boardlocation or -1 if not found
+     */
+    int userGridToLudoBoardGrid(int playerID, int position){
+        switch (playerID){
+            case RED:
+                return BoardLocations.RED_BOARD[position];
+            case BLUE:
+                return BoardLocations.BLUE_BOARD[position];
+            case YELLOW:
+                return BoardLocations.YELLOW_BOARD[position];
+            case GREEN:
+                return BoardLocations.GREEN_BOARD[position];
+            default:
+                return -1;
+        }
+    }
 }
