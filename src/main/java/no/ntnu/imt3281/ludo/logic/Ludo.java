@@ -187,6 +187,7 @@ public class Ludo {
     String getStatus() {
         return gameState;
     }
+
     /**
      * Give turn to the next player who is active
      */
@@ -208,6 +209,12 @@ public class Ludo {
      * @return number from the die thrown
      */
     int throwDice(){
+
+        // Update game state.
+        if (gameState == GAME_STATE_INITIATED) {
+            gameState = GAME_STATE_STARTED;
+        }
+
         Random rand = new Random();
         // get number between 1 and 6
         int randThrow = rand.nextInt(6) + 1;
@@ -223,8 +230,13 @@ public class Ludo {
      * </p>
      * @param rolled the number that was rolled
      */
-    void throwDice(int rolled){
+    int throwDice(int rolled){
         boolean allPiecesAtHome = Arrays.stream(piecesPosition[playerTurn]).allMatch(n -> n == 0);
+
+        // Update game state.
+        if (gameState == GAME_STATE_INITIATED) {
+            gameState = GAME_STATE_STARTED;
+        }
 
         // if all pieces at home, player gets 3 throws
         if(allPiecesAtHome) {
@@ -237,8 +249,11 @@ public class Ludo {
                 }
             }
         } else {
+
         }
+
         diceRolled = rolled;
+        return diceRolled;
     }
 
     /**
