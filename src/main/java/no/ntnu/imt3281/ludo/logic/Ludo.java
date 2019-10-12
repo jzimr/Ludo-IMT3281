@@ -14,7 +14,9 @@ public class Ludo {
     final static String INACTIVE_PLAYER = "inactive";       // todo: remember to check that no player actually can register as this name
 
     private String[] players = new String[4];       // [0] = RED, [1] = BLUE, [2] = YELLOW, [3] = GREEN
-    private boolean[] activePlayers = new boolean[4];     // same indexing as line above
+    private boolean[] activePlayers = new boolean[4];     // same indexing as line above. default = true
+    private int[][] piecesPosition = new int[4][4];       // [playerID][pieceID] = position of piece
+    private int playerTurn = 0;                     // red always starts first
 
     /**
      * Empty contructor
@@ -22,6 +24,9 @@ public class Ludo {
     public Ludo(){
         // all players are "active" on start
         Arrays.fill(activePlayers, true);
+        // all pieces start on local position 0
+        for (int[] player: piecesPosition)
+            Arrays.fill(player, 0);
     }
 
     /**
@@ -45,6 +50,9 @@ public class Ludo {
 
         // all players are "active" on start
         Arrays.fill(activePlayers, true);
+        // all pieces start on local position 0
+        for (int[] player: piecesPosition)
+            Arrays.fill(player, 0);
     }
 
     /**
@@ -126,6 +134,21 @@ public class Ludo {
         return (int)Arrays.stream(players).filter(n -> n != null && activePlayers[getPlayerID(n)]).count();
     }
 
+    /**
+     * Get the localposition of a particular piece belonging to a player
+     * @param playerID the ID of the player (0-3)
+     * @param pieceID the ID of the piece (0-3)
+     * @return
+     */
+    int getPosition(int playerID, int pieceID){
+        return piecesPosition[playerID][pieceID];
+    }
 
-
+    /**
+     * Get whose turn it is.
+     * @return the playerID (0-3)
+     */
+    int activePlayer(){
+        return playerTurn;
+    }
 }
