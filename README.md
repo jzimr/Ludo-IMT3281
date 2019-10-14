@@ -11,3 +11,9 @@ Du er nå klar til å begynne på prosjektet :-).
 [Trelloboard fra utviklingen av løsningsforslaget](https://trello.com/b/rRweyGja/ludo-2016)
 
 All testkode skal passere for å få bestått prosjektet, koden som ligger i src/main/java er gitt som et utgangspunkt, dere kan enten bygge videre på den eller starte fra scratch.
+
+# Deltakere:
+
+André G. Gunhildberget - 493561 - 17HBPROGA
+
+Jan Zimmer - 493594 - 17HBPROGA
