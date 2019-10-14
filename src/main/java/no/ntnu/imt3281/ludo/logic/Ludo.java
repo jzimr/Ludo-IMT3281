@@ -275,7 +275,7 @@ public class Ludo {
     /**
      * Check if the player can move any pieces
      * <p>
-     *     If player rolled a six, he will be able to move a piece from home -> pos 1 or to whereever else.
+     *     If player rolled a six, he will be able to move a piece from home -> pos 1 or to wherever else.
      *     If no move is available on any pieces AND the player did not throw a 6, it's the next player's turn.
      * </p>
      * @param playerID the ID of the player
@@ -318,6 +318,20 @@ public class Ludo {
         // move anywhere else
         if(from + diceRolled == to){
             piecesPosition[playerID][pieceToBeMoved] = to;
+            int playerUnder = getOnTopOfOtherPlayer(playerID, pieceToBeMoved);
+
+            // check if piece ontop of another player
+            if(playerUnder != -1){
+                int playerPosition = getPosition(playerID, pieceToBeMoved);
+                // get the specific piece that is under current player
+                for(int piece = 0; piece < 4; piece++){
+                    int otherPlayerPosition = getPosition(playerUnder, piece);
+                    if(userGridToLudoBoardGrid(playerID, playerPosition) == userGridToLudoBoardGrid(playerUnder, otherPlayerPosition)){
+                        // send him back home!
+                        piecesPosition[playerUnder][piece] = 0;
+                    }
+                }
+            }
 
             // if did not throw 6, go to next player
             if(diceRolled != 6){
@@ -405,7 +419,26 @@ public class Ludo {
         if (playersDone == activePlayers() -1) {
             gameState = GAME_STATE_FINISHED;
         }
-
     }
 
+    /**
+     * Get the ID of player that was stomped on.
+     * @param playerID the ID of the player on top
+     * @param pieceID the ID of the piece on top
+     * @return ID of other player or -1 if none found
+     */
+    private int getOnTopOfOtherPlayer(int playerID, int pieceID){
+        for(int otherPlayer = 0; otherPlayer < 4; otherPlayer++){
+            for(int otherPiece = 0; otherPiece < 4; otherPiece++){
+                int position = getPosition(playerID, pieceID);
+                int otherPosition = getPosition(otherPlayer, otherPiece);
+
+                // if is on same position as parameters
+                if(userGridToLudoBoardGrid(playerID, position) == userGridToLudoBoardGrid(otherPlayer, otherPosition) && otherPlayer != playerID){
+                    return otherPlayer;
+                }
+            }
+        }
+        return -1;
+    }
 }
