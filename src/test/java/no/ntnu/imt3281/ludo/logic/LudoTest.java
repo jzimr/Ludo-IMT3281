@@ -13,6 +13,8 @@ import no.ntnu.imt3281.ludo.Exceptions.NotEnoughPlayersException;
 import org.junit.Test;
 import org.mockito.InOrder;
 
+import java.util.Arrays;
+
 /**
  * @author okolloen
  *
@@ -248,6 +250,7 @@ public class LudoTest {
 			skipPlayer(ludo);
 			ludo.throwDice(3); // RED CAN move 3
 			assertTrue(ludo.movePiece(Ludo.RED, 56, 59)); // This piece is now finished
+
 			assertEquals("Started", ludo.getStatus());
 
 			assertEquals(Ludo.BLUE, ludo.activePlayer(), 0); // Should be BLUE players turn
@@ -283,7 +286,7 @@ public class LudoTest {
 		ludo.throwDice(4);
 		assertTrue(ludo.movePiece(Ludo.RED, 55, 59));
 		assertEquals("Finished", ludo.getStatus()); // A game with a winner is finished
-		//assertEquals(Ludo.RED, ludo.getWinner(), 0);
+		assertEquals(Ludo.RED, ludo.getWinner(), 0);
 	}
 
 	/**

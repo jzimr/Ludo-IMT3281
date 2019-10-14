@@ -30,6 +30,8 @@ public class Ludo {
 
     private String gameState;                  //"Created", "Initiated", "Started", "Finished"
 
+    private int gameWinner = -1;
+
     /**
      * Empty contructor
      */
@@ -231,6 +233,7 @@ public class Ludo {
      * @param rolled the number that was rolled
      */
     int throwDice(int rolled){
+        timesRolled++;
         boolean allPiecesAtHome = Arrays.stream(piecesPosition[playerTurn]).allMatch(n -> n == 0);
         int piecesAtHome = (int)Arrays.stream(piecesPosition[playerTurn]).filter(n -> n == 0).count();
 
@@ -241,21 +244,25 @@ public class Ludo {
             gameState = GAME_STATE_STARTED;
         }
 
+        //Third roll cant be 6.
+        if (timesRolled == 3 && diceRolled == 6) {
+            nextPlayerTurn();
+        }
+
+
         // if all pieces at home, player gets 3 throws
         if(allPiecesAtHome) {
-            if (timesRolled < 3) {
-                timesRolled++;
 
-                // if player rolled 3 times and it's not 6 then next player's turn
-                if(timesRolled == 3 && rolled != 6){
+            // if player rolled 3 times and it's not 6 then next player's turn
+            if(timesRolled == 3 && rolled != 6){
                     nextPlayerTurn();
-                }
             }
+
         } else {
             // if we can only move 1 piece atm
             for(int i = 0; i < 4; i++){
                 int piecePos = piecesPosition[playerTurn][i];
-                if(piecePos+rolled > 59){
+                if(piecePos+rolled > 59 && piecePos != 59){
                     nextPlayerTurn();
                 }
             }
@@ -317,8 +324,16 @@ public class Ludo {
                 nextPlayerTurn();
             }
 
+            checkIfGameIsDone();
+
             return true;
         }
+
+        if(timesRolled == 3) {
+            nextPlayerTurn();
+            return false;
+        }
+
 
         nextPlayerTurn();
         return false;
@@ -344,4 +359,54 @@ public class Ludo {
                 return -1;
         }
     }
+
+    /**
+     * Returns the int of the player who won
+     * @return Int of the winner
+     */
+
+    int getWinner(){
+        return gameWinner;
+    }
+
+    /**
+     * checks all pieces on the board to determine if the game is done or not.
+     * It also finds out which player who won.
+     */
+    void checkIfGameIsDone(){
+
+        int[] piecesDone = new int[activePlayers()];
+        int playersDone = 0;
+
+        //Loop over players
+        for (int i = 0; i < activePlayers(); i++) {
+            //Loop over pieces
+            for (int j = 0; j < 4; j++) {
+                if (piecesPosition[i][j] == 59) {
+                    piecesDone[i]++;
+                }
+            }
+        }
+
+        //Check how many players are done
+        for (int i = 0; i < activePlayers(); i++) {
+            if (piecesDone[i] == 4) {
+                System.out.println("test");
+                playersDone++;
+            }
+        }
+
+        //Finds the winner when the first player is done.
+        if ( gameWinner == -1 && playersDone == 1) {
+            int winner = Arrays.binarySearch(piecesDone, 4);
+            gameWinner = winner;
+        }
+
+        //Update state when all but one players is done
+        if (playersDone == activePlayers() -1) {
+            gameState = GAME_STATE_FINISHED;
+        }
+
+    }
+
 }
