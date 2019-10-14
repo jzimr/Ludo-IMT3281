@@ -391,7 +391,6 @@ public class Ludo {
         //Check how many players are done
         for (int i = 0; i < activePlayers(); i++) {
             if (piecesDone[i] == 4) {
-                System.out.println("test");
                 playersDone++;
             }
         }
