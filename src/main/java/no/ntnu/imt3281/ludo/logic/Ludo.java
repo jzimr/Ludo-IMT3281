@@ -233,20 +233,15 @@ public class Ludo {
      * @param rolled the number that was rolled
      */
     int throwDice(int rolled){
-        timesRolled++;
         boolean allPiecesAtHome = Arrays.stream(piecesPosition[playerTurn]).allMatch(n -> n == 0);
         int piecesAtHome = (int)Arrays.stream(piecesPosition[playerTurn]).filter(n -> n == 0).count();
 
+        timesRolled++;
         diceRolled = rolled;
 
         // Update game state.
         if (gameState == GAME_STATE_INITIATED) {
             gameState = GAME_STATE_STARTED;
-        }
-
-        //Third roll cant be 6.
-        if (timesRolled == 3 && diceRolled == 6) {
-            nextPlayerTurn();
         }
 
 
@@ -259,6 +254,11 @@ public class Ludo {
             }
 
         } else {
+            //Third roll cant be 6.
+            if (timesRolled == 3 && diceRolled == 6) {
+                nextPlayerTurn();
+            }
+
             // if we can only move 1 piece atm
             for(int i = 0; i < 4; i++){
                 int piecePos = piecesPosition[playerTurn][i];
