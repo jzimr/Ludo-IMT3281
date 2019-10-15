@@ -389,14 +389,23 @@ public class Ludo {
      */
     void checkIfGameIsDone(){
 
+        int[] playerIds = new int[activePlayers()];
         int[] piecesDone = new int[activePlayers()];
         int playersDone = 0;
+
+        //Get player ids of active players.
+        int tempPlayerCount = 0;
+        for(int i = 0; i < 4; i++) {
+            if (activePlayers[i]) {
+                playerIds[tempPlayerCount++] = i;
+            }
+        }
 
         //Loop over players
         for (int i = 0; i < activePlayers(); i++) {
             //Loop over pieces
             for (int j = 0; j < 4; j++) {
-                if (piecesPosition[i][j] == 59) {
+                if (piecesPosition[playerIds[i]][j] == 59) {
                     piecesDone[i]++;
                 }
             }
