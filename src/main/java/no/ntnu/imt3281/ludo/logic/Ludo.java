@@ -265,7 +265,14 @@ public class Ludo {
                 if(piecePos+rolled > 59 && piecePos != 59){
                     nextPlayerTurn();
                 }
+
             }
+
+            //Skip turn if the player is blocked.
+            /*if (towersBlocksOpponents(playerTurn, rolled)) {
+                nextPlayerTurn();
+            }*/
+
         }
 
         diceRolled = rolled;
@@ -450,4 +457,57 @@ public class Ludo {
         }
         return -1;
     }
+
+    /**
+     * Checks if the player is able to move.
+     * @param playerID
+     * @param diceRolled
+     * @return true if the user is blocked, false if the player can move.
+     */
+    boolean towersBlocksOpponents(int playerID, int diceRolled) {
+
+        //Loop over player pieces and check if a piece is able to move.
+        for(int playerPiece = 0; playerPiece < 4; playerPiece++) {
+            if (piecesPosition[playerID][playerPiece] != 0 &&  isPieceMoveable(playerID, playerPiece, diceRolled)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     *  Checks if a selected piece if able to move
+     * @param playerID
+     * @param pieceID
+     * @param diceRolled
+     * @return true if the user can move, false if the user cant move.
+     */
+    boolean isPieceMoveable(int playerID, int pieceID, int diceRolled){
+
+        //Get position of players piece
+        int myPos = getPosition(playerID, pieceID);
+        int newPos = userGridToLudoBoardGrid(playerID, myPos);
+
+        //Loop over other players and their pieces
+        for(int otherPlayerId = 0; otherPlayerId < 4; otherPlayerId++) {
+            for (int otherPlayerPiece = 0; otherPlayerPiece < 4; otherPlayerPiece++) {
+
+                //Get position of the other users piece.
+                int otherpos = getPosition(otherPlayerId, otherPlayerPiece);
+
+                //Loop over all game board spots and check if a user is located on one of them.
+                for (int k = newPos; k <= newPos + diceRolled; k++) {
+                    if ( k == userGridToLudoBoardGrid(otherPlayerId, otherpos)
+                        && playerID != otherPlayerId
+                        && otherpos != 0){
+                        return false; //A piece was found on the route the player needs to take
+                    }
+                }
+            }
+        }
+
+        return true; //No piece was found blocking the user.
+    }
+
 }

@@ -386,7 +386,7 @@ public class LudoTest {
 	 */
 	@Test
 	public void towersBlocksOpponents() {
-/*		Ludo ludo = new Ludo("Player1", "Player2", null, null);
+		Ludo ludo = new Ludo("Player1", "Player2", null, null);
 
 		ludo.throwDice(6); // RED is in play
 		assertTrue(ludo.movePiece(Ludo.RED, 0, 1));
@@ -409,7 +409,6 @@ public class LudoTest {
 		assertTrue(ludo.movePiece(Ludo.BLUE, 0, 1)); // Board position 29
 		ludo.throwDice(4);
 		assertTrue(ludo.movePiece(Ludo.RED, 12, 16)); // RED now have two pieces on 31
-
 		assertEquals(Ludo.BLUE, ludo.activePlayer(), 0);
 
 		ludo.throwDice(5); // Blue have one piece in play, but can not move past REDs tower
@@ -448,7 +447,7 @@ public class LudoTest {
 		assertEquals(0, ludo.getPosition(Ludo.RED, 3), 0);
 
 		assertEquals(5, ludo.getPosition(Ludo.BLUE, 0));
-*/	}
+	}
 
 	/**
 	 * Use to throw three ones for a player, i.e. if this player has all the pieces
