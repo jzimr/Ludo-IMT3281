@@ -354,8 +354,6 @@ public class Ludo {
             nextPlayerTurn();
             return false;
         }
-
-
         nextPlayerTurn();
         return false;
     }
@@ -466,14 +464,37 @@ public class Ludo {
      */
     boolean towersBlocksOpponents(int playerID, int diceRolled) {
 
-        //Loop over player pieces and check if a piece is able to move.
-        for(int playerPiece = 0; playerPiece < 4; playerPiece++) {
-            if (piecesPosition[playerID][playerPiece] != 0 &&  isPieceMoveable(playerID, playerPiece, diceRolled)) {
-                return false;
+        int pieceId[] = new int[4];
+
+        //Get pieces in play for user
+        int tempPieceCount = 0;
+        for(int i = 0; i < 4; i++) {
+            if (piecesPosition[playerID][i] != 0) {
+                pieceId[tempPieceCount++] = i;
             }
         }
 
-        return true;
+        boolean moveable[] = new boolean[tempPieceCount];
+        Arrays.fill(moveable, false);
+
+        //Loop over player pieces and check if a piece are able to move.
+        for(int playerPiece = 0; playerPiece < tempPieceCount; playerPiece++) {
+            System.out.println("Pieces in play " + tempPieceCount + " | " + playerPiece);
+            if (piecesPosition[playerID][pieceId[playerPiece]] != 0 &&  isPieceMoveable(playerID, pieceId[playerPiece], diceRolled)) { //user can move
+                moveable[playerPiece] = true;
+            }
+        }
+
+        int isThereAnyMoveable = 0;
+
+        for (Boolean value : moveable) {
+            if (value) {
+                isThereAnyMoveable++;
+            }
+        }
+
+        System.out.println(isThereAnyMoveable + " | " +!(isThereAnyMoveable > 0));
+        return !(isThereAnyMoveable > 0);
     }
 
     /**
@@ -497,7 +518,7 @@ public class Ludo {
                 int otherpos = getPosition(otherPlayerId, otherPlayerPiece);
 
                 //Loop over all game board spots and check if a user is located on one of them.
-                for (int k = newPos; k <= newPos + diceRolled; k++) {
+                for (int k = newPos + 1; k < newPos + diceRolled; k++) {
                     if ( k == userGridToLudoBoardGrid(otherPlayerId, otherpos)
                         && playerID != otherPlayerId
                         && otherpos != 0){
