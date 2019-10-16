@@ -3,8 +3,8 @@ package no.ntnu.imt3281.ludo.logic;
 import no.ntnu.imt3281.ludo.Exceptions.NoRoomForMorePlayersException;
 import no.ntnu.imt3281.ludo.Exceptions.NotEnoughPlayersException;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Random;
 
 public class Ludo {
     final static int RED = 0;
@@ -485,7 +485,7 @@ public class Ludo {
 
         //Loop over player pieces and check if a piece are able to move.
         for(int playerPiece = 0; playerPiece < tempPieceCount; playerPiece++) {
-            if (piecesPosition[playerID][pieceId[playerPiece]] != 0 &&  isPieceMoveable(playerID, pieceId[playerPiece], diceRolled)) { //user can move
+            if (isPieceMoveable(playerID, pieceId[playerPiece], diceRolled)) { //user can move
                 moveable[playerPiece] = true;
             }
         }
