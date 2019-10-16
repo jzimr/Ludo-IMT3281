@@ -3,8 +3,8 @@ package no.ntnu.imt3281.ludo.logic;
 import no.ntnu.imt3281.ludo.Exceptions.NoRoomForMorePlayersException;
 import no.ntnu.imt3281.ludo.Exceptions.NotEnoughPlayersException;
 
-import java.util.Arrays;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Ludo {
     final static int RED = 0;
@@ -28,7 +28,7 @@ public class Ludo {
     private int timesRolled = 0;                          // times of dices rolled in a player's turn
     private int diceRolled = 0;                            // which dice the player has rolled
 
-    private String gameState;                  //"Created", "Initiated", "Started", "Finished"
+    private String gameState = null;                  //"Created", "Initiated", "Started", "Finished"
 
     private int gameWinner = -1;
 
@@ -43,7 +43,9 @@ public class Ludo {
             Arrays.fill(player, 0);
 
         // sets the game state
-        gameState = GAME_STATE_CREATED;
+        if (gameState == null) {
+            gameState = GAME_STATE_CREATED;
+        }
     }
 
     /**
@@ -74,7 +76,9 @@ public class Ludo {
             Arrays.fill(player, 0);
 
         // sets the game state
-        gameState = GAME_STATE_INITIATED;
+        if (gameState == null) {
+            gameState = GAME_STATE_INITIATED;
+        }
     }
 
     /**
@@ -257,6 +261,7 @@ public class Ludo {
             //Third roll cant be 6.
             if (timesRolled == 3 && diceRolled == 6) {
                 nextPlayerTurn();
+                return rolled;
             }
 
             // if we can only move 1 piece atm
@@ -264,14 +269,15 @@ public class Ludo {
                 int piecePos = piecesPosition[playerTurn][i];
                 if(piecePos+rolled > 59 && piecePos != 59){
                     nextPlayerTurn();
+                    return rolled;
                 }
 
             }
 
             //Skip turn if the player is blocked.
-            /*if (towersBlocksOpponents(playerTurn, rolled)) {
+            if (towersBlocksOpponents(playerTurn, rolled)) {
                 nextPlayerTurn();
-            }*/
+            }
 
         }
 
@@ -458,8 +464,8 @@ public class Ludo {
 
     /**
      * Checks if the player is able to move.
-     * @param playerID
-     * @param diceRolled
+     * @param playerID id of player
+     * @param diceRolled Number that the dice rolled
      * @return true if the user is blocked, false if the player can move.
      */
     boolean towersBlocksOpponents(int playerID, int diceRolled) {
@@ -479,7 +485,6 @@ public class Ludo {
 
         //Loop over player pieces and check if a piece are able to move.
         for(int playerPiece = 0; playerPiece < tempPieceCount; playerPiece++) {
-            System.out.println("Pieces in play " + tempPieceCount + " | " + playerPiece);
             if (piecesPosition[playerID][pieceId[playerPiece]] != 0 &&  isPieceMoveable(playerID, pieceId[playerPiece], diceRolled)) { //user can move
                 moveable[playerPiece] = true;
             }
@@ -487,48 +492,67 @@ public class Ludo {
 
         int isThereAnyMoveable = 0;
 
-        for (Boolean value : moveable) {
+        for (Boolean value : moveable) { //Count up how many pieces are able to move.
             if (value) {
                 isThereAnyMoveable++;
             }
         }
 
-        System.out.println(isThereAnyMoveable + " | " +!(isThereAnyMoveable > 0));
+        //Return if there is more than one piece moveable.
         return !(isThereAnyMoveable > 0);
     }
 
     /**
      *  Checks if a selected piece if able to move
-     * @param playerID
-     * @param pieceID
-     * @param diceRolled
+     * @param playerID id of player
+     * @param pieceID Id of player piece
+     * @param diceRolled Number that the dice rolled
      * @return true if the user can move, false if the user cant move.
      */
     boolean isPieceMoveable(int playerID, int pieceID, int diceRolled){
 
         //Get position of players piece
         int myPos = getPosition(playerID, pieceID);
-        int newPos = userGridToLudoBoardGrid(playerID, myPos);
+        int ludoBoardPos = userGridToLudoBoardGrid(playerID, myPos) ;
 
-        //Loop over other players and their pieces
-        for(int otherPlayerId = 0; otherPlayerId < 4; otherPlayerId++) {
-            for (int otherPlayerPiece = 0; otherPlayerPiece < 4; otherPlayerPiece++) {
 
-                //Get position of the other users piece.
-                int otherpos = getPosition(otherPlayerId, otherPlayerPiece);
-
-                //Loop over all game board spots and check if a user is located on one of them.
-                for (int k = newPos + 1; k < newPos + diceRolled; k++) {
-                    if ( k == userGridToLudoBoardGrid(otherPlayerId, otherpos)
-                        && playerID != otherPlayerId
-                        && otherpos != 0){
-                        return false; //A piece was found on the route the player needs to take
-                    }
-                }
-            }
+        if (isThereTowers(ludoBoardPos,diceRolled)){
+            return false; //Tower was found, user is blocked.
         }
 
         return true; //No piece was found blocking the user.
+    }
+
+    /**
+     * Checks if there are any tower present on the path the user takes.
+     * @param startPos Start position of piece
+     * @param diceRolled Number that the dice rolled
+     * @return true if there is a tower, false if not
+     */
+    boolean isThereTowers( int startPos, int diceRolled){
+
+        for(int otherPlayerId = 0; otherPlayerId < 4; otherPlayerId++) {
+
+            int[] pieceLocations = new int[4];
+
+            for(int otherPlayerPiece = 0; otherPlayerPiece < 4; otherPlayerPiece++) {
+                pieceLocations[otherPlayerPiece] = userGridToLudoBoardGrid(otherPlayerId, getPosition(otherPlayerId, otherPlayerPiece));
+            }
+
+            for(int i = 0; i < 4; i++) { //Loop over the pieceLocations array and see if we find duplicates.
+                for(int j = 0; j < 4; j++) {
+                    if (pieceLocations[i] == pieceLocations[j] //If we find a duplicate (Aka a tower)
+                            && i != j                          //And they are not the same element
+                            && pieceLocations[i] > startPos    //And the piece location are after where we are currently
+                            && pieceLocations[i] <= startPos + diceRolled) { //And is lower than where we want to go.
+                        return true; //Found a tower!
+                    }
+                }
+            }
+
+        }
+
+        return false; //No there is no towers.
     }
 
 }
