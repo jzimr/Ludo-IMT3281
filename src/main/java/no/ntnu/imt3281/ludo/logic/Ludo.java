@@ -470,36 +470,16 @@ public class Ludo {
      */
     boolean towersBlocksOpponents(int playerID, int diceRolled) {
 
-        int pieceId[] = new int[4];
-
         //Get pieces in play for user
-        int tempPieceCount = 0;
         for(int i = 0; i < 4; i++) {
-            if (piecesPosition[playerID][i] != 0) {
-                pieceId[tempPieceCount++] = i;
+            if (piecesPosition[playerID][i] != 0) { // piece is not at home
+                if (isPieceMoveable(playerID, i, diceRolled)) { //user can move
+                    return false;
+                }
             }
         }
 
-        boolean moveable[] = new boolean[tempPieceCount];
-        Arrays.fill(moveable, false);
-
-        //Loop over player pieces and check if a piece are able to move.
-        for(int playerPiece = 0; playerPiece < tempPieceCount; playerPiece++) {
-            if (isPieceMoveable(playerID, pieceId[playerPiece], diceRolled)) { //user can move
-                moveable[playerPiece] = true;
-            }
-        }
-
-        int isThereAnyMoveable = 0;
-
-        for (Boolean value : moveable) { //Count up how many pieces are able to move.
-            if (value) {
-                isThereAnyMoveable++;
-            }
-        }
-
-        //Return false if there is more than one piece moveable (Not blocked), true if no pieces are moveable (Blocked)
-        return !(isThereAnyMoveable > 0);
+        return true;
     }
 
     /**
@@ -514,7 +494,6 @@ public class Ludo {
         //Get position of players piece
         int myPos = getPosition(playerID, pieceID);
         int ludoBoardPos = userGridToLudoBoardGrid(playerID, myPos) ;
-
 
         if (isThereTowers(ludoBoardPos,diceRolled)){
             return false; //Tower was found, user is blocked.
@@ -554,5 +533,4 @@ public class Ludo {
 
         return false; //No there is no towers.
     }
-
 }
