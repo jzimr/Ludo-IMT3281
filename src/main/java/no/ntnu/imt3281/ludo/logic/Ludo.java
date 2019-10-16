@@ -498,7 +498,7 @@ public class Ludo {
             }
         }
 
-        //Return if there is more than one piece moveable.
+        //Return false if there is more than one piece moveable (Not blocked), true if no pieces are moveable (Blocked)
         return !(isThereAnyMoveable > 0);
     }
 
