@@ -1,8 +1,13 @@
 package no.ntnu.imt3281.ludo.logic;
 
-public class PieceListener {
+/**
+ * Interface implementing a listener for when a piece is moved
+ */
+public interface PieceListener {
 
-    void pieceMoved(PieceEvent pieceEvent){
-
-    }
+    /**
+     * Called when a player piece is moved.
+     * @param pieceEvent returns data about the piece moved
+     */
+    void pieceMoved(PieceEvent pieceEvent);
 }

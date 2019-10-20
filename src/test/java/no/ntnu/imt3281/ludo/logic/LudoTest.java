@@ -505,7 +505,7 @@ public class LudoTest {
 	 */
 	@Test
 	public void pieceMovedEventTest() {
-	/*	Ludo ludo = new Ludo("Player1", "Player2", null, null);
+		Ludo ludo = new Ludo("Player1", "Player2", null, null);
 
 		// Create a mock PieceListener
 		PieceListener pieceListener = mock(PieceListener.class);
@@ -539,7 +539,6 @@ public class LudoTest {
 		order.verify(pieceListener).pieceMoved(pe);
 		pe = new PieceEvent(ludo, Ludo.BLUE, 0, 1, 0); // Blue got pushed back to start
 		order.verify(pieceListener).pieceMoved(pe);
-	*/
 	}
 
 	/**

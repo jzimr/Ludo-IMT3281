@@ -1,8 +1,13 @@
 package no.ntnu.imt3281.ludo.logic;
 
-public class DiceListener {
+/**
+ * Interface implementing a listener for when a dice is thrown
+ */
+public interface DiceListener {
 
-    void diceThrown(DiceEvent diceEvent){
-        // todo
-    }
+    /**
+     * Called when a dice is thrown.
+     * @param diceEvent returns data about dice rolled
+     */
+    void diceThrown(DiceEvent diceEvent);
 }

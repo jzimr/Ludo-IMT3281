@@ -1,9 +1,12 @@
 package no.ntnu.imt3281.ludo.logic;
 
+/**
+ * Event object containing data about the dice rolled
+ */
 public class DiceEvent {
     final Ludo ludoGame;
-    final int playerID;
-    final int diceRolled;
+    final int playerID;         // ID of player rolled
+    final int diceRolled;       // Dice number rolled
 
     /**
      * A diceEvent should contain the ludo object, who rolled the dice and which number was thrown

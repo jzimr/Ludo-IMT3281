@@ -247,7 +247,9 @@ public class Ludo {
         diceRolled = rolled;
 
         // call event listeners
-        diceListener.diceThrown(new DiceEvent(this, activePlayer(), rolled));
+        if(diceListener != null){
+            diceListener.diceThrown(new DiceEvent(this, activePlayer(), rolled));
+        }
 
         // Update game state.
         if (gameState == GAME_STATE_INITIATED) {
@@ -324,6 +326,10 @@ public class Ludo {
         // move home => start position
         if(diceRolled == 6 && from == 0 && to == 1){
             piecesPosition[playerID][pieceToBeMoved] = to;
+            // call event listener
+            if(pieceListener != null){
+                pieceListener.pieceMoved(new PieceEvent(this, playerID, pieceToBeMoved, from, to));
+            }
             nextPlayerTurn();
             return true;
         }
@@ -339,6 +345,11 @@ public class Ludo {
             piecesPosition[playerID][pieceToBeMoved] = to;
             int playerUnder = getOnTopOfOtherPlayer(playerID, pieceToBeMoved);
 
+            // call event listener
+            if(pieceListener != null){
+                pieceListener.pieceMoved(new PieceEvent(this, playerID, pieceToBeMoved, from, to));
+            }
+
             // check if piece ontop of another player
             if(playerUnder != -1){
                 int playerPosition = getPosition(playerID, pieceToBeMoved);
@@ -348,6 +359,10 @@ public class Ludo {
                     if(userGridToLudoBoardGrid(playerID, playerPosition) == userGridToLudoBoardGrid(playerUnder, otherPlayerPosition)){
                         // send him back home!
                         piecesPosition[playerUnder][piece] = 0;
+                        // call event listener
+                        if(pieceListener != null){
+                            pieceListener.pieceMoved(new PieceEvent(this, playerUnder, piece, otherPlayerPosition, 0));
+                        }
                     }
                 }
             }
@@ -366,6 +381,7 @@ public class Ludo {
             nextPlayerTurn();
             return false;
         }
+
         nextPlayerTurn();
         return false;
     }
