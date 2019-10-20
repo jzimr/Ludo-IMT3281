@@ -29,8 +29,11 @@ public class Ludo {
     private int diceRolled = 0;                            // which dice the player has rolled
 
     private String gameState = null;                  //"Created", "Initiated", "Started", "Finished"
-
     private int gameWinner = -1;
+
+    // event listeners
+    private DiceListener diceListener;
+    private PieceListener pieceListener;
 
     /**
      * Empty contructor
@@ -242,6 +245,9 @@ public class Ludo {
 
         timesRolled++;
         diceRolled = rolled;
+
+        // call event listeners
+        diceListener.diceThrown(new DiceEvent(this, activePlayer(), rolled));
 
         // Update game state.
         if (gameState == GAME_STATE_INITIATED) {
@@ -532,5 +538,17 @@ public class Ludo {
         }
 
         return false; //No there is no towers.
+    }
+
+    /**
+     * Add the Dice listener to this particular Ludo class
+     * @param diceListener the Dice listener object we want to send events to
+     */
+    void addDiceListener(DiceListener diceListener){
+        this.diceListener = diceListener;
+    }
+
+    void addPieceListener(PieceListener pieceListener){
+        this.pieceListener = pieceListener;
     }
 }

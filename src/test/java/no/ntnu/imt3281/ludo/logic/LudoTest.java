@@ -475,7 +475,7 @@ public class LudoTest {
 	 */
 	@Test
 	public void diceThrownEventTest() {
-/*		Ludo ludo = new Ludo("Player1", "Player2", null, null);
+		Ludo ludo = new Ludo("Player1", "Player2", null, null);
 
 		// Create a mock DiceListener
 		DiceListener diceListener = mock(DiceListener.class);
@@ -493,7 +493,7 @@ public class LudoTest {
 
 		DiceEvent diceEvent1 = new DiceEvent(ludo, Ludo.BLUE, 3); // Then blue threw a three
 		order.verify(diceListener).diceThrown(diceEvent1);
-*/	}
+	}
 
 	/**
 	 * Check that correct movement of pieces event is sent. I.e. when a piece is
@@ -505,7 +505,7 @@ public class LudoTest {
 	 */
 	@Test
 	public void pieceMovedEventTest() {
-/*		Ludo ludo = new Ludo("Player1", "Player2", null, null);
+	/*	Ludo ludo = new Ludo("Player1", "Player2", null, null);
 
 		// Create a mock PieceListener
 		PieceListener pieceListener = mock(PieceListener.class);
@@ -539,7 +539,8 @@ public class LudoTest {
 		order.verify(pieceListener).pieceMoved(pe);
 		pe = new PieceEvent(ludo, Ludo.BLUE, 0, 1, 0); // Blue got pushed back to start
 		order.verify(pieceListener).pieceMoved(pe);
-*/	}
+	*/
+	}
 
 	/**
 	 * Check that we get notified when a new player becomes active. When a player
