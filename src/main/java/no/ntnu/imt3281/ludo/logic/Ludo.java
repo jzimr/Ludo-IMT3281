@@ -34,6 +34,7 @@ public class Ludo {
     // event listeners
     private DiceListener diceListener;
     private PieceListener pieceListener;
+    private PlayerListener playerListener;
 
     /**
      * Empty contructor
@@ -162,6 +163,17 @@ public class Ludo {
     }
 
     /**
+     * Removes a player from the game.
+     * <p>
+     *     This however, does not affect nrOfPlayers()
+     * </p>
+     * @param playerId id of player to remove
+     */
+    void removePlayer(int playerId) {
+        activePlayers[playerId] = false;
+    }
+
+    /**
      * Get the number of currently active players in the game
      * @return number of active players
      */
@@ -211,6 +223,10 @@ public class Ludo {
 
         timesRolled = 0;
         diceRolled = -1;
+
+        if (playerListener != null) {
+            playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.PLAYING));
+        }
     }
 
     /**
@@ -262,12 +278,21 @@ public class Ludo {
 
             // if player rolled 3 times and it's not 6 then next player's turn
             if(timesRolled == 3 && rolled != 6){
-                    nextPlayerTurn();
+                //Call event listener
+                if (playerListener != null) {
+                    playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
+                }
+
+                nextPlayerTurn();
             }
 
         } else {
             //Third roll cant be 6.
             if (timesRolled == 3 && diceRolled == 6) {
+                // call event listener
+                if (playerListener != null) {
+                    playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
+                }
                 nextPlayerTurn();
                 return rolled;
             }
@@ -276,6 +301,10 @@ public class Ludo {
             for(int i = 0; i < 4; i++){
                 int piecePos = piecesPosition[playerTurn][i];
                 if(piecePos+rolled > 59 && piecePos != 59){
+                    // call event listener
+                    if (playerListener != null) {
+                        playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
+                    }
                     nextPlayerTurn();
                     return rolled;
                 }
@@ -284,6 +313,10 @@ public class Ludo {
 
             //Skip turn if the player is blocked.
             if (towersBlocksOpponents(playerTurn, rolled)) {
+                //Call event listener
+                if (playerListener != null) {
+                    playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
+                }
                 nextPlayerTurn();
             }
 
@@ -330,6 +363,11 @@ public class Ludo {
             if(pieceListener != null){
                 pieceListener.pieceMoved(new PieceEvent(this, playerID, pieceToBeMoved, from, to));
             }
+            // call event listener
+            if (playerListener != null) {
+                playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
+            }
+
             nextPlayerTurn();
             return true;
         }
@@ -350,6 +388,11 @@ public class Ludo {
                 pieceListener.pieceMoved(new PieceEvent(this, playerID, pieceToBeMoved, from, to));
             }
 
+            // call event listener
+            if (playerListener != null) {
+                playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
+            }
+
             // check if piece ontop of another player
             if(playerUnder != -1){
                 int playerPosition = getPosition(playerID, pieceToBeMoved);
@@ -362,6 +405,11 @@ public class Ludo {
                         // call event listener
                         if(pieceListener != null){
                             pieceListener.pieceMoved(new PieceEvent(this, playerUnder, piece, otherPlayerPosition, 0));
+                        }
+
+                        // call event listener
+                        if (playerListener != null) {
+                            playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
                         }
                     }
                 }
@@ -455,6 +503,11 @@ public class Ludo {
         if ( gameWinner == -1 && playersDone == 1) {
             int winner = Arrays.binarySearch(piecesDone, 4);
             gameWinner = winner;
+
+            //Send event with game winner.
+            if (playerListener != null) {
+                playerListener.playerStateChanged(new PlayerEvent(this, winner, PlayerEvent.WON));
+            }
         }
 
         //Update state when all but one players is done
@@ -566,5 +619,9 @@ public class Ludo {
 
     void addPieceListener(PieceListener pieceListener){
         this.pieceListener = pieceListener;
+    }
+
+    void addPlayerListener(PlayerListener playerlistener){
+        this.playerListener = playerlistener;
     }
 }

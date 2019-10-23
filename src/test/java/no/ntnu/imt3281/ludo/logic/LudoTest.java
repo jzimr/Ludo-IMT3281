@@ -549,7 +549,7 @@ public class LudoTest {
 	 */
 	@Test
 	public void checkActivePlayerEventTest() {
-/*		Ludo ludo = new Ludo("Player1", "Player2", "Player3", null);
+		Ludo ludo = new Ludo("Player1", "Player2", "Player3", null);
 
 		// Create a mock DiceListener
 		DiceListener diceListener = mock(DiceListener.class);
@@ -1022,5 +1022,5 @@ public class LudoTest {
 		pe = new PieceEvent(ludo, Ludo.RED, 3, 59, 59);
 		ple = new PlayerEvent(ludo, Ludo.RED, PlayerEvent.WON);
 		order.verify(playerListener).playerStateChanged(ple); // HURRAY, we have a winner
-*/	}
+	}
 }
