@@ -95,10 +95,37 @@ public class DatabaseTest {
         try{
             assertEquals("CHAT_ID", resultSet.getMetaData().getColumnName(1));
             assertEquals("CHAT_NAME", resultSet.getMetaData().getColumnName(2));
-            assertEquals("CHAT_HISTORY", resultSet.getMetaData().getColumnName(3));
-            assertEquals(3, resultSet.getMetaData().getColumnCount());
+            assertEquals("CHAT_MESSAGE", resultSet.getMetaData().getColumnName(3));
+            assertEquals("TIMESTAMP", resultSet.getMetaData().getColumnName(4));
+            assertEquals(4, resultSet.getMetaData().getColumnCount());
         } catch(SQLException ex){
             assertFalse(true);
         }
     }
+
+    @Test
+    public void insertChatMessageTest(){
+
+        //Insert data into the db
+        testDatabase.insertChatMessage(0,"Test", "Hello Test");
+
+        //Try to retrieve data from db and check if the data is correct.
+        try {
+            Statement state = testConnection.createStatement();
+            ResultSet rs = state.executeQuery("SELECT * FROM chat_log");
+
+            //Loop over data and
+            while(rs.next()) {
+                assertEquals(String.valueOf(0), rs.getString("chat_id"));
+                assertEquals("Test", rs.getString("chat_name"));
+                assertEquals("Hello Test", rs.getString("chat_message"));
+                assertNotEquals(String.valueOf(0), rs.getString("timestamp"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 }

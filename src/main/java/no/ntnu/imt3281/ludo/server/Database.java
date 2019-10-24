@@ -3,6 +3,7 @@ package no.ntnu.imt3281.ludo.server;
 import org.apache.derby.iapi.services.monitor.DerbyObserver;
 
 import java.sql.*;
+import java.time.Instant;
 
 /**
  * Singleton Database class
@@ -54,6 +55,41 @@ public class Database {
     }
 
     /**
+     * Insert chat message into the database. It auto adds a timestamp into the database as well.
+     * @param chatId Id of chat room the message was sent in
+     * @param chatName The name of the user who sent the message
+     * @param chatMessage The actual text the user sent to the chat message
+     */
+    public void insertChatMessage(int chatId, String chatName, String chatMessage){
+        try {
+
+            Statement stmt = connection.createStatement();
+            long timestamp = Instant.now().getEpochSecond();
+
+            String query = "INSERT INTO chat_log("
+                    + "chat_id, chat_name, chat_message, timestamp) VALUES "
+                    + "(" + chatId + ",'"
+                    + chatName + "', '"+
+                    chatMessage +"',"
+                    + timestamp +") ";
+
+            stmt.execute(query);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public String getChatLog(int chatId){
+        // todo
+
+        return "";
+    }
+
+
+
+    /**
      * Used for setting up Database for test environment
      */
     protected static Database constructTestDatabase(String testDBURL){
@@ -91,13 +127,11 @@ public class Database {
             Statement stmt = connection.createStatement();
 
             stmt.execute("CREATE TABLE chat_log (" +
-                    "chat_id int NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 0, INCREMENT BY 1)," +
+                    "chat_id int NOT NULL," +
                     "chat_name varchar(32) NOT NULL," +
-                    "chat_history varchar(8000))");
+                    "chat_message varchar(8000)," + //Todo: Change varchar length to something else than 8000
+                    "timestamp bigint)");
 
-            // both "user_id" and "user_name" should be unique
-            stmt.execute("CREATE UNIQUE INDEX chat_idx on chat_log(chat_id)");
-            stmt.execute("CREATE UNIQUE INDEX chat_namex on chat_log(chat_name)");
         } catch(SQLException ex){
             ex.printStackTrace();
         }
