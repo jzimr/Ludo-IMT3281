@@ -160,6 +160,14 @@ public class Ludo {
      */
     void removePlayer(String playerName){
         activePlayers[getPlayerID(playerName)] = false;
+        //Send event that a user left the game.
+        if (playerListener != null) {
+            playerListener.playerStateChanged(new PlayerEvent(this, getPlayerID(playerName), PlayerEvent.LEFTGAME));
+        }
+
+        //Skip that players turn
+        nextPlayerTurn();
+
     }
 
     /**
@@ -171,6 +179,13 @@ public class Ludo {
      */
     void removePlayer(int playerId) {
         activePlayers[playerId] = false;
+        //Send event that a user left the game.
+        if (playerListener != null) {
+            playerListener.playerStateChanged(new PlayerEvent(this, playerId, PlayerEvent.LEFTGAME));
+        }
+
+        //Skip that players turn
+        nextPlayerTurn();
     }
 
     /**
@@ -213,6 +228,11 @@ public class Ludo {
      * Give turn to the next player who is active
      */
     private void nextPlayerTurn(){
+        // call event listener
+        if (playerListener != null) {
+            playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
+        }
+
         for(int i = playerTurn == 3 ? 0 : playerTurn+1; i < 4; i++){
             if(activePlayers[i]){
                 playerTurn = i;
@@ -223,7 +243,6 @@ public class Ludo {
 
         timesRolled = 0;
         diceRolled = -1;
-
         if (playerListener != null) {
             playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.PLAYING));
         }
@@ -278,10 +297,7 @@ public class Ludo {
 
             // if player rolled 3 times and it's not 6 then next player's turn
             if(timesRolled == 3 && rolled != 6){
-                //Call event listener
-                if (playerListener != null) {
-                    playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
-                }
+
 
                 nextPlayerTurn();
             }
@@ -289,10 +305,7 @@ public class Ludo {
         } else {
             //Third roll cant be 6.
             if (timesRolled == 3 && diceRolled == 6) {
-                // call event listener
-                if (playerListener != null) {
-                    playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
-                }
+
                 nextPlayerTurn();
                 return rolled;
             }
@@ -301,10 +314,7 @@ public class Ludo {
             for(int i = 0; i < 4; i++){
                 int piecePos = piecesPosition[playerTurn][i];
                 if(piecePos+rolled > 59 && piecePos != 59){
-                    // call event listener
-                    if (playerListener != null) {
-                        playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
-                    }
+
                     nextPlayerTurn();
                     return rolled;
                 }
@@ -313,10 +323,7 @@ public class Ludo {
 
             //Skip turn if the player is blocked.
             if (towersBlocksOpponents(playerTurn, rolled)) {
-                //Call event listener
-                if (playerListener != null) {
-                    playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
-                }
+
                 nextPlayerTurn();
             }
 
@@ -363,11 +370,6 @@ public class Ludo {
             if(pieceListener != null){
                 pieceListener.pieceMoved(new PieceEvent(this, playerID, pieceToBeMoved, from, to));
             }
-            // call event listener
-            if (playerListener != null) {
-                playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
-            }
-
             nextPlayerTurn();
             return true;
         }
@@ -388,10 +390,7 @@ public class Ludo {
                 pieceListener.pieceMoved(new PieceEvent(this, playerID, pieceToBeMoved, from, to));
             }
 
-            // call event listener
-            if (playerListener != null) {
-                playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
-            }
+
 
             // check if piece ontop of another player
             if(playerUnder != -1){
@@ -406,17 +405,14 @@ public class Ludo {
                         if(pieceListener != null){
                             pieceListener.pieceMoved(new PieceEvent(this, playerUnder, piece, otherPlayerPosition, 0));
                         }
-
-                        // call event listener
-                        if (playerListener != null) {
-                            playerListener.playerStateChanged(new PlayerEvent(this, activePlayer() ,PlayerEvent.WAITING));
-                        }
                     }
                 }
             }
 
+
             // if did not throw 6, go to next player
             if(diceRolled != 6){
+
                 nextPlayerTurn();
             }
 
