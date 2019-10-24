@@ -1,3 +1,6 @@
 .idea
 Ludo.iml
 target
+derby.log
+ludoTestDB
+ludoDB
