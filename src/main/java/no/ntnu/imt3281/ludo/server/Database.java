@@ -56,22 +56,16 @@ public class Database {
 
     /**
      * Insert chat message into the database. It auto adds a timestamp into the database as well.
-     * @param chatId Id of chat room the message was sent in
      * @param chatName The name of the user who sent the message
      * @param chatMessage The actual text the user sent to the chat message
      */
-    public void insertChatMessage(int chatId, String chatName, String chatMessage){
+    public void insertChatMessage(int userId,  int roomId, String chatName, String chatMessage){
         try {
 
             Statement stmt = connection.createStatement();
             long timestamp = Instant.now().getEpochSecond();
 
-            String query = "INSERT INTO chat_log("
-                    + "chat_id, chat_name, chat_message, timestamp) VALUES "
-                    + "(" + chatId + ",'"
-                    + chatName + "', '"+
-                    chatMessage +"',"
-                    + timestamp +") ";
+            String query = "INSERT INTO chat_log(user_id, chat_name, room_id, chat_message, timestamp) VALUES ('" +userId +"', '" +chatName+"', '" + roomId + "', '" + chatMessage + "','" + timestamp+ "') ";
 
             stmt.execute(query);
 
@@ -127,10 +121,14 @@ public class Database {
             Statement stmt = connection.createStatement();
 
             stmt.execute("CREATE TABLE chat_log (" +
-                    "chat_id int NOT NULL," +
-                    "chat_name varchar(32) NOT NULL," +
+                    "chat_id int NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 0, INCREMENT BY 1)," +
+                    "user_id int NOT NULL," +
+                    "chat_name varchar(128) NOT NULL," +
+                    "room_id int NOT NULL," +
                     "chat_message varchar(8000)," + //Todo: Change varchar length to something else than 8000
                     "timestamp bigint)");
+
+             stmt.execute("CREATE UNIQUE INDEX chat_idx on chat_log(chat_id)");
 
         } catch(SQLException ex){
             ex.printStackTrace();
