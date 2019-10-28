@@ -59,19 +59,21 @@ public class Database {
      * @param chatName The name of the user who sent the message
      * @param chatMessage The actual text the user sent to the chat message
      */
-    public void insertChatMessage(int userId,  int roomId, String chatName, String chatMessage){
-        try {
+    public void insertChatMessage(int chatId, String chatName, int userId, String chatMessage) throws SQLException{
 
             Statement stmt = connection.createStatement();
             long timestamp = Instant.now().getEpochSecond();
 
-            String query = "INSERT INTO chat_log(user_id, chat_name, room_id, chat_message, timestamp) VALUES ('" +userId +"', '" +chatName+"', '" + roomId + "', '" + chatMessage + "','" + timestamp+ "') ";
+            String query = "INSERT INTO chat_log("
+                    + "chat_id, chat_name, user_id, chat_message, timestamp) VALUES "
+                    + "("
+                    + chatId + ",'"
+                    + chatName + "', "
+                    + userId + ",'"
+                    +chatMessage +"',"
+                    + timestamp +") ";
 
             stmt.execute(query);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
 
     }
 
@@ -120,16 +122,7 @@ public class Database {
         try{
             Statement stmt = connection.createStatement();
 
-            stmt.execute("CREATE TABLE chat_log (" +
-                    "chat_id int NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 0, INCREMENT BY 1)," +
-                    "user_id int NOT NULL," +
-                    "chat_name varchar(128) NOT NULL," +
-                    "room_id int NOT NULL," +
-                    "chat_message varchar(8000)," + //Todo: Change varchar length to something else than 8000
-                    "timestamp bigint)");
-
-             stmt.execute("CREATE UNIQUE INDEX chat_idx on chat_log(chat_id)");
-
+            stmt.execute("CREATE TABLE chat_log (chat_id int NOT NULL, chat_name varchar(32) NOT NULL, user_id int NOT NULL, chat_message varchar(8000), timestamp bigint)");
         } catch(SQLException ex){
             ex.printStackTrace();
         }
