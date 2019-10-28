@@ -75,7 +75,7 @@ public class Database {
      * @param gamesWon number of total games won
      * @return true if upload was successful, else false
      */
-    public boolean insertUser(String userName, String avatarPath, int gamesPlayed, int gamesWon){
+    public boolean insertUser(String userName, String avatarPath, int gamesPlayed, int gamesWon) throws SQLException{
         try {
             PreparedStatement stmt = connection.prepareStatement("INSERT INTO user_info" +
                     "(user_name, avatar_path, games_played, games_won) VALUES (?, ?, ?, ?)");
@@ -99,28 +99,24 @@ public class Database {
 
     /**
      * Insert chat message into the database. It auto adds a timestamp into the database as well.
-     * @param chatId Id of chat room the message was sent in
      * @param chatName The name of the user who sent the message
      * @param chatMessage The actual text the user sent to the chat message
      */
-    public void insertChatMessage(int chatId, String chatName, String chatMessage){
-        try {
+    public void insertChatMessage(int chatId, String chatName, int userId, String chatMessage) throws SQLException{
 
             Statement stmt = connection.createStatement();
             long timestamp = Instant.now().getEpochSecond();
 
             String query = "INSERT INTO chat_log("
-                    + "chat_id, chat_name, chat_message, timestamp) VALUES "
-                    + "(" + chatId + ",'"
-                    + chatName + "', '"+
-                    chatMessage +"',"
+                    + "chat_id, chat_name, user_id, chat_message, timestamp) VALUES "
+                    + "("
+                    + chatId + ",'"
+                    + chatName + "', "
+                    + userId + ",'"
+                    +chatMessage +"',"
                     + timestamp +") ";
 
             stmt.execute(query);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     public String getChatLog(int chatId){
@@ -161,12 +157,13 @@ public class Database {
      * Creates the table for the chat log
      */
     private void createChatLogTable() throws SQLException{
-        Statement stmt = connection.createStatement();
+    Statement stmt = connection.createStatement();
 
-        stmt.execute("CREATE TABLE chat_log (" +
-                "chat_id int NOT NULL," +
-                "chat_name varchar(32) NOT NULL," +
-                "chat_message varchar(8000)," + //Todo: Change varchar length to something else than 8000
-                "timestamp bigint)");
+    stmt.execute("CREATE TABLE chat_log (" +
+        "chat_id int NOT NULL, " +
+        "chat_name varchar(32) NOT NULL, " +
+        "user_id int NOT NULL, " +
+        "chat_message varchar(8000), " +
+        "timestamp bigint)");
     }
 }
