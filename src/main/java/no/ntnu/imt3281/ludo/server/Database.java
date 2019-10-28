@@ -1,7 +1,5 @@
 package no.ntnu.imt3281.ludo.server;
 
-import org.apache.derby.iapi.services.monitor.DerbyObserver;
-
 import java.sql.*;
 import java.time.Instant;
 
@@ -15,18 +13,18 @@ public class Database {
     /**
      * setup database
      */
-    private Database(String dbURL){
+    private Database(String dbURL) {
 
         // try to establish a database connection, if not create
-        try{
+        try {
             connection = DriverManager.getConnection(dbURL);
-        } catch(SQLException ex){               // database is missing
-            if(ex.getMessage().contains("Database") && ex.getMessage().contains("not found.")){
-                try{                            // create a new database
+        } catch (SQLException ex) {               // database is missing
+            if (ex.getMessage().contains("Database") && ex.getMessage().contains("not found.")) {
+                try {                            // create a new database
                     connection = DriverManager.getConnection(dbURL + ";create=true");
                     createUserInformationTable();
                     createChatLogTable();
-                } catch(SQLException ex2){      // could not create database, we exit.
+                } catch (SQLException ex2) {      // could not create database, we exit.
                     System.err.println("Could not create database.");
                     ex.printStackTrace();
                     System.exit(1);
@@ -38,18 +36,18 @@ public class Database {
         }
 
         // check that tables exist (in case they have been DROP'ed)
-        try{
+        try {
             createUserInformationTable();
-        } catch(SQLException ex){
-            if(!ex.getMessage().equals("Table/View 'USER_INFO' already exists in Schema 'APP'.")){
+        } catch (SQLException ex) {
+            if (!ex.getMessage().equals("Table/View 'USER_INFO' already exists in Schema 'APP'.")) {
                 ex.printStackTrace();
                 System.exit(1);
             }
         }
-        try{
+        try {
             createChatLogTable();
-        } catch(SQLException ex){
-            if(!ex.getMessage().equals("Table/View 'CHAT_LOG' already exists in Schema 'APP'.")){
+        } catch (SQLException ex) {
+            if (!ex.getMessage().equals("Table/View 'CHAT_LOG' already exists in Schema 'APP'.")) {
                 ex.printStackTrace();
                 System.exit(1);
             }
@@ -58,10 +56,11 @@ public class Database {
 
     /**
      * Get the database instance, or create a new one if none yet created
+     *
      * @return database instance
      */
-    public static Database getDatabase(){
-        if(DATABASE_INSTANCE == null){
+    public static Database getDatabase() {
+        if (DATABASE_INSTANCE == null) {
             DATABASE_INSTANCE = new Database("jdbc:derby:./ludoDB");
         }
         return DATABASE_INSTANCE;
@@ -69,68 +68,60 @@ public class Database {
 
     /**
      * Insert a new user into the database. Will fail if user already exists.
-     * @param userName the name of the user
-     * @param avatarPath the image file path of the user's avatar
+     *
+     * @param userName    the name of the user
+     * @param avatarPath  the image file path of the user's avatar
      * @param gamesPlayed number of total games played
-     * @param gamesWon number of total games won
+     * @param gamesWon    number of total games won
      * @return true if upload was successful, else false
      */
-    public boolean insertUser(String userName, String avatarPath, int gamesPlayed, int gamesWon) throws SQLException{
-        try {
-            PreparedStatement stmt = connection.prepareStatement("INSERT INTO user_info" +
-                    "(user_name, avatar_path, games_played, games_won) VALUES (?, ?, ?, ?)");
+    public void insertUser(String userName, String avatarPath, int gamesPlayed, int gamesWon) throws SQLException {
+        PreparedStatement stmt = connection.prepareStatement("INSERT INTO user_info" +
+                "(user_name, avatar_path, games_played, games_won) VALUES (?, ?, ?, ?)");
 
-            stmt.setString(1, userName);
-            stmt.setString(2, avatarPath);
-            stmt.setInt(3, gamesPlayed);
-            stmt.setInt(4, gamesWon);
+        stmt.setString(1, userName);
+        stmt.setString(2, avatarPath);
+        stmt.setInt(3, gamesPlayed);
+        stmt.setInt(4, gamesWon);
 
-            stmt.execute();
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        stmt.execute();
     }
 
-    public void getUser(){
+    public void getUser() {
         // todo
     }
 
     /**
      * Insert chat message into the database. It auto adds a timestamp into the database as well.
-     * @param chatName The name of the user who sent the message
+     *
+     * @param chatName    The name of the user who sent the message
      * @param chatMessage The actual text the user sent to the chat message
      */
-    public void insertChatMessage(int chatId, String chatName, int userId, String chatMessage) throws SQLException{
+    public void insertChatMessage(String chatName, int userId, String chatMessage) throws SQLException {
+        long timestamp = Instant.now().getEpochSecond();
 
-            Statement stmt = connection.createStatement();
-            long timestamp = Instant.now().getEpochSecond();
+        PreparedStatement stmt = connection.prepareStatement("INSERT INTO chat_log" +
+                "(chat_name, user_id, chat_message, timestamp) VALUES (?, ?, ?, ?)");
 
-            String query = "INSERT INTO chat_log("
-                    + "chat_id, chat_name, user_id, chat_message, timestamp) VALUES "
-                    + "("
-                    + chatId + ",'"
-                    + chatName + "', "
-                    + userId + ",'"
-                    +chatMessage +"',"
-                    + timestamp +") ";
+        stmt.setString(1, chatName);
+        stmt.setInt(2, userId);
+        stmt.setString(3, chatMessage);
+        stmt.setLong(4, timestamp);
 
-            stmt.execute(query);
+        stmt.execute();
     }
 
-    public String getChatLog(int chatId){
+    public String getChatLog(int chatId) {
         // todo
 
         return "";
     }
 
 
-
     /**
      * Used for setting up Database for test environment
      */
-    protected static Database constructTestDatabase(String testDBURL){
+    protected static Database constructTestDatabase(String testDBURL) {
         DATABASE_INSTANCE = new Database(testDBURL);
         return DATABASE_INSTANCE;
     }
@@ -138,7 +129,7 @@ public class Database {
     /**
      * Creates the table for user information
      */
-    private void createUserInformationTable() throws SQLException{
+    private void createUserInformationTable() throws SQLException {
         Statement stmt = connection.createStatement();
 
         stmt.execute("CREATE TABLE user_info (" +
@@ -154,16 +145,28 @@ public class Database {
     }
 
     /**
+     * Creates the table for holding all active chats
+     */
+    private void createChatRoomTable() throws SQLException {
+        Statement stmt = connection.createStatement();
+
+        stmt.execute("CREATE TABLE chat_room (" +
+                "room_name varchar(32) NOT NULL)");
+
+        // both "user_id" and "user_name" should be unique
+        stmt.execute("CREATE UNIQUE INDEX room_namex on chat_room(room_name)");
+    }
+
+    /**
      * Creates the table for the chat log
      */
-    private void createChatLogTable() throws SQLException{
-    Statement stmt = connection.createStatement();
+    private void createChatLogTable() throws SQLException {
+        Statement stmt = connection.createStatement();
 
-    stmt.execute("CREATE TABLE chat_log (" +
-        "chat_id int NOT NULL, " +
-        "chat_name varchar(32) NOT NULL, " +
-        "user_id int NOT NULL, " +
-        "chat_message varchar(8000), " +
-        "timestamp bigint)");
+        stmt.execute("CREATE TABLE chat_log (" +
+                "chat_name varchar(32) NOT NULL, " +
+                "user_id int NOT NULL, " +
+                "chat_message varchar(8000), " +
+                "timestamp bigint)");
     }
 }

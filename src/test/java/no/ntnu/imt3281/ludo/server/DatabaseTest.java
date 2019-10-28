@@ -91,12 +91,11 @@ public class DatabaseTest {
 
         // check if tables have all the required columns and only has 5 columns
         try{
-            assertEquals("CHAT_ID", resultSet.getMetaData().getColumnName(1));
-            assertEquals("CHAT_NAME", resultSet.getMetaData().getColumnName(2));
-            assertEquals("USER_ID", resultSet.getMetaData().getColumnName(3));
-            assertEquals("CHAT_MESSAGE", resultSet.getMetaData().getColumnName(4));
-            assertEquals("TIMESTAMP", resultSet.getMetaData().getColumnName(5));
-            assertEquals(5, resultSet.getMetaData().getColumnCount());
+            assertEquals("CHAT_NAME", resultSet.getMetaData().getColumnName(1));
+            assertEquals("USER_ID", resultSet.getMetaData().getColumnName(2));
+            assertEquals("CHAT_MESSAGE", resultSet.getMetaData().getColumnName(3));
+            assertEquals("TIMESTAMP", resultSet.getMetaData().getColumnName(4));
+            assertEquals(4, resultSet.getMetaData().getColumnCount());
         } catch(SQLException ex){
             assertFalse(true);
         }
@@ -153,7 +152,7 @@ public class DatabaseTest {
         //Try to retrieve data from db and check if the data is correct.
 
         try {
-            testDatabase.insertChatMessage(0,"Test",1, "Hello Test");
+            testDatabase.insertChatMessage("Test",1, "Hello Test");
         } catch (SQLException e) {
             exception = e;
         }
@@ -170,7 +169,6 @@ public class DatabaseTest {
 
             //Loop over data and
             while(rs.next()) {
-                assertEquals(String.valueOf(0), rs.getString("chat_id"));
                 assertEquals("Test", rs.getString("chat_name"));
                 assertEquals(String.valueOf(1), rs.getString("user_id"));
                 assertEquals("Hello Test", rs.getString("chat_message"));
