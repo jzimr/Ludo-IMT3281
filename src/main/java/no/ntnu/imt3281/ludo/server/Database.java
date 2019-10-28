@@ -23,6 +23,7 @@ public class Database {
                 try {                            // create a new database
                     connection = DriverManager.getConnection(dbURL + ";create=true");
                     createUserInformationTable();
+                    createChatRoomTable();
                     createChatLogTable();
                 } catch (SQLException ex2) {      // could not create database, we exit.
                     System.err.println("Could not create database.");
@@ -40,6 +41,14 @@ public class Database {
             createUserInformationTable();
         } catch (SQLException ex) {
             if (!ex.getMessage().equals("Table/View 'USER_INFO' already exists in Schema 'APP'.")) {
+                ex.printStackTrace();
+                System.exit(1);
+            }
+        }
+        try {
+            createChatRoomTable();
+        } catch (SQLException ex) {
+            if (!ex.getMessage().equals("Table/View 'CHAT_ROOM' already exists in Schema 'APP'.")) {
                 ex.printStackTrace();
                 System.exit(1);
             }
@@ -92,6 +101,21 @@ public class Database {
     }
 
     /**
+     * Insert a new chat room into the database. Must be unique or it'll result in SQLException
+     *
+     * @param chatRoom the unique name of the chat room
+     * @throws SQLException Exception if item could not be inserted into database
+     */
+    public void insertChatRoom(String chatRoom) throws SQLException {
+        PreparedStatement stmt = connection.prepareStatement("INSERT INTO chat_room" +
+                "(room_name) VALUES (?)");
+
+        stmt.setString(1, chatRoom);
+
+        stmt.execute();
+    }
+
+    /**
      * Insert chat message into the database. It auto adds a timestamp into the database as well.
      *
      * @param chatName    The name of the user who sent the message
@@ -137,11 +161,8 @@ public class Database {
                 "user_name varchar(24) NOT NULL," +
                 "avatar_path varchar(120)," +
                 "games_played int NOT NULL," +
-                "games_won int NOT NULL)");
-
-        // both "user_id" and "user_name" should be unique
-        stmt.execute("CREATE UNIQUE INDEX user_idx on user_info(user_id)");
-        stmt.execute("CREATE UNIQUE INDEX user_namex on user_info(user_name)");
+                "games_won int NOT NULL," +
+                "PRIMARY KEY (user_id, user_name))");            // both "user_id" and "user_name" should be unique
     }
 
     /**
@@ -151,10 +172,8 @@ public class Database {
         Statement stmt = connection.createStatement();
 
         stmt.execute("CREATE TABLE chat_room (" +
-                "room_name varchar(32) NOT NULL)");
-
-        // both "user_id" and "user_name" should be unique
-        stmt.execute("CREATE UNIQUE INDEX room_namex on chat_room(room_name)");
+                "room_name varchar(32) NOT NULL," +
+                "PRIMARY KEY (room_name))");                  // room name should be unique
     }
 
     /**
@@ -167,6 +186,9 @@ public class Database {
                 "chat_name varchar(32) NOT NULL, " +
                 "user_id int NOT NULL, " +
                 "chat_message varchar(8000), " +
-                "timestamp bigint)");
+                "timestamp bigint," +
+                // "chat_name" is a foreign key of "room_name" from table "chat_room".
+                // Chat entries will be deleted if the "room_name" is deleted from table "chat_room"
+                "FOREIGN KEY (chat_name) references chat_room(room_name) ON DELETE CASCADE)");
     }
 }
