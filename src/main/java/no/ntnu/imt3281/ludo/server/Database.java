@@ -16,7 +16,9 @@ public class Database {
      * setup database
      */
     private Database(String dbURL){
-        try{                                    // try to connect to database
+
+        // try to establish a database connection, if not create
+        try{
             connection = DriverManager.getConnection(dbURL);
         } catch(SQLException ex){               // database is missing
             if(ex.getMessage().contains("Database") && ex.getMessage().contains("not found.")){
@@ -25,11 +27,30 @@ public class Database {
                     createUserInformationTable();
                     createChatLogTable();
                 } catch(SQLException ex2){      // could not create database, we exit.
-                    System.err.println("Could not create database. " + ex.getMessage());
+                    System.err.println("Could not create database.");
+                    ex.printStackTrace();
                     System.exit(1);
                 }
             } else {                            // Database exists, but could not connect for some reason, we exit.
                 System.err.println("Could not connect to database. " + ex.getMessage());
+                System.exit(1);
+            }
+        }
+
+        // check that tables exist (in case they have been DROP'ed)
+        try{
+            createUserInformationTable();
+        } catch(SQLException ex){
+            if(!ex.getMessage().equals("Table/View 'USER_INFO' already exists in Schema 'APP'.")){
+                ex.printStackTrace();
+                System.exit(1);
+            }
+        }
+        try{
+            createChatLogTable();
+        } catch(SQLException ex){
+            if(!ex.getMessage().equals("Table/View 'CHAT_LOG' already exists in Schema 'APP'.")){
+                ex.printStackTrace();
                 System.exit(1);
             }
         }
@@ -46,8 +67,30 @@ public class Database {
         return DATABASE_INSTANCE;
     }
 
-    public void insertUser(){
-        // todo
+    /**
+     * Insert a new user into the database. Will fail if user already exists.
+     * @param userName the name of the user
+     * @param avatarPath the image file path of the user's avatar
+     * @param gamesPlayed number of total games played
+     * @param gamesWon number of total games won
+     * @return true if upload was successful, else false
+     */
+    public boolean insertUser(String userName, String avatarPath, int gamesPlayed, int gamesWon){
+        try {
+            PreparedStatement stmt = connection.prepareStatement("INSERT INTO user_info" +
+                    "(user_name, avatar_path, games_played, games_won) VALUES (?, ?, ?, ?)");
+
+            stmt.setString(1, userName);
+            stmt.setString(2, avatarPath);
+            stmt.setInt(3, gamesPlayed);
+            stmt.setInt(4, gamesWon);
+
+            stmt.execute();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public void getUser(){
@@ -78,7 +121,6 @@ public class Database {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 
     public String getChatLog(int chatId){
@@ -100,42 +142,31 @@ public class Database {
     /**
      * Creates the table for user information
      */
-    private void createUserInformationTable(){
-        try{
-            Statement stmt = connection.createStatement();
+    private void createUserInformationTable() throws SQLException{
+        Statement stmt = connection.createStatement();
 
-            stmt.execute("CREATE TABLE user_info (" +
-                    "user_id int NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 0, INCREMENT BY 1)," +
-                    "user_name varchar(24) NOT NULL," +
-                    "avatar_path varchar(120)," +
-                    "games_played int NOT NULL," +
-                    "games_won int NOT NULL)");
+        stmt.execute("CREATE TABLE user_info (" +
+                "user_id int NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 0, INCREMENT BY 1)," +
+                "user_name varchar(24) NOT NULL," +
+                "avatar_path varchar(120)," +
+                "games_played int NOT NULL," +
+                "games_won int NOT NULL)");
 
-            // both "user_id" and "user_name" should be unique
-            stmt.execute("CREATE UNIQUE INDEX user_idx on user_info(user_id)");
-            stmt.execute("CREATE UNIQUE INDEX user_namex on user_info(user_name)");
-        } catch(SQLException ex){
-            ex.printStackTrace();
-        }
+        // both "user_id" and "user_name" should be unique
+        stmt.execute("CREATE UNIQUE INDEX user_idx on user_info(user_id)");
+        stmt.execute("CREATE UNIQUE INDEX user_namex on user_info(user_name)");
     }
 
     /**
      * Creates the table for the chat log
      */
-    private void createChatLogTable(){
-        try{
-            Statement stmt = connection.createStatement();
+    private void createChatLogTable() throws SQLException{
+        Statement stmt = connection.createStatement();
 
-            stmt.execute("CREATE TABLE chat_log (" +
-                    "chat_id int NOT NULL," +
-                    "chat_name varchar(32) NOT NULL," +
-                    "chat_message varchar(8000)," + //Todo: Change varchar length to something else than 8000
-                    "timestamp bigint)");
-
-        } catch(SQLException ex){
-            ex.printStackTrace();
-        }
+        stmt.execute("CREATE TABLE chat_log (" +
+                "chat_id int NOT NULL," +
+                "chat_name varchar(32) NOT NULL," +
+                "chat_message varchar(8000)," + //Todo: Change varchar length to something else than 8000
+                "timestamp bigint)");
     }
-
-
 }

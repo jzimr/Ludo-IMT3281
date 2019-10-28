@@ -20,6 +20,7 @@ public class DatabaseTest {
      */
     @BeforeClass
     public static void setupDatabase(){
+        // create test database instance
         try{
             testDatabase = Database.constructTestDatabase(dbURL);
         } catch(Exception ex){
@@ -34,9 +35,6 @@ public class DatabaseTest {
             // fail testing if not
             assertFalse(true);
         }
-
-        // check if we have reached this point in test (since testDatabase does exit(1) on worst case)
-        assertTrue(true);
     }
 
     /**
@@ -47,8 +45,8 @@ public class DatabaseTest {
         // remove all data from records
         try{
             Statement statement = testConnection.createStatement();
-            statement.execute("DELETE FROM user_info");
-            statement.execute("DELETE FROM chat_log");
+            statement.execute("DROP TABLE user_info");
+            statement.execute("DROP TABLE chat_log");
         } catch(SQLException ex){
             assertFalse(true);
         }
@@ -103,6 +101,49 @@ public class DatabaseTest {
         }
     }
 
+    /**
+     * Testing if we successfully add and can retrieve 2 users in the database
+     * It also tests if the database auto increments the unique ID of the users
+     */
+    @Test
+    public void insertUserTest(){
+        //Try to retrieve data from db and check if the data is correct.
+        try {
+            Statement state = testConnection.createStatement();
+
+            // Insert user 1 into database
+            testDatabase.insertUser("Boby", "someImage.png", 10, 3);
+            // execute SELECT query
+            ResultSet rs = state.executeQuery("SELECT * FROM user_info WHERE user_id=0");
+
+            // loop over data of user 1
+            while(rs.next()) {
+                assertEquals(0, rs.getInt("user_id"));
+                assertEquals("Boby", rs.getString("user_name"));
+                assertEquals("someImage.png", rs.getString("avatar_path"));
+                assertEquals(10, rs.getInt("games_played"));
+                assertEquals(3, rs.getInt("games_won"));
+            }
+
+            // Insert user 2 into database
+            testDatabase.insertUser("Samy", "someOtherImage.png", 6, 6);
+            // execute SELECT query
+            rs = state.executeQuery("SELECT * FROM user_info WHERE user_id=1");
+
+            // loop over data of user 2
+            while(rs.next()) {
+                assertEquals(1, rs.getInt("user_id"));
+                assertEquals("Samy", rs.getString("user_name"));
+                assertEquals("someOtherImage.png", rs.getString("avatar_path"));
+                assertEquals(6, rs.getInt("games_played"));
+                assertEquals(6, rs.getInt("games_won"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Test
     public void insertChatMessageTest(){
 
@@ -125,7 +166,6 @@ public class DatabaseTest {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 
 }
