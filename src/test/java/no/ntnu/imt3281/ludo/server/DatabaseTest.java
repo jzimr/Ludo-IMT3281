@@ -250,6 +250,23 @@ public class DatabaseTest {
     }
 
     /**
+     * Test if we get all chat rooms available in the database
+     */
+    @Test
+    public void getAllChatRoomsTest(){
+        // insert two chatrooms
+        insertTwoChatRooms();
+
+        ArrayList<String> chatRooms = testDatabase.getAllChatRooms();
+
+        // we should only have 2 chatrooms in database at the moment
+        assertEquals(2, chatRooms.size());
+
+        
+
+    }
+
+    /**
      * Test if we can insert a chat message into database.
      */
     @Test

@@ -145,6 +145,30 @@ public class Database {
     }
 
     /**
+     * Get all chat rooms that are active on our server
+     * @return an ArrayList of all chatrooms
+     */
+    public ArrayList<String> getAllChatRooms(){
+        ArrayList<String> chatRooms = new ArrayList<>();
+
+        try{
+            // get the messages from database
+            Statement stmt = connection.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM chat_room");
+
+            // loop over all data and add each entry into our arraylist
+            while(rs.next()) {
+                chatRooms.add(rs.getString("chat_name"));
+            }
+        } catch(SQLException ex){
+            System.out.println("Error occured when trying to get chat rooms: " + ex.getMessage());
+            return null;
+        }
+
+        return chatRooms;
+    }
+
+    /**
      * Insert chat message into the database. It auto adds a timestamp into the database as well.
      *
      * @param chatName    The name of the user who sent the message
