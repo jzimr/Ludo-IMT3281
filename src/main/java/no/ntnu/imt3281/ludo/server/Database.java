@@ -1,5 +1,6 @@
 package no.ntnu.imt3281.ludo.server;
 
+import javax.swing.plaf.nimbus.State;
 import java.sql.*;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -97,10 +98,35 @@ public class Database {
         stmt.execute();
     }
 
-    public UserInfo getUser() {
-        // todo
+    /**
+     * Get the user by his ID
+     * @param userID the ID of the user
+     * @return a data class containing all relevant info about a user
+     */
+    public UserInfo getUser(int userID) {
+        UserInfo userInfo = null;
+        try{
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM user_info " +
+                    "WHERE user_id = ?");
+            stmt.setInt(1, userID);
+            ResultSet rs = stmt.executeQuery();
 
-        return null;
+            // loop over user
+            while(rs.next()) {
+                userInfo = new UserInfo(
+                        rs.getInt("user_id"),
+                        rs.getString("user_name"),
+                        rs.getString("avatar_path"),
+                        rs.getInt("games_played"),
+                        rs.getInt("games_won")
+                );
+            }
+        } catch(SQLException ex){
+            System.out.println("Error occured when trying to get user: " + ex.getMessage());
+            return null;
+        }
+
+        return userInfo;
     }
 
     /**
@@ -149,8 +175,11 @@ public class Database {
 
         // get the messages
         try{
-            Statement stmt = connection.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM chat_log WHERE chat_name='" + chatName + "'");
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM chat_log " +
+                            "WHERE chat_name=?");
+            stmt.setString(1, chatName);
+
+            ResultSet rs = stmt.executeQuery();
 
             // loop over all data and add each entry into our arraylist
             while(rs.next()) {
