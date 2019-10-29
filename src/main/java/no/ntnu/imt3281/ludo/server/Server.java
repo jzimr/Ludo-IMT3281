@@ -1,5 +1,9 @@
 package no.ntnu.imt3281.ludo.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import no.ntnu.imt3281.ludo.logic.Ludo;
+import no.ntnu.imt3281.ludo.logic.JsonMessage;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -21,9 +25,15 @@ public class Server {
 
 	final private int SERVER_PORT = 4567;
 
+	//Might change to arrayList for easy managment.
+	LinkedList<Ludo> activeLudoGames = new LinkedList<>();
+
 	LinkedList<Client> clients = new LinkedList<>();
 	boolean stopping = false;
-	ArrayBlockingQueue<Message> messagesToSend = new ArrayBlockingQueue<Message>(100);
+
+	ArrayBlockingQueue<JsonMessage> objectsToHandle = new ArrayBlockingQueue<>(100);
+
+	ArrayBlockingQueue<JsonMessage> messagesToSend = new ArrayBlockingQueue<JsonMessage>(100);
 	ArrayBlockingQueue<Client> disconnectedClients = new ArrayBlockingQueue<>(1000);
 
 	public static void main(String[] args) {
@@ -31,8 +41,10 @@ public class Server {
 	}
 
 	public Server(){
+
 		startServerThread();
 		startListener();
+		startHandlingActions();
 		//startSenderThread();
 		//startRemoveDisconnectedClientsThread();
 	}
@@ -84,8 +96,11 @@ public class Server {
 						try {
 							String msg = c.read();
 							if (msg != null) {
-								//messagesToSend.add(new Message(msg, c.name));
-								System.out.println("Message from some client:" + msg);
+
+								JsonMessageParser parse = new JsonMessageParser(); //Initiate a parser
+								JsonMessage json = parse.parseActionJson(msg); //Parse the json into a object
+								objectsToHandle.add(json); //Add the object to queue for handling
+
 							}
 						} catch (IOException e) {   // Exception while reading from client, assume client is lost
 							// Do nothing, this is really not likely to happen
@@ -106,13 +121,13 @@ public class Server {
 		Thread sender = new Thread(() -> {
 			while (!stopping) {
 				try {
-					Message msg = messagesToSend.take();
+					JsonMessage msg = messagesToSend.take();
 					synchronized (clients) {
 						Iterator<Client> iterator = clients.iterator();
 						while (iterator.hasNext()) {
 							Client c = iterator.next();
 
-								try {
+								/*try {
 									c.send(msg.message);
 								} catch (IOException e) {   // Exception while sending to client, assume client is lost
 									synchronized (disconnectedClients) {
@@ -120,7 +135,7 @@ public class Server {
 											disconnectedClients.add(c);
 										}
 									}
-								}
+								}*/
 
 						}
 					}
@@ -141,11 +156,11 @@ public class Server {
 			while (!stopping) {
 				try {
 					Client client = disconnectedClients.take();
-					Message msg = new Message("Vanished into thin air");
+					//Message msg = new Message("Vanished into thin air");
 					synchronized (clients) {
 						clients.remove(client);
 					}
-					messagesToSend.add(msg);
+					//messagesToSend.add(msg);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -155,6 +170,23 @@ public class Server {
 		removeDisconnectedClientsThread.start();
 	}
 
+	/**
+ 	*
+ 	*/
+	private void startHandlingActions(){
+		Thread handleActions = new Thread(() -> {
+			while (!stopping) {
+				try {
+					JsonMessage message = objectsToHandle.take();
+					System.out.println(message.getAction());
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
+		handleActions.start();
+	}
 
 	/**
 	 * Represents a client. Contains the open socket and input and output from that user.
@@ -191,14 +223,24 @@ public class Server {
 		}
 	}
 
-	/**
-	 * Class copied from the example on bitbucket. To be removed.
-	 */
-	private class Message {
-		String message;
-		public Message(String msg) {
-			message = msg;
+
+	public class JsonMessageParser {
+		ObjectMapper mapper = new ObjectMapper();
+
+		public JsonMessage parseActionJson(String json) {
+
+			try {
+				JsonMessage jsonObj = mapper.readValue(json, JsonMessage.class);
+				return jsonObj;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return null;
 		}
+
 	}
 
+
 }
+
+

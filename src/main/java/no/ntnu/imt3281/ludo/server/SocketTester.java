@@ -97,7 +97,7 @@ public class SocketTester {
 
     void send() {
         try {
-            bw.write("Test Message");
+            bw.write("{\"action\" : \"UserDoesDiceThrow\", \"playerId\": 1, \"ludoId\" : 2}");
             bw.newLine();
             bw.flush();
             messageSent = true;
