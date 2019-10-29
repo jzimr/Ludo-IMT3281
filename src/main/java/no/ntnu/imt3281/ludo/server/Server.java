@@ -33,8 +33,8 @@ public class Server {
 	public Server(){
 		startServerThread();
 		startListener();
-		startSenderThread();
-		startRemoveDisconnectedClientsThread();
+		//startSenderThread();
+		//startRemoveDisconnectedClientsThread();
 	}
 
 
@@ -53,6 +53,7 @@ public class Server {
 						Client c = new Client(s);
 						synchronized (clients) {
 							clients.add(c);
+							System.out.println(clients.size());
 						}
 					} catch (IOException e) {
 						System.err.println("Unable to create client from "+s.getInetAddress().getHostName());
@@ -83,7 +84,8 @@ public class Server {
 						try {
 							String msg = c.read();
 							if (msg != null) {
-								messagesToSend.add(new Message(msg, c.name));
+								//messagesToSend.add(new Message(msg, c.name));
+								System.out.println("Message from some client:" + msg);
 							}
 						} catch (IOException e) {   // Exception while reading from client, assume client is lost
 							// Do nothing, this is really not likely to happen
@@ -101,34 +103,32 @@ public class Server {
 	 *
 	 */
 	private void startSenderThread() {
-		Thread sender = new Thread() {
-			public void run() {
-				while (!stopping) {
-					try {
-						Message msg = messagesToSend.take();
-						synchronized (clients) {
-							Iterator<Client> iterator = clients.iterator();
-							while (iterator.hasNext()) {
-								Client c = iterator.next();
-								if (c.name != msg.name) {
-									try {
-										c.send(msg.name + ":" + msg.message);
-									} catch (IOException e) {   // Exception while sending to client, assume client is lost
-										synchronized (disconnectedClients) {
-											if (!disconnectedClients.contains(c)) {
-												disconnectedClients.add(c);
-											}
+		Thread sender = new Thread(() -> {
+			while (!stopping) {
+				try {
+					Message msg = messagesToSend.take();
+					synchronized (clients) {
+						Iterator<Client> iterator = clients.iterator();
+						while (iterator.hasNext()) {
+							Client c = iterator.next();
+
+								try {
+									c.send(msg.message);
+								} catch (IOException e) {   // Exception while sending to client, assume client is lost
+									synchronized (disconnectedClients) {
+										if (!disconnectedClients.contains(c)) {
+											disconnectedClients.add(c);
 										}
 									}
 								}
-							}
+
 						}
-					} catch (InterruptedException e) {
-						e.printStackTrace();
 					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 			}
-		};
+		});
 		sender.setDaemon(true);
 		sender.start();
 	}
@@ -137,22 +137,20 @@ public class Server {
 	 * This removes users that has disconnected
 	 */
 	private void startRemoveDisconnectedClientsThread() {
-		Thread removeDisconnectedClientsThread = new Thread() {
-			public void run() {
-				while (!stopping) {
-					try {
-						Client client = disconnectedClients.take();
-						Message msg = new Message(client.name, "Vanished into thin air");
-						synchronized (clients) {
-							clients.remove(client);
-						}
-						messagesToSend.add(msg);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
+		Thread removeDisconnectedClientsThread = new Thread(() -> {
+			while (!stopping) {
+				try {
+					Client client = disconnectedClients.take();
+					Message msg = new Message("Vanished into thin air");
+					synchronized (clients) {
+						clients.remove(client);
 					}
+					messagesToSend.add(msg);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 			}
-		};
+		});
 		removeDisconnectedClientsThread.setDaemon(true);
 		removeDisconnectedClientsThread.start();
 	}
@@ -197,10 +195,9 @@ public class Server {
 	 * Class copied from the example on bitbucket. To be removed.
 	 */
 	private class Message {
-		String message, name;
-		public Message(String msg, String name) {
+		String message;
+		public Message(String msg) {
 			message = msg;
-			this.name = name;
 		}
 	}
 
