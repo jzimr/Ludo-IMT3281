@@ -45,8 +45,10 @@ public class Server {
 		startServerThread();
 		startListener();
 		startHandlingActions();
-		//startSenderThread();
+		startSenderThread();
 		//startRemoveDisconnectedClientsThread();
+
+		System.out.println("Ludo service is now listening at 0.0.0.0:"+SERVER_PORT);
 	}
 
 
@@ -100,6 +102,7 @@ public class Server {
 								JsonMessageParser parse = new JsonMessageParser(); //Initiate a parser
 								JsonMessage json = parse.parseActionJson(msg); //Parse the json into a object
 								objectsToHandle.add(json); //Add the object to queue for handling
+								c.send("{\"ack\":true}"); //Acknowledgment that the server got the packet.
 
 							}
 						} catch (IOException e) {   // Exception while reading from client, assume client is lost
@@ -127,15 +130,15 @@ public class Server {
 						while (iterator.hasNext()) {
 							Client c = iterator.next();
 
-								/*try {
-									c.send(msg.message);
+								try {
+									c.send("HeiHei");
 								} catch (IOException e) {   // Exception while sending to client, assume client is lost
 									synchronized (disconnectedClients) {
 										if (!disconnectedClients.contains(c)) {
 											disconnectedClients.add(c);
 										}
 									}
-								}*/
+								}
 
 						}
 					}
@@ -192,15 +195,15 @@ public class Server {
 	 * Represents a client. Contains the open socket and input and output from that user.
 	 */
 	class Client {
+		int userId;
+
 		Socket s;
 		BufferedWriter bw;
 		BufferedReader br;
-		String name;
 
 		public Client (Socket s) throws IOException {
 			bw = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
 			br = new BufferedReader(new InputStreamReader(s.getInputStream()));
-			name = br.readLine();
 		}
 
 		public String read() throws IOException {

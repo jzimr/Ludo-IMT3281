@@ -15,8 +15,8 @@ public class SocketTester {
     private Socket connection = null;
     private BufferedWriter bw;
     private BufferedReader br;
-    private boolean connected = false;
-    private boolean messageSent = false;
+
+    private String message = "{\"action\" : \"UserDoesDiceThrow\", \"playerId\": 1, \"ludoId\" : 2}";
 
 
     public static void main(String[] args) {
@@ -24,87 +24,29 @@ public class SocketTester {
     }
 
     public SocketTester(){
-        connect();
-        //initialize();
-        send();
-        while(connected) { //As long as we are connected. Force send messages until one of them go through.
-            send();
-            if (messageSent) { //Once one message is sent we disconnect.
-                disconnect();
-            }
-        }
-    }
-
-
-    void initialize() {
-        Thread t = new Thread(() -> {
-            while (true) {
-                if (connected) {
-                    try {
-                        final String in = br.readLine();
-                        System.out.println(in);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    try {
-                        Thread.sleep(50);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-        t.setDaemon(true);
-        t.start();
-    }
-
-    private void disconnect() {
-        try {
-            bw.close();
-            br.close();
-            connection.close();
-            connected = false;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void connect() {
-        String serverName = "127.0.0.1";
-        int port = DEFAULT_PORT;
-        if (serverName.indexOf(":") > 0) {
+        for(int i=0; i<5;i++){
+            //establish socket connection to server
             try {
-                port = Integer.parseInt(serverName.split(":")[1]);
-            } catch (NumberFormatException e) {
+                connection = new Socket("127.0.0.1", DEFAULT_PORT);
+                bw = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
+                br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
+                bw.write(message);
+                bw.newLine();
+                bw.flush();
+
+                System.out.println("Sent message : " + message);
+
+                String gotMessage = br.readLine();
+                System.out.println("Message: " + gotMessage);
+
+
+
+                Thread.sleep(100);
+                connection.close();
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
             }
-            serverName = serverName.split(":")[0];
-        }
-        try {
-            connection = new Socket(serverName, port);
-            bw = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
-            br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            connected = true;
-
-        } catch (ConnectException e) {
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    void send() {
-        try {
-            bw.write("{\"action\" : \"UserDoesDiceThrow\", \"playerId\": 1, \"ludoId\" : 2}");
-            bw.newLine();
-            bw.flush();
-            messageSent = true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            messageSent = true;
-            System.out.println("Error. Could not send message");
         }
     }
 }
