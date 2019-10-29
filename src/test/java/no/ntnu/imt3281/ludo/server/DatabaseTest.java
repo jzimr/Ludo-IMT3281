@@ -253,7 +253,7 @@ public class DatabaseTest {
      * Test if we get all chat rooms available in the database
      */
     @Test
-    public void getAllChatRoomsTest(){
+    public void getAllChatRoomsTest() {
         // insert two chatrooms
         insertTwoChatRooms();
 
@@ -262,8 +262,49 @@ public class DatabaseTest {
         // we should only have 2 chatrooms in database at the moment
         assertEquals(2, chatRooms.size());
 
-        
+        // do names match entries?
+        assertEquals("Testroom", chatRooms.get(0));
+        assertEquals("Testroom2", chatRooms.get(1));
+    }
 
+    @Test
+    public void deleteAChatRoomTest() {
+        ArrayList<String> chatRooms;
+        ArrayList<ChatMessage> chatMessages;
+
+        // insert two users
+        insertTwoUsers();
+
+        // insert two chatrooms
+        insertTwoChatRooms();
+
+        // insert two messages
+        insertTwoMessages();
+
+        // we should only have 2 chatrooms in database at the moment
+        chatRooms = testDatabase.getAllChatRooms();
+        assertEquals(2, chatRooms.size());
+        // we should only have 1 chatmessage from "Testroom" in database at the moment
+        chatMessages = testDatabase.getChatMessages("Testroom");
+        assertEquals(1, chatMessages.size());
+
+        // try to remove the first chat room. This should also remove any
+        // chatlog entries referring to this chat room
+        try {
+            testDatabase.removeChatRoom("Testroom");
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            assertTrue(false);
+        }
+
+        // first test if deleted from "chat_room" table
+        chatRooms = testDatabase.getAllChatRooms();
+        assertEquals(1, chatRooms.size());
+        assertEquals("Testroom2", chatRooms.get(0));
+
+        // then test if related messages from "chat_log" table are deleted as well
+        chatMessages = testDatabase.getChatMessages("Testroom");
+        assertEquals(0, chatMessages.size());
     }
 
     /**

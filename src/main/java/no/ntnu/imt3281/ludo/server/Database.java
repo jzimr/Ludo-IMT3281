@@ -140,7 +140,6 @@ public class Database {
                 "(chat_name) VALUES (?)");
 
         stmt.setString(1, chatRoom);
-
         stmt.execute();
     }
 
@@ -166,6 +165,23 @@ public class Database {
         }
 
         return chatRooms;
+    }
+
+    /**
+     * Remove a particular chatroom from the database
+     * <p>
+     *     Removing a chatroom wil also delete all chat log entries from
+     *     the "chat_log" table automatically.
+     * </p>
+     * @param chatRoom the chat room name we want to remove
+     * @throws SQLException if error in deleting occurs, else none
+     */
+    public void removeChatRoom(String chatRoom) throws SQLException{
+        PreparedStatement stmt = connection.prepareStatement("DELETE FROM chat_room " +
+                "WHERE chat_name=?");
+
+        stmt.setString(1, chatRoom);
+        stmt.execute();
     }
 
     /**
