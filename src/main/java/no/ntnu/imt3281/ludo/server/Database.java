@@ -2,6 +2,7 @@ package no.ntnu.imt3281.ludo.server;
 
 import java.sql.*;
 import java.time.Instant;
+import java.util.ArrayList;
 
 /**
  * Singleton Database class
@@ -96,8 +97,10 @@ public class Database {
         stmt.execute();
     }
 
-    public void getUser() {
+    public UserInfo getUser() {
         // todo
+
+        return null;
     }
 
     /**
@@ -108,7 +111,7 @@ public class Database {
      */
     public void insertChatRoom(String chatRoom) throws SQLException {
         PreparedStatement stmt = connection.prepareStatement("INSERT INTO chat_room" +
-                "(room_name) VALUES (?)");
+                "(chat_name) VALUES (?)");
 
         stmt.setString(1, chatRoom);
 
@@ -124,6 +127,7 @@ public class Database {
     public void insertChatMessage(String chatName, int userId, String chatMessage) throws SQLException {
         long timestamp = Instant.now().getEpochSecond();
 
+        // make query ready to insert data
         PreparedStatement stmt = connection.prepareStatement("INSERT INTO chat_log" +
                 "(chat_name, user_id, chat_message, timestamp) VALUES (?, ?, ?, ?)");
 
@@ -135,10 +139,34 @@ public class Database {
         stmt.execute();
     }
 
-    public String getChatLog(int chatId) {
-        // todo
+    /**
+     * Get all chat messages with relevant information of a particular chat room.
+     * @param chatName the chat room to get chat log from
+     * @return Array of chat messages or null if error/none found
+     */
+    public ArrayList<ChatMessage> getChatMessages(String chatName) {
+        ArrayList<ChatMessage> chatMessages = new ArrayList<>();
 
-        return "";
+        // get the messages
+        try{
+            Statement stmt = connection.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM chat_log WHERE chat_name='" + chatName + "'");
+
+            // loop over all data and add each entry into our arraylist
+            while(rs.next()) {
+                chatMessages.add(new ChatMessage(
+                        rs.getString("chat_name"),
+                        rs.getInt("user_id"),
+                        rs.getString("chat_message"),
+                        rs.getLong("timestamp")
+                ));
+            }
+        } catch(SQLException ex){
+            System.out.println("Error occured when trying to get chat message: " + ex.getMessage());
+            return null;
+        }
+
+        return chatMessages;
     }
 
 
@@ -162,7 +190,8 @@ public class Database {
                 "avatar_path varchar(120)," +
                 "games_played int NOT NULL," +
                 "games_won int NOT NULL," +
-                "PRIMARY KEY (user_id, user_name))");            // both "user_id" and "user_name" should be unique
+                // both "user_id" and "user_name" should be unique
+                "PRIMARY KEY (user_id))");
     }
 
     /**
@@ -172,8 +201,9 @@ public class Database {
         Statement stmt = connection.createStatement();
 
         stmt.execute("CREATE TABLE chat_room (" +
-                "room_name varchar(32) NOT NULL," +
-                "PRIMARY KEY (room_name))");                  // room name should be unique
+                "chat_name varchar(32) NOT NULL," +
+                // room name should be unique
+                "PRIMARY KEY (chat_name))");
     }
 
     /**
@@ -189,6 +219,10 @@ public class Database {
                 "timestamp bigint," +
                 // "chat_name" is a foreign key of "room_name" from table "chat_room".
                 // Chat entries will be deleted if the "room_name" is deleted from table "chat_room"
-                "FOREIGN KEY (chat_name) references chat_room(room_name) ON DELETE CASCADE)");
+                "FOREIGN KEY (chat_name) references chat_room(chat_name) ON DELETE CASCADE," +
+                // here "user_id" is a foreign key reference to the "user_info" table
+                // So that we can see the chat log of deleted users, we set the RESTRICT constraint.
+                "FOREIGN KEY (user_id) references user_info(user_id) ON DELETE RESTRICT)");
+
     }
 }

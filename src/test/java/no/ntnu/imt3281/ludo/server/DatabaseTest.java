@@ -1,11 +1,10 @@
 package no.ntnu.imt3281.ludo.server;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -38,22 +37,38 @@ public class DatabaseTest {
     }
 
     /**
-     * Remove all data at end of tests (excluding DROP table)
+     * Remove all data at end of tests (including tables)
      */
     @AfterClass
-    public static void purgeDatabase(){
+    public static void dropDatabaseAtEndOfTests(){
         // remove all data from records
         try{
             Statement statement = testConnection.createStatement();
-            statement.execute("DROP TABLE user_info");
             statement.execute("DROP TABLE chat_log");
             statement.execute("DROP TABLE chat_room");
+            statement.execute("DROP TABLE user_info");
         } catch(SQLException ex){
-            System.out.println(ex.getMessage());
+            ex.printStackTrace();
             assertFalse(true);
         }
     }
 
+    /**
+     * Delete all data after every test (excluding DROP'ing tables)
+     */
+    @After
+    public void purgeDatabaseAfterEveryTest(){
+        // remove all entries
+        try{
+            Statement statement = testConnection.createStatement();
+            statement.execute("DELETE FROM chat_log");
+            statement.execute("DELETE FROM chat_room");
+            statement.execute("DELETE FROM user_info");
+        } catch(SQLException ex){
+            ex.printStackTrace();
+            assertFalse(true);
+        }
+    }
 
     /**
      * Tests that our database was correctly setup with the desired tables and columns
@@ -105,7 +120,7 @@ public class DatabaseTest {
         // test chat_room table
         try{
             statement = testConnection.createStatement();
-            resultSet = statement.executeQuery("SELECT * FROM chat_log");
+            resultSet = statement.executeQuery("SELECT * FROM chat_room");
         } catch(SQLException ex){
             assertFalse(true);
         }
@@ -113,12 +128,49 @@ public class DatabaseTest {
         // check if tables have all the required columns and only has 5 columns
         try{
             assertEquals("CHAT_NAME", resultSet.getMetaData().getColumnName(1));
-            assertEquals("USER_ID", resultSet.getMetaData().getColumnName(2));
-            assertEquals("CHAT_MESSAGE", resultSet.getMetaData().getColumnName(3));
-            assertEquals("TIMESTAMP", resultSet.getMetaData().getColumnName(4));
-            assertEquals(4, resultSet.getMetaData().getColumnCount());
+            assertEquals(1, resultSet.getMetaData().getColumnCount());
         } catch(SQLException ex){
             assertFalse(true);
+        }
+    }
+
+    /**
+     * Helper function to insert two basic users into the database
+     */
+    private void insertTwoUsers(){
+        try{
+            testDatabase.insertUser("Boby", "someImage.png", 10, 3);
+            testDatabase.insertUser("Samy", "someOtherImage.png", 6, 6);
+        } catch(SQLException ex){
+            ex.printStackTrace();
+            assertTrue(false);
+        }
+    }
+
+    /**
+     * Helper function to insert two chatrooms into the databasee
+     */
+    private void insertTwoChatRooms(){
+        //Try to insert chat room into db and check if the data is correct.
+        try {
+            testDatabase.insertChatRoom("Testroom");
+            testDatabase.insertChatRoom("Testroom2");
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            assertTrue(false);
+        }
+    }
+
+    /**
+     * Helper function to insert two messages into the database (REQUIRES 2 users minimum first!)
+     */
+    private void insertTwoMessages(){
+        try{
+            testDatabase.insertChatMessage("Testroom",0, "Wow, what a great game :)");
+            testDatabase.insertChatMessage("Testroom2",1, "Ye, this game deserves an 'A'!");
+        } catch(SQLException ex){
+            ex.printStackTrace();
+            assertTrue(false);
         }
     }
 
@@ -128,12 +180,12 @@ public class DatabaseTest {
      */
     @Test
     public void insertUserTest(){
-        //Try to insert user into db and check if the data is correct.
+        // insert two users
+        insertTwoUsers();
+
         try {
             Statement state = testConnection.createStatement();
 
-            // Insert user 1 into database
-            testDatabase.insertUser("Boby", "someImage.png", 10, 3);
             // execute SELECT query
             ResultSet rs = state.executeQuery("SELECT * FROM user_info WHERE user_id=0");
 
@@ -146,8 +198,6 @@ public class DatabaseTest {
                 assertEquals(3, rs.getInt("games_won"));
             }
 
-            // Insert user 2 into database
-            testDatabase.insertUser("Samy", "someOtherImage.png", 6, 6);
             // execute SELECT query
             rs = state.executeQuery("SELECT * FROM user_info WHERE user_id=1");
 
@@ -159,7 +209,6 @@ public class DatabaseTest {
                 assertEquals(6, rs.getInt("games_played"));
                 assertEquals(6, rs.getInt("games_won"));
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
             assertTrue(false);
@@ -171,24 +220,24 @@ public class DatabaseTest {
      */
     @Test
     public void insertChatRoomTest(){
-        //Try to insert chat room into db and check if the data is correct.
-        try {
-            testDatabase.insertChatRoom("Test");
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+        // first create two chat rooms
+        insertTwoChatRooms();
 
         try {
             // Get data from database
             Statement state = testConnection.createStatement();
-            ResultSet rs = state.executeQuery("SELECT * FROM chat_room");
+            ResultSet rs = state.executeQuery("SELECT * FROM chat_room WHERE chat_name = 'Test'");
 
             //Loop over data and check if values match with our original values
             while(rs.next()) {
-                assertEquals("Test", rs.getString("room_name"));
+                assertEquals("Testroom", rs.getString("chat_name"));
             }
 
+            rs = state.executeQuery("SELECT * FROM chat_room WHERE chat_name = 'Test2'");
+            //Loop over data and check if values match with our original values
+            while(rs.next()) {
+                assertEquals("Testroom2", rs.getString("chat_name"));
+            }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
@@ -199,31 +248,79 @@ public class DatabaseTest {
      */
     @Test
     public void insertChatMessageTest(){
+        // Insert two users
+        insertTwoUsers();
 
-        //Try to retrieve data from db and check if the data is correct.
-        try {
-            testDatabase.insertChatMessage("Test",1, "Hello Test");
-        } catch (SQLException e) {
-            assertTrue( "Failed to insert chat message into chat_log table",false);
-            System.out.println(e.getMessage());
-        }
+        // Insert two chat rooms
+        insertTwoChatRooms();
+
+        // Insert two chat messages
+        insertTwoMessages();
 
         try {
             // Get data from database
             Statement state = testConnection.createStatement();
-            ResultSet rs = state.executeQuery("SELECT * FROM chat_log");
+
+            // compare first message
+            ResultSet rs = state.executeQuery("SELECT * FROM chat_log WHERE chat_name = 'Testroom'");
 
             //Loop over data and check if values match with our original values
             while(rs.next()) {
-                assertEquals("Test", rs.getString("chat_name"));
-                assertEquals(String.valueOf(1), rs.getString("user_id"));
-                assertEquals("Hello Test", rs.getString("chat_message"));
-                assertNotEquals(String.valueOf(0), rs.getString("timestamp"));
+                assertEquals("Testroom", rs.getString("chat_name"));
+                assertEquals(0, rs.getInt("user_id"));
+                assertEquals("Wow, what a great game :)", rs.getString("chat_message"));
+                assertNotEquals(0, rs.getLong("timestamp"));
+            }
+
+            // compare second message
+            rs = state.executeQuery("SELECT * FROM chat_log WHERE chat_name = 'Testroom2'");
+
+            //Loop over data and check if values match with our original values
+            while(rs.next()) {
+                assertEquals("Testroom2", rs.getString("chat_name"));
+                assertEquals(1, rs.getInt("user_id"));
+                assertEquals("Ye, this game deserves an 'A'!", rs.getString("chat_message"));
+                assertNotEquals(0, rs.getLong("timestamp"));
             }
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    @Test
+    public void getChatMessagesTest(){
+        ArrayList<ChatMessage> chatMessages = new ArrayList<>();
+
+        // Insert two users
+        insertTwoUsers();
+
+        // Insert two chat rooms
+        insertTwoChatRooms();
+
+        // Insert two chat messages
+        insertTwoMessages();
+
+        // get the message from the first chatroom
+        chatMessages = testDatabase.getChatMessages("Testroom");
+        // We only added 1 message to database in this chatroom
+        assertTrue(chatMessages.size() == 1);
+
+        // check if first message match our insert
+        assertEquals("Testroom", chatMessages.get(0).getChatName());
+        assertEquals(0, chatMessages.get(0).getUserId());
+        assertEquals("Wow, what a great game :)", chatMessages.get(0).getChatMessage());
+
+
+        // get the message from the second chatroom
+        chatMessages = testDatabase.getChatMessages("Testroom2");
+        // We only added 1 message to database in this chatroom
+        assertTrue(chatMessages.size() == 1);
+
+        // check if second message match our insert
+        assertEquals("Testroom2", chatMessages.get(0).getChatName());
+        assertEquals(1, chatMessages.get(0).getUserId());
+        assertEquals("Ye, this game deserves an 'A'!", chatMessages.get(0).getChatMessage());
     }
 
 }
