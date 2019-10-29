@@ -7,10 +7,7 @@ import no.ntnu.imt3281.ludo.logic.JsonMessage;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
@@ -46,9 +43,10 @@ public class Server {
 		startListener();
 		startHandlingActions();
 		startSenderThread();
-		//startRemoveDisconnectedClientsThread();
+		startRemoveDisconnectedClientsThread();
 
-		System.out.println("Ludo service is now listening at 0.0.0.0:"+SERVER_PORT);
+		System.out.println("Ludo server is now listening at 0.0.0.0:"+SERVER_PORT);
+
 	}
 
 
@@ -101,7 +99,9 @@ public class Server {
 
 								JsonMessageParser parse = new JsonMessageParser(); //Initiate a parser
 								JsonMessage json = parse.parseActionJson(msg); //Parse the json into a object
-								objectsToHandle.add(json); //Add the object to queue for handling
+								synchronized (objectsToHandle) {
+									objectsToHandle.add(json); //Add the object to queue for handling
+								}
 								c.send("{\"ack\":true}"); //Acknowledgment that the server got the packet.
 
 							}
@@ -159,11 +159,9 @@ public class Server {
 			while (!stopping) {
 				try {
 					Client client = disconnectedClients.take();
-					//Message msg = new Message("Vanished into thin air");
 					synchronized (clients) {
 						clients.remove(client);
 					}
-					//messagesToSend.add(msg);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -182,6 +180,16 @@ public class Server {
 				try {
 					JsonMessage message = objectsToHandle.take();
 					System.out.println(message.getAction());
+
+					/*
+					Handle message logic here.
+					Have to be moved to a seperate function. Only for testing purposes for now.
+					 */
+
+					switch(message.getAction()) {
+						case "UserDoesDiceThrow": break;
+					}
+
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -239,6 +247,20 @@ public class Server {
 				e.printStackTrace();
 			}
 			return null;
+		}
+
+	}
+
+	public class activeLudoGame{
+		Ludo game;
+		int[] players;
+
+		void setGame (Ludo game) {
+			this.game = game;
+		}
+
+		Ludo getGame() {
+			return this.game;
 		}
 
 	}

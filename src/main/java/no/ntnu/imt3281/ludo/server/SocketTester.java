@@ -24,7 +24,7 @@ public class SocketTester {
     }
 
     public SocketTester(){
-        for(int i=0; i<5;i++){
+
             //establish socket connection to server
             try {
                 connection = new Socket("127.0.0.1", DEFAULT_PORT);
@@ -38,8 +38,10 @@ public class SocketTester {
                 System.out.println("Sent message : " + message);
 
                 String gotMessage = br.readLine();
-                System.out.println("Message: " + gotMessage);
+                System.out.println("Acknowledge message: " + gotMessage); //Mainly for debugging purposes
 
+                gotMessage = br.readLine();
+                System.out.println(" " + gotMessage); //Wait for server to process message.
 
 
                 Thread.sleep(100);
@@ -48,5 +50,5 @@ public class SocketTester {
                 e.printStackTrace();
             }
         }
-    }
+
 }
