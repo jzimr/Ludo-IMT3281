@@ -20,6 +20,7 @@ public class DatabaseTest {
      */
     @BeforeClass
     public static void setupDatabase(){
+        // create test database instance
         try{
             testDatabase = Database.constructTestDatabase(dbURL);
         } catch(Exception ex){
@@ -34,9 +35,6 @@ public class DatabaseTest {
             // fail testing if not
             assertFalse(true);
         }
-
-        // check if we have reached this point in test (since testDatabase does exit(1) on worst case)
-        assertTrue(true);
     }
 
     /**
@@ -47,9 +45,11 @@ public class DatabaseTest {
         // remove all data from records
         try{
             Statement statement = testConnection.createStatement();
-            statement.execute("DELETE FROM user_info");
-            statement.execute("DELETE FROM chat_log");
+            statement.execute("DROP TABLE user_info");
+            statement.execute("DROP TABLE chat_log");
+            statement.execute("DROP TABLE chat_room");
         } catch(SQLException ex){
+            System.out.println(ex.getMessage());
             assertFalse(true);
         }
     }
@@ -93,42 +93,128 @@ public class DatabaseTest {
 
         // check if tables have all the required columns and only has 5 columns
         try{
-            assertEquals("CHAT_ID", resultSet.getMetaData().getColumnName(1));
-            assertEquals("CHAT_NAME", resultSet.getMetaData().getColumnName(2));
-            assertEquals("USER_ID", resultSet.getMetaData().getColumnName(3));
-            assertEquals("CHAT_MESSAGE", resultSet.getMetaData().getColumnName(4));
-            assertEquals("TIMESTAMP", resultSet.getMetaData().getColumnName(5));
-            assertEquals(5, resultSet.getMetaData().getColumnCount());
+            assertEquals("CHAT_NAME", resultSet.getMetaData().getColumnName(1));
+            assertEquals("USER_ID", resultSet.getMetaData().getColumnName(2));
+            assertEquals("CHAT_MESSAGE", resultSet.getMetaData().getColumnName(3));
+            assertEquals("TIMESTAMP", resultSet.getMetaData().getColumnName(4));
+            assertEquals(4, resultSet.getMetaData().getColumnCount());
+        } catch(SQLException ex){
+            assertFalse(true);
+        }
+
+        // test chat_room table
+        try{
+            statement = testConnection.createStatement();
+            resultSet = statement.executeQuery("SELECT * FROM chat_log");
+        } catch(SQLException ex){
+            assertFalse(true);
+        }
+
+        // check if tables have all the required columns and only has 5 columns
+        try{
+            assertEquals("CHAT_NAME", resultSet.getMetaData().getColumnName(1));
+            assertEquals("USER_ID", resultSet.getMetaData().getColumnName(2));
+            assertEquals("CHAT_MESSAGE", resultSet.getMetaData().getColumnName(3));
+            assertEquals("TIMESTAMP", resultSet.getMetaData().getColumnName(4));
+            assertEquals(4, resultSet.getMetaData().getColumnCount());
         } catch(SQLException ex){
             assertFalse(true);
         }
     }
 
+    /**
+     * Testing if we successfully add and can retrieve 2 users in the database
+     * It also tests if the database auto increments the unique ID of the users
+     */
+    @Test
+    public void insertUserTest(){
+        //Try to insert user into db and check if the data is correct.
+        try {
+            Statement state = testConnection.createStatement();
+
+            // Insert user 1 into database
+            testDatabase.insertUser("Boby", "someImage.png", 10, 3);
+            // execute SELECT query
+            ResultSet rs = state.executeQuery("SELECT * FROM user_info WHERE user_id=0");
+
+            // loop over data of user 1
+            while(rs.next()) {
+                assertEquals(0, rs.getInt("user_id"));
+                assertEquals("Boby", rs.getString("user_name"));
+                assertEquals("someImage.png", rs.getString("avatar_path"));
+                assertEquals(10, rs.getInt("games_played"));
+                assertEquals(3, rs.getInt("games_won"));
+            }
+
+            // Insert user 2 into database
+            testDatabase.insertUser("Samy", "someOtherImage.png", 6, 6);
+            // execute SELECT query
+            rs = state.executeQuery("SELECT * FROM user_info WHERE user_id=1");
+
+            // loop over data of user 2
+            while(rs.next()) {
+                assertEquals(1, rs.getInt("user_id"));
+                assertEquals("Samy", rs.getString("user_name"));
+                assertEquals("someOtherImage.png", rs.getString("avatar_path"));
+                assertEquals(6, rs.getInt("games_played"));
+                assertEquals(6, rs.getInt("games_won"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            assertTrue(false);
+        }
+    }
+
+    /**
+     * Test if we can insert a new chatroom into database.
+     */
+    @Test
+    public void insertChatRoomTest(){
+        //Try to insert chat room into db and check if the data is correct.
+        try {
+            testDatabase.insertChatRoom("Test");
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            assertTrue(false);
+        }
+
+        try {
+            // Get data from database
+            Statement state = testConnection.createStatement();
+            ResultSet rs = state.executeQuery("SELECT * FROM chat_room");
+
+            //Loop over data and check if values match with our original values
+            while(rs.next()) {
+                assertEquals("Test", rs.getString("room_name"));
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    /**
+     * Test if we can insert a chat message into database.
+     */
     @Test
     public void insertChatMessageTest(){
 
-        SQLException exception = null;
         //Try to retrieve data from db and check if the data is correct.
-
         try {
-            testDatabase.insertChatMessage(0,"Test",1, "Hello Test");
+            testDatabase.insertChatMessage("Test",1, "Hello Test");
         } catch (SQLException e) {
-            exception = e;
-        }
-
-        if (exception != null ){
             assertTrue( "Failed to insert chat message into chat_log table",false);
-            System.out.println(exception.getMessage());
+            System.out.println(e.getMessage());
         }
 
         try {
-            //Insert data into the db
+            // Get data from database
             Statement state = testConnection.createStatement();
             ResultSet rs = state.executeQuery("SELECT * FROM chat_log");
 
-            //Loop over data and
+            //Loop over data and check if values match with our original values
             while(rs.next()) {
-                assertEquals(String.valueOf(0), rs.getString("chat_id"));
                 assertEquals("Test", rs.getString("chat_name"));
                 assertEquals(String.valueOf(1), rs.getString("user_id"));
                 assertEquals("Hello Test", rs.getString("chat_message"));
@@ -136,9 +222,8 @@ public class DatabaseTest {
             }
 
         } catch (SQLException e) {
-            System.out.println(exception.getMessage());
+            System.out.println(e.getMessage());
         }
-
     }
 
 }
