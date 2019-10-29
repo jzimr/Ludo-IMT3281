@@ -197,6 +197,9 @@ public class DatabaseTest {
         }
     }
 
+    /**
+     * Test if we get the two users we insert into the database
+     */
     @Test
     public void getUserTest() {
         // insert two users
@@ -222,6 +225,37 @@ public class DatabaseTest {
     }
 
     /**
+     * Test if we can update one of the two users in the database
+     */
+    @Test
+    public void updateUserTest(){
+        // insert two users
+        insertTwoUsers();
+
+        // we'll change some info on user2
+        UserInfo user2 = testDatabase.getUser(1);
+        user2.setUserName("Fredy");
+        user2.setGamesPlayed(200);
+        user2.setGamesWon(100);
+
+        // apply changes to databasee
+        try{
+            testDatabase.updateUser(user2);
+        } catch(SQLException ex){
+            ex.printStackTrace();
+            assertTrue(false);
+        }
+
+        // get the new data and compare
+        user2 = testDatabase.getUser(1);
+        assertEquals(1, user2.getUserId());
+        assertEquals("Fredy", user2.getUserName());
+        assertEquals("someOtherImage.png", user2.getAvatarPath());
+        assertEquals(200, user2.getGamesPlayed());
+        assertEquals(100, user2.getGamesWon());
+    }
+
+    /**
      * Test if we can insert a new chatroom into database.
      */
     @Test
@@ -244,8 +278,9 @@ public class DatabaseTest {
             while (rs.next()) {
                 assertEquals("Testroom2", rs.getString("chat_name"));
             }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            assertTrue(false);
         }
     }
 
@@ -267,6 +302,10 @@ public class DatabaseTest {
         assertEquals("Testroom2", chatRooms.get(1));
     }
 
+    /**
+     * Test to check if we can deelete a room from the database and
+     * if the correlated chat log messages are deleted as well (CONSTRAINT ON DELETE CASCADE)
+     */
     @Test
     public void deleteAChatRoomTest() {
         ArrayList<String> chatRooms;
@@ -348,7 +387,8 @@ public class DatabaseTest {
             }
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
+            assertTrue(false);
         }
     }
 

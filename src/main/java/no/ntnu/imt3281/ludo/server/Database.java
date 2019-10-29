@@ -100,19 +100,20 @@ public class Database {
 
     /**
      * Get the user by his ID
+     *
      * @param userID the ID of the user
      * @return a data class containing all relevant info about a user
      */
     public UserInfo getUser(int userID) {
         UserInfo userInfo = null;
-        try{
+        try {
             PreparedStatement stmt = connection.prepareStatement("SELECT * FROM user_info " +
                     "WHERE user_id = ?");
             stmt.setInt(1, userID);
             ResultSet rs = stmt.executeQuery();
 
             // loop over user
-            while(rs.next()) {
+            while (rs.next()) {
                 userInfo = new UserInfo(
                         rs.getInt("user_id"),
                         rs.getString("user_name"),
@@ -121,12 +122,31 @@ public class Database {
                         rs.getInt("games_won")
                 );
             }
-        } catch(SQLException ex){
+        } catch (SQLException ex) {
             System.out.println("Error occured when trying to get user: " + ex.getMessage());
             return null;
         }
 
         return userInfo;
+    }
+
+    /**
+     * Update a user in the database with new information
+     * @param userInfo the Data class holding all relevant information about a user
+     * @throws SQLException if database could not update, else none
+     */
+    public void updateUser(UserInfo userInfo) throws SQLException {
+        PreparedStatement stmt = connection.prepareStatement("UPDATE user_info " +
+                "SET user_name = ?, avatar_path = ?, games_played = ?, games_won = ? " +
+                "WHERE user_id = ?");
+
+        stmt.setString(1, userInfo.getUserName());
+        stmt.setString(2, userInfo.getAvatarPath());
+        stmt.setInt(3, userInfo.getGamesPlayed());
+        stmt.setInt(4, userInfo.getGamesWon());
+        stmt.setInt(5, userInfo.getUserId());
+
+        stmt.execute();
     }
 
     /**
@@ -145,21 +165,22 @@ public class Database {
 
     /**
      * Get all chat rooms that are active on our server
+     *
      * @return an ArrayList of all chatrooms
      */
-    public ArrayList<String> getAllChatRooms(){
+    public ArrayList<String> getAllChatRooms() {
         ArrayList<String> chatRooms = new ArrayList<>();
 
-        try{
+        try {
             // get the messages from database
             Statement stmt = connection.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM chat_room");
 
             // loop over all data and add each entry into our arraylist
-            while(rs.next()) {
+            while (rs.next()) {
                 chatRooms.add(rs.getString("chat_name"));
             }
-        } catch(SQLException ex){
+        } catch (SQLException ex) {
             System.out.println("Error occured when trying to get chat rooms: " + ex.getMessage());
             return null;
         }
@@ -170,13 +191,14 @@ public class Database {
     /**
      * Remove a particular chatroom from the database
      * <p>
-     *     Removing a chatroom wil also delete all chat log entries from
-     *     the "chat_log" table automatically.
+     * Removing a chatroom wil also delete all chat log entries from
+     * the "chat_log" table automatically.
      * </p>
+     *
      * @param chatRoom the chat room name we want to remove
      * @throws SQLException if error in deleting occurs, else none
      */
-    public void removeChatRoom(String chatRoom) throws SQLException{
+    public void removeChatRoom(String chatRoom) throws SQLException {
         PreparedStatement stmt = connection.prepareStatement("DELETE FROM chat_room " +
                 "WHERE chat_name=?");
 
@@ -207,6 +229,7 @@ public class Database {
 
     /**
      * Get all chat messages with relevant information of a particular chat room.
+     *
      * @param chatName the chat room to get chat log from
      * @return Array of chat messages or null if error/none found
      */
@@ -214,15 +237,15 @@ public class Database {
         ArrayList<ChatMessage> chatMessages = new ArrayList<>();
 
         // get the messages
-        try{
+        try {
             PreparedStatement stmt = connection.prepareStatement("SELECT * FROM chat_log " +
-                            "WHERE chat_name=?");
+                    "WHERE chat_name=?");
             stmt.setString(1, chatName);
 
             ResultSet rs = stmt.executeQuery();
 
             // loop over all data and add each entry into our arraylist
-            while(rs.next()) {
+            while (rs.next()) {
                 chatMessages.add(new ChatMessage(
                         rs.getString("chat_name"),
                         rs.getInt("user_id"),
@@ -230,7 +253,7 @@ public class Database {
                         rs.getLong("timestamp")
                 ));
             }
-        } catch(SQLException ex){
+        } catch (SQLException ex) {
             System.out.println("Error occured when trying to get chat message: " + ex.getMessage());
             return null;
         }
