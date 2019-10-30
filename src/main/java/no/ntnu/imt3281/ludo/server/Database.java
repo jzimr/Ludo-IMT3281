@@ -1,6 +1,7 @@
 package no.ntnu.imt3281.ludo.server;
 
-import javax.swing.plaf.nimbus.State;
+import no.ntnu.imt3281.ludo.logic.PBKDF2Hasher;
+
 import java.sql.*;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class Database {
             if (ex.getMessage().contains("Database") && ex.getMessage().contains("not found.")) {
                 try {                            // create a new database
                     connection = DriverManager.getConnection(dbURL + ";create=true");
+                    createLoginInformationTable();
                     createUserInformationTable();
                     createChatRoomTable();
                     createChatLogTable();
@@ -40,25 +42,16 @@ public class Database {
 
         // check that tables exist (in case they have been DROP'ed)
         try {
+            createLoginInformationTable();
             createUserInformationTable();
-        } catch (SQLException ex) {
-            if (!ex.getMessage().equals("Table/View 'USER_INFO' already exists in Schema 'APP'.")) {
-                ex.printStackTrace();
-                System.exit(1);
-            }
-        }
-        try {
             createChatRoomTable();
-        } catch (SQLException ex) {
-            if (!ex.getMessage().equals("Table/View 'CHAT_ROOM' already exists in Schema 'APP'.")) {
-                ex.printStackTrace();
-                System.exit(1);
-            }
-        }
-        try {
             createChatLogTable();
         } catch (SQLException ex) {
-            if (!ex.getMessage().equals("Table/View 'CHAT_LOG' already exists in Schema 'APP'.")) {
+            // if error is something else than that the table already exists
+            if (!ex.getMessage().equals("Table/View 'LOGIN_INFO' already exists in Schema 'APP'.")
+                    && !ex.getMessage().equals("Table/View 'USER_INFO' already exists in Schema 'APP'.")
+                    && !ex.getMessage().equals("Table/View 'CHAT_ROOM' already exists in Schema 'APP'.")
+                    && !ex.getMessage().equals("Table/View 'CHAT_LOG' already exists in Schema 'APP'.")) {
                 ex.printStackTrace();
                 System.exit(1);
             }
@@ -78,22 +71,114 @@ public class Database {
     }
 
     /**
-     * Insert a new user into the database. Will fail if user already exists.
+     * Insert a new account for the user
+     * <p>
+     * Will also automatically create a new profile for the user
+     * by calling "insertUser"
+     * </p>
      *
-     * @param userName    the name of the user
+     * @param accountName the login username of the user
+     * @param hashedPwd the hashed password. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
+     */
+    public void insertAccount(String accountName, String hashedPwd) throws SQLException {
+        // first insert a new account into our "login_info" table
+        PreparedStatement stmt = connection.prepareStatement("INSERT INTO login_info" +
+                "(ACCOUNT_NAME, PWD_HSH) VALUES (?, ?)");
+        stmt.setString(1, accountName);
+        stmt.setString(2, hashedPwd);
+        stmt.execute();
+
+        // then create a query to get the recently inserted account
+        stmt = connection.prepareStatement("SELECT * FROM login_info " +
+                "WHERE account_name = ?");
+        stmt.setString(1, accountName);
+        ResultSet rs = stmt.executeQuery();
+
+        // we want userID and accountName from the query
+        int userId = -1;
+        while (rs.next()) {
+            userId = rs.getInt("user_id");
+            accountName = rs.getString("account_name");
+        }
+
+        // check if we even got any data from query
+        if(userId == -1){
+            throw new SQLException("Somehow the data of user login was not inserted into the database");
+        }
+
+        // at last insert a new user so he has a profile when he logs in for the first time
+        insertProfile(userId, accountName, "", 0, 0);
+    }
+
+    /**
+     * Check if the user-entered login values match the values in the database.
+     * <p>
+     *     We check by comparing the sent password with the hashed value in our
+     *     database using the PBKDF2Hasher class.
+     * </p>
+     * @param hasher instance of PBKDF2Hasher class
+     * @param accountName the login name of the account
+     * @param password plaintext password to compare to
+     * @return if the login matches with values in our database or not
+     * @throws SQLException if error occured in database
+     */
+    public boolean checkIfLoginValid(PBKDF2Hasher hasher, String accountName, char[] password) throws SQLException{
+        String pwd_hsh = "";
+        // create connection to database
+        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM login_info " +
+                "WHERE account_name = ?");
+        stmt.setString(1, accountName);
+        ResultSet rs = stmt.executeQuery();
+
+        // get hashed password from database that's linked to this user
+        while (rs.next()) {
+            pwd_hsh = rs.getString("pwd_hsh");
+        }
+        // if user was not found in database
+        if(pwd_hsh == "") return false;
+
+        // check if entered password matches password in database
+        return hasher.checkPassword(password, pwd_hsh);
+    }
+
+    /**
+     * Update the password of the account for a given user
+     * @param userId the unique ID of the user
+     * @param newHashedPwd the hashed password. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
+     */
+    public void updateAccountPassword(int userId, String newHashedPwd) throws SQLException {
+        PreparedStatement stmt = connection.prepareStatement("UPDATE login_info " +
+                "SET pwd_hsh = ? " +
+                "WHERE user_id = ?");
+
+        stmt.setString(1, newHashedPwd);
+        stmt.setInt(2, userId);
+
+        stmt.execute();
+    }
+
+    /**
+     * Insert a new user into the database. Will fail if user already exists.
+     * <p>
+     * Must first have an account for insertion to work.
+     * </p>
+     *
+     * @param userId the unique ID of the user
+     * @param displayName the name of the user
      * @param avatarPath  the image file path of the user's avatar
      * @param gamesPlayed number of total games played
      * @param gamesWon    number of total games won
      * @return true if upload was successful, else false
      */
-    public void insertUser(String userName, String avatarPath, int gamesPlayed, int gamesWon) throws SQLException {
+    protected void insertProfile(int userId, String displayName, String avatarPath, int gamesPlayed, int gamesWon) throws SQLException {
         PreparedStatement stmt = connection.prepareStatement("INSERT INTO user_info" +
-                "(user_name, avatar_path, games_played, games_won) VALUES (?, ?, ?, ?)");
+                "(user_id, display_name, avatar_path, games_played, games_won) VALUES (?, ?, ?, ?, ?)");
 
-        stmt.setString(1, userName);
-        stmt.setString(2, avatarPath);
-        stmt.setInt(3, gamesPlayed);
-        stmt.setInt(4, gamesWon);
+        stmt.setInt(1, userId);
+        stmt.setString(2, displayName);
+        stmt.setString(3, avatarPath);
+        stmt.setInt(4, gamesPlayed);
+        stmt.setInt(5, gamesWon);
 
         stmt.execute();
     }
@@ -104,7 +189,7 @@ public class Database {
      * @param userID the ID of the user
      * @return a data class containing all relevant info about a user
      */
-    public UserInfo getUser(int userID) {
+    public UserInfo getProfile(int userID) {
         UserInfo userInfo = null;
         try {
             PreparedStatement stmt = connection.prepareStatement("SELECT * FROM user_info " +
@@ -116,7 +201,7 @@ public class Database {
             while (rs.next()) {
                 userInfo = new UserInfo(
                         rs.getInt("user_id"),
-                        rs.getString("user_name"),
+                        rs.getString("display_name"),
                         rs.getString("avatar_path"),
                         rs.getInt("games_played"),
                         rs.getInt("games_won")
@@ -132,15 +217,16 @@ public class Database {
 
     /**
      * Update a user in the database with new information
+     *
      * @param userInfo the Data class holding all relevant information about a user
      * @throws SQLException if database could not update, else none
      */
-    public void updateUser(UserInfo userInfo) throws SQLException {
+    public void updateProfile(UserInfo userInfo) throws SQLException {
         PreparedStatement stmt = connection.prepareStatement("UPDATE user_info " +
-                "SET user_name = ?, avatar_path = ?, games_played = ?, games_won = ? " +
+                "SET display_name = ?, avatar_path = ?, games_played = ?, games_won = ? " +
                 "WHERE user_id = ?");
 
-        stmt.setString(1, userInfo.getUserName());
+        stmt.setString(1, userInfo.getDisplayName());
         stmt.setString(2, userInfo.getAvatarPath());
         stmt.setInt(3, userInfo.getGamesPlayed());
         stmt.setInt(4, userInfo.getGamesWon());
@@ -271,23 +357,50 @@ public class Database {
     }
 
     /**
+     * Creates the table for login information (login user_name and hashed password + its salt)
+     *
+     * @throws SQLException if table could not be created, else none
+     */
+    private void createLoginInformationTable() throws SQLException {
+        Statement stmt = connection.createStatement();
+
+        stmt.execute("CREATE TABLE login_info (" +
+                "user_id int NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 0, INCREMENT BY 1)," +
+                "account_name varchar(24) NOT NULL," +
+                "pwd_hsh varchar(120) NOT NULL," +
+                // "user_id" should be unique and primary key
+                "PRIMARY KEY (user_id)," +
+                // "user_name" should be unique
+                "UNIQUE (account_name))");
+    }
+
+    /**
      * Creates the table for user information
+     *
+     * @throws SQLException if table could not be created, else none
      */
     private void createUserInformationTable() throws SQLException {
         Statement stmt = connection.createStatement();
 
         stmt.execute("CREATE TABLE user_info (" +
-                "user_id int NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 0, INCREMENT BY 1)," +
-                "user_name varchar(24) NOT NULL," +
+                "user_id int NOT NULL," +
+                "display_name varchar(24) NOT NULL," +
                 "avatar_path varchar(120)," +
                 "games_played int NOT NULL," +
                 "games_won int NOT NULL," +
-                // both "user_id" and "user_name" should be unique
-                "PRIMARY KEY (user_id))");
+                // "user_id" should be unique and primary key
+                "PRIMARY KEY (user_id)," +
+                // "display_name" should be unique
+                "UNIQUE (display_name)," +
+                // "user_id" is a foreign key of "user_id" from table "login_info".
+                // We set the RESTRICT constraint, since users should never be completely deleted
+                "FOREIGN KEY (user_id) references login_info(user_id) ON DELETE RESTRICT)");
     }
 
     /**
      * Creates the table for holding all active chats
+     *
+     * @throws SQLException if table could not be created, else none
      */
     private void createChatRoomTable() throws SQLException {
         Statement stmt = connection.createStatement();
@@ -300,6 +413,8 @@ public class Database {
 
     /**
      * Creates the table for the chat log
+     *
+     * @throws SQLException if table could not be created, else none
      */
     private void createChatLogTable() throws SQLException {
         Statement stmt = connection.createStatement();
@@ -314,7 +429,6 @@ public class Database {
                 "FOREIGN KEY (chat_name) references chat_room(chat_name) ON DELETE CASCADE," +
                 // here "user_id" is a foreign key reference to the "user_info" table
                 // So that we can see the chat log of deleted users, we set the RESTRICT constraint.
-                "FOREIGN KEY (user_id) references user_info(user_id) ON DELETE RESTRICT)");
-
+                "FOREIGN KEY (user_id) references login_info(user_id) ON DELETE RESTRICT)");
     }
 }
