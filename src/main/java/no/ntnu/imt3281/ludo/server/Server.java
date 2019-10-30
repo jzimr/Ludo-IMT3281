@@ -41,20 +41,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	ArrayBlockingQueue<JsonMessage> messagesToSend = new ArrayBlockingQueue<JsonMessage>(100);
 
-
-	/*
-	*
-	* 	ArrayBlockingQueue<Event> objectsToHandle = new ArrayBlockingQueue<>(100);
-
-		ArrayBlockingQueue<Event> messagesToSend = new ArrayBlockingQueue<>(100);
-	*
-	* messagesToSend.take() = Event;
-	* Event event = MessagesToSEND.TAKE()
-	* client.send((event.action) event.serialized)
-	* action = reflection.
-	*
-	* */
-	/* Ikke i bruk atm */
 	ArrayBlockingQueue<Client> disconnectedClients = new ArrayBlockingQueue<>(1000);
 
 	public static void main(String[] args) {
@@ -247,14 +233,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		return null;
 	}
 
-	/**
-	 * Represents a client. Contains the open socket and input and output from that user.
-	 */
+
 	private void handleAction(JsonMessage action){
 		switch (action.getAction()) {
 			case "UserDoesDiceThrow": UserDoesDiceThrow(action); break;
 			case "UserDoesLogin": UserDoesLogin(action); break;
-			case "UserDoesRegister": UserDoesRegister(action);System.out.println("heu");break;
+			case "UserDoesRegister": UserDoesRegister(action);break;
 		}
 
 	}
