@@ -1,5 +1,7 @@
 package no.ntnu.imt3281.ludo.server;
 
+import no.ntnu.imt3281.ludo.logic.PBKDF2Hasher;
+
 import java.net.*;
 import java.io.*;
 
@@ -11,10 +13,14 @@ import java.io.*;
 public class SocketTester {
 
     private static final int DEFAULT_PORT = 4567;
+    private static PBKDF2Hasher hasher = new PBKDF2Hasher();    // our hasher object for hashing passwords
 
     private Socket connection = null;
     private BufferedWriter bw;
     private BufferedReader br;
+
+    private String LoginMessage = "{\"action\" : \"UserDoesLogin\",\"username\": \"test\",\"password\": \"test\"}";
+    String RegisterMessage = "{\"action\" : \"UserDoesRegister\",\"username\": \"test\",\"password\": \"test\"}";
 
     private String message = "{\"action\" : \"UserDoesDiceThrow\", \"playerId\": 1, \"ludoId\" : 2}";
 
@@ -24,25 +30,19 @@ public class SocketTester {
     }
 
     public SocketTester(){
-
             //establish socket connection to server
             try {
                 connection = new Socket("127.0.0.1", DEFAULT_PORT);
                 bw = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
                 br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
-                bw.write(message);
+                bw.write(LoginMessage);
                 bw.newLine();
                 bw.flush();
-
-                System.out.println("Sent message : " + message);
+                System.out.println("Sent message : " + LoginMessage);
 
                 String gotMessage = br.readLine();
-                System.out.println("Acknowledge message: " + gotMessage); //Mainly for debugging purposes
-
-                gotMessage = br.readLine();
-                System.out.println(" " + gotMessage); //Wait for server to process message.
-
+                System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
 
                 Thread.sleep(100);
                 connection.close();

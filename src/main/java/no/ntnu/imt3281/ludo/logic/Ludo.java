@@ -101,7 +101,7 @@ public class Ludo {
      * @param ID ID or colour of player [RED, BLUE, YELLOW, GREEN]
      * @return the player name
      */
-    String getPlayerName(int ID){
+    public String getPlayerName(int ID){
         // keep ID inside players bounds
         if(ID < 0 || ID > 3)
             return null;
@@ -119,7 +119,7 @@ public class Ludo {
      * @param playerName player name to retrieve ID of
      * @return ID of player or -1 if not found
      */
-    int getPlayerID(String playerName){
+    public int getPlayerID(String playerName){
         for(int i = 0; i < 4; i++){
             if(players[i] == playerName){
                 return i;
@@ -135,7 +135,7 @@ public class Ludo {
      * @param playerName name of player to add
      * @throws NoRoomForMorePlayersException if game already has a maximum of 4 players
      */
-    void addPlayer(String playerName) throws NoRoomForMorePlayersException {
+    public void addPlayer(String playerName) throws NoRoomForMorePlayersException {
         // if no more room for another player
         if(nrOfPlayers() >= 4){
             throw new NoRoomForMorePlayersException("This game is full!");
@@ -158,7 +158,7 @@ public class Ludo {
      * </p>
      * @param playerName name of player to remove
      */
-    void removePlayer(String playerName){
+    public void removePlayer(String playerName){
         activePlayers[getPlayerID(playerName)] = false;
         //Send event that a user left the game.
         if (playerListener != null) {
@@ -177,7 +177,7 @@ public class Ludo {
      * </p>
      * @param playerId id of player to remove
      */
-    void removePlayer(int playerId) {
+    public void removePlayer(int playerId) {
         activePlayers[playerId] = false;
         //Send event that a user left the game.
         if (playerListener != null) {
@@ -192,7 +192,7 @@ public class Ludo {
      * Get the number of currently active players in the game
      * @return number of active players
      */
-    int activePlayers(){
+    public int activePlayers(){
         // if has player and player is active
         return (int)Arrays.stream(players).filter(n -> activePlayers[getPlayerID(n)]).count();
     }
@@ -203,7 +203,7 @@ public class Ludo {
      * @param pieceID the ID of the piece (0-3)
      * @return
      */
-    int getPosition(int playerID, int pieceID){
+    public int getPosition(int playerID, int pieceID){
         return piecesPosition[playerID][pieceID];
     }
 
@@ -211,7 +211,7 @@ public class Ludo {
      * Get whose turn it is.
      * @return the playerID (0-3)
      */
-    int activePlayer(){
+    public int activePlayer(){
         return playerTurn;
     }
 
@@ -220,7 +220,7 @@ public class Ludo {
      * Returns the state of the game
      * @return gameState
      */
-    String getStatus() {
+    public String getStatus() {
         return gameState;
     }
 
@@ -252,7 +252,7 @@ public class Ludo {
      * Throw a random die
      * @return number from the die thrown
      */
-    int throwDice(){
+    public int throwDice(){
 
         // Update game state.
         if (gameState == GAME_STATE_INITIATED) {
@@ -274,7 +274,7 @@ public class Ludo {
      * </p>
      * @param rolled the number that was rolled
      */
-    int throwDice(int rolled){
+    public int throwDice(int rolled){
         boolean allPiecesAtHome = Arrays.stream(piecesPosition[playerTurn]).allMatch(n -> n == 0);
         int piecesAtHome = (int)Arrays.stream(piecesPosition[playerTurn]).filter(n -> n == 0).count();
 
@@ -344,7 +344,7 @@ public class Ludo {
      * @param to position to move the piece to
      * @return if move is legal or not
      */
-    boolean movePiece(int playerID, int from, int to){
+    public boolean movePiece(int playerID, int from, int to){
         // player has not thrown dice yet
         if(diceRolled == -1){
             return false;
@@ -436,7 +436,7 @@ public class Ludo {
      * @param position the local player position
      * @return boardlocation or -1 if not found
      */
-    int userGridToLudoBoardGrid(int playerID, int position){
+    public int userGridToLudoBoardGrid(int playerID, int position){
         switch (playerID){
             case RED:
                 return BoardLocations.RED_BOARD[position];
@@ -456,7 +456,7 @@ public class Ludo {
      * @return Int of the winner
      */
 
-    int getWinner(){
+    public int getWinner(){
         return gameWinner;
     }
 
@@ -464,7 +464,7 @@ public class Ludo {
      * checks all pieces on the board to determine if the game is done or not.
      * It also finds out which player who won.
      */
-    void checkIfGameIsDone(){
+    public void checkIfGameIsDone(){
 
         int[] playerIds = new int[activePlayers()];
         int[] piecesDone = new int[activePlayers()];
@@ -539,7 +539,7 @@ public class Ludo {
      * @param diceRolled Number that the dice rolled
      * @return true if the user is blocked, false if the player can move.
      */
-    boolean towersBlocksOpponents(int playerID, int diceRolled) {
+    private boolean towersBlocksOpponents(int playerID, int diceRolled) {
 
         //Get pieces in play for user
         for(int i = 0; i < 4; i++) {
@@ -560,7 +560,7 @@ public class Ludo {
      * @param diceRolled Number that the dice rolled
      * @return true if the user can move, false if the user cant move.
      */
-    boolean isPieceMoveable(int playerID, int pieceID, int diceRolled){
+    private boolean isPieceMoveable(int playerID, int pieceID, int diceRolled){
 
         //Get position of players piece
         int myPos = getPosition(playerID, pieceID);
@@ -579,7 +579,7 @@ public class Ludo {
      * @param diceRolled Number that the dice rolled
      * @return true if there is a tower, false if not
      */
-    boolean isThereTowers( int startPos, int diceRolled){
+    private boolean isThereTowers( int startPos, int diceRolled){
 
         for(int otherPlayerId = 0; otherPlayerId < 4; otherPlayerId++) {
 
@@ -609,15 +609,15 @@ public class Ludo {
      * Add the Dice listener to this particular Ludo class
      * @param diceListener the Dice listener object we want to send events to
      */
-    void addDiceListener(DiceListener diceListener){
+    public void addDiceListener(DiceListener diceListener){
         this.diceListener = diceListener;
     }
 
-    void addPieceListener(PieceListener pieceListener){
+    public void addPieceListener(PieceListener pieceListener){
         this.pieceListener = pieceListener;
     }
 
-    void addPlayerListener(PlayerListener playerlistener){
+    public void addPlayerListener(PlayerListener playerlistener){
         this.playerListener = playerlistener;
     }
 }

@@ -1,13 +1,19 @@
 package no.ntnu.imt3281.ludo.server;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.ntnu.imt3281.ludo.logic.Ludo;
-import no.ntnu.imt3281.ludo.logic.JsonMessage;
+import no.ntnu.imt3281.ludo.logic.*;
+import no.ntnu.imt3281.ludo.logic.messages.LoginOrRegisterResponse;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
+import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
@@ -18,9 +24,12 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @author 
  *
  */
-public class Server {
+public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	final private int SERVER_PORT = 4567;
+	Database db = Database.getDatabase();
+
+	private static PBKDF2Hasher hasher = new PBKDF2Hasher();    // our hasher object for hashing passwords
 
 	//Might change to arrayList for easy managment.
 	LinkedList<Ludo> activeLudoGames = new LinkedList<>();
@@ -31,6 +40,21 @@ public class Server {
 	ArrayBlockingQueue<JsonMessage> objectsToHandle = new ArrayBlockingQueue<>(100);
 
 	ArrayBlockingQueue<JsonMessage> messagesToSend = new ArrayBlockingQueue<JsonMessage>(100);
+
+
+	/*
+	*
+	* 	ArrayBlockingQueue<Event> objectsToHandle = new ArrayBlockingQueue<>(100);
+
+		ArrayBlockingQueue<Event> messagesToSend = new ArrayBlockingQueue<>(100);
+	*
+	* messagesToSend.take() = Event;
+	* Event event = MessagesToSEND.TAKE()
+	* client.send((event.action) event.serialized)
+	* action = reflection.
+	*
+	* */
+	/* Ikke i bruk atm */
 	ArrayBlockingQueue<Client> disconnectedClients = new ArrayBlockingQueue<>(1000);
 
 	public static void main(String[] args) {
@@ -38,7 +62,6 @@ public class Server {
 	}
 
 	public Server(){
-
 		startServerThread();
 		startListener();
 		startHandlingActions();
@@ -49,6 +72,9 @@ public class Server {
 
 	}
 
+	public void stopServer(){
+		stopping = true;
+	}
 
 	/**
 	*
@@ -65,7 +91,6 @@ public class Server {
 						Client c = new Client(s);
 						synchronized (clients) {
 							clients.add(c);
-							System.out.println(clients.size());
 						}
 					} catch (IOException e) {
 						System.err.println("Unable to create client from "+s.getInetAddress().getHostName());
@@ -95,14 +120,19 @@ public class Server {
 						Client c = iterator.next();
 						try {
 							String msg = c.read();
-							if (msg != null) {
+
+							if (msg != null && msg.contains("UserDoesLogin")) {
+								synchronized (objectsToHandle) {
+									objectsToHandle.add(c.parseUsername(msg)); //Add the object to queue for handling
+								}
+							} else if (msg != null ) {
 
 								JsonMessageParser parse = new JsonMessageParser(); //Initiate a parser
 								JsonMessage json = parse.parseActionJson(msg); //Parse the json into a object
 								synchronized (objectsToHandle) {
 									objectsToHandle.add(json); //Add the object to queue for handling
+									System.out.println(objectsToHandle.size());
 								}
-								c.send("{\"ack\":true}"); //Acknowledgment that the server got the packet.
 
 							}
 						} catch (IOException e) {   // Exception while reading from client, assume client is lost
@@ -125,13 +155,13 @@ public class Server {
 			while (!stopping) {
 				try {
 					JsonMessage msg = messagesToSend.take();
-					synchronized (clients) {
 						Iterator<Client> iterator = clients.iterator();
 						while (iterator.hasNext()) {
 							Client c = iterator.next();
-
+							if (c.getUserId() == msg.getPlayerId() || c.getUsername() == msg.getUsername()) {
 								try {
-									c.send("HeiHei");
+									String converted = convertToCorrectJson(msg);
+									c.send(converted);
 								} catch (IOException e) {   // Exception while sending to client, assume client is lost
 									synchronized (disconnectedClients) {
 										if (!disconnectedClients.contains(c)) {
@@ -139,9 +169,9 @@ public class Server {
 										}
 									}
 								}
-
+							}
 						}
-					}
+
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -180,16 +210,7 @@ public class Server {
 				try {
 					JsonMessage message = objectsToHandle.take();
 					System.out.println(message.getAction());
-
-					/*
-					Handle message logic here.
-					Have to be moved to a seperate function. Only for testing purposes for now.
-					 */
-
-					switch(message.getAction()) {
-						case "UserDoesDiceThrow": break;
-					}
-
+					handleAction(message);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -199,41 +220,98 @@ public class Server {
 		handleActions.start();
 	}
 
+	private String convertToCorrectJson(JsonMessage msg) {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			String msgJson = mapper.writeValueAsString(msg);
+
+			switch (msg.getAction()) {
+				case "LoginStatus" : case "RegisterStatus":{
+					LoginOrRegisterResponse ret ;
+					ret = mapper.readValue(msgJson, LoginOrRegisterResponse.class);
+					ret.setLoginStatus(msg.getLoginOrRegisterStatus());
+					String retString = mapper.writeValueAsString(ret);
+					return retString;
+				}
+				default: {
+					return "{\"ERROR\":\"something went wrong\"}";
+				}
+			}
+
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
 	/**
 	 * Represents a client. Contains the open socket and input and output from that user.
 	 */
-	class Client {
-		int userId;
-
-		Socket s;
-		BufferedWriter bw;
-		BufferedReader br;
-
-		public Client (Socket s) throws IOException {
-			bw = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-			br = new BufferedReader(new InputStreamReader(s.getInputStream()));
+	private void handleAction(JsonMessage action){
+		switch (action.getAction()) {
+			case "UserDoesDiceThrow": UserDoesDiceThrow(action); break;
+			case "UserDoesLogin": UserDoesLogin(action); break;
+			case "UserDoesRegister": UserDoesRegister(action);System.out.println("heu");break;
 		}
 
-		public String read() throws IOException {
-			if (br.ready()) {
-				return br.readLine();
-			}
-			return null;
-		}
-
-		public void send(String s) throws IOException {
-			bw.write(s);
-			bw.newLine();
-			bw.flush();
-		}
-
-		public void close() throws IOException {
-			bw.close();
-			br.close();
-			s.close();
-		}
 	}
 
+	private void UserDoesLogin(JsonMessage action){
+		JsonMessage retMsg = new JsonMessage();
+		retMsg.setAction(JsonMessage.Actions.LoginStatus);
+		try {
+			boolean status = db.checkIfLoginValid(hasher,action.getUsername(), action.getPassword().toCharArray());
+			retMsg.setLoginOrRegisterStatus(status);
+
+		} catch (SQLException e) {
+			retMsg.setLoginOrRegisterStatus(false);
+			e.printStackTrace();
+		}
+
+		synchronized (messagesToSend) {
+			messagesToSend.add(retMsg);
+		}
+
+	}
+
+	private void UserDoesRegister(JsonMessage action){
+		JsonMessage retMsg = new JsonMessage();
+		retMsg.setAction(JsonMessage.Actions.RegisterStatus);
+		System.out.println(action.getUsername());
+		System.out.println(action.getPassword());
+		try {
+			String hashedpwd = hasher.hash(action.getPassword().toCharArray());
+			db.insertAccount(action.getUsername(), hashedpwd);
+			retMsg.setLoginOrRegisterStatus(true);
+		} catch (SQLException e) {
+			retMsg.setLoginOrRegisterStatus(false);
+			e.printStackTrace();
+		}
+		synchronized (messagesToSend) {
+			messagesToSend.add(retMsg);
+		}
+
+	}
+
+	private void UserDoesDiceThrow(JsonMessage action){
+			/* ludo logic */
+
+
+
+			/* Do Stuff */
+			JsonMessage retMsg = new JsonMessage();
+			retMsg.setAction(JsonMessage.Actions.ServerThrowDice);
+			retMsg.setPlayerId(action.getPlayerId());
+			retMsg.setLudoId(action.getLudoId());
+			retMsg.setDiceRolled(2);
+			synchronized (messagesToSend){
+				messagesToSend.add(retMsg);
+			}
+			/* Send message back to original sender */
+	}
 
 	public class JsonMessageParser {
 		ObjectMapper mapper = new ObjectMapper();
@@ -262,6 +340,27 @@ public class Server {
 		Ludo getGame() {
 			return this.game;
 		}
+
+	}
+
+
+	@Override
+	public void diceThrown(DiceEvent diceEvent) {
+		/* Logic for throw dice in ludo class */
+		/* Ludo game = diceEvent.getLudoGame();
+		game.addDiceListener(this);*/
+
+		/* Add messages that are to be sent to users in the game. */
+
+	}
+
+	@Override
+	public void pieceMoved(PieceEvent pieceEvent) {
+
+	}
+
+	@Override
+	public void playerStateChanged(PlayerEvent event) {
 
 	}
 

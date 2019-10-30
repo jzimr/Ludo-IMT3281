@@ -20,6 +20,18 @@ public class DiceEvent {
         this.diceRolled = diceRolled;
     }
 
+    public Ludo getLudoGame() {
+        return ludoGame;
+    }
+
+    public int getDiceRolled() {
+        return diceRolled;
+    }
+
+    public int getPlayerID() {
+        return playerID;
+    }
+
     @Override
     public boolean equals(Object obj) {
         // if we are comparing object to itself
