@@ -29,7 +29,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	final private int SERVER_PORT = 4567;
 	Database db = Database.getDatabase();
 
-	private static PBKDF2Hasher hasher = new PBKDF2Hasher();    // our hasher object for hashing passwords
+	private static SHA512Hasher hasher = new SHA512Hasher();    // our hasher object for hashing passwords
 
 	//Might change to arrayList for easy managment.
 	LinkedList<Ludo> activeLudoGames = new LinkedList<>();
@@ -243,7 +243,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+
 	private void UserDoesLogin(JsonMessage action){
+		/* todo
 		JsonMessage retMsg = new JsonMessage();
 		retMsg.setAction(JsonMessage.Actions.LoginStatus);
 		try {
@@ -259,9 +261,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			messagesToSend.add(retMsg);
 		}
 
+		 */
 	}
 
 	private void UserDoesRegister(JsonMessage action){
+		/* todo
 		JsonMessage retMsg = new JsonMessage();
 		retMsg.setAction(JsonMessage.Actions.RegisterStatus);
 		System.out.println(action.getUsername());
@@ -277,7 +281,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		synchronized (messagesToSend) {
 			messagesToSend.add(retMsg);
 		}
-
+		 */
 	}
 
 	private void UserDoesDiceThrow(JsonMessage action){

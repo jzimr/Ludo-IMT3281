@@ -1,7 +1,5 @@
 package no.ntnu.imt3281.ludo.server;
 
-import no.ntnu.imt3281.ludo.logic.PBKDF2Hasher;
-
 import java.net.*;
 import java.io.*;
 
@@ -13,7 +11,6 @@ import java.io.*;
 public class SocketTester {
 
     private static final int DEFAULT_PORT = 4567;
-    private static PBKDF2Hasher hasher = new PBKDF2Hasher();    // our hasher object for hashing passwords
 
     private Socket connection = null;
     private BufferedWriter bw;

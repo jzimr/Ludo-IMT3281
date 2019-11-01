@@ -294,7 +294,7 @@ public class LudoTest {
 	 * playing field and to place pieces on the Ludo board we need to be able to
 	 * convert between player locations and board locations. Here we test these
 	 * conversions.
-	 * 
+	 *
 	 * @param ludo
 	 */
 	@Test

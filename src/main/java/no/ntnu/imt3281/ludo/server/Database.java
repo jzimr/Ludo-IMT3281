@@ -1,10 +1,14 @@
 package no.ntnu.imt3281.ludo.server;
 
-import no.ntnu.imt3281.ludo.logic.PBKDF2Hasher;
+import com.fasterxml.jackson.databind.deser.std.UUIDDeserializer;
+import no.ntnu.imt3281.ludo.logic.SHA512Hasher;
 
+import java.nio.charset.Charset;
+import java.security.SecureRandom;
 import java.sql.*;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.UUID;
 
 /**
  * Singleton Database class
@@ -71,59 +75,58 @@ public class Database {
     }
 
     /**
-     * Insert a new account for the user
+     * Insert a new account for the user. Password will be hashed here before it is inserted into the database.
      * <p>
      * Will also automatically create a new profile for the user
      * by calling "insertUser"
      * </p>
      *
      * @param accountName the login username of the user
-     * @param hashedPwd the hashed password. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
+     * @param password the password in plain text.
      */
-    public void insertAccount(String accountName, String hashedPwd) throws SQLException {
+    public void insertAccount(String accountName, String password) throws SQLException {
+        SHA512Hasher hasher = new SHA512Hasher();
+        // generate a random ID for our user
+        String uniqueId = UUID.randomUUID().toString();
+
+        // generate a random salt for this account
+        SecureRandom random = new SecureRandom();
+        byte[] salt = new byte[16];
+        random.nextBytes(salt);
+
+        // hash user's password before we insert into database
+        String hashedPwd = hasher.hash(password, salt);
+
         // first insert a new account into our "login_info" table
         PreparedStatement stmt = connection.prepareStatement("INSERT INTO login_info" +
-                "(ACCOUNT_NAME, PWD_HSH) VALUES (?, ?)");
-        stmt.setString(1, accountName);
-        stmt.setString(2, hashedPwd);
+                "(USER_ID, ACCOUNT_NAME, PWD_HSH, ACCOUNT_SALT) VALUES (?, ?, ?, ?)");
+
+        stmt.setString(1, uniqueId);
+        stmt.setString(2, accountName);
+        stmt.setString(3, hashedPwd);
+        stmt.setBytes(4, salt);
         stmt.execute();
 
-        // then create a query to get the recently inserted account
-        stmt = connection.prepareStatement("SELECT * FROM login_info " +
-                "WHERE account_name = ?");
-        stmt.setString(1, accountName);
-        ResultSet rs = stmt.executeQuery();
-
-        // we want userID and accountName from the query
-        int userId = -1;
-        while (rs.next()) {
-            userId = rs.getInt("user_id");
-            accountName = rs.getString("account_name");
-        }
-
-        // check if we even got any data from query
-        if(userId == -1){
-            throw new SQLException("Somehow the data of user login was not inserted into the database");
-        }
-
         // at last insert a new user so he has a profile when he logs in for the first time
-        insertProfile(userId, accountName, "", 0, 0);
+        insertProfile(uniqueId, accountName, "", 0, 0);
     }
 
     /**
      * Check if the user-entered login values match the values in the database.
      * <p>
-     *     We check by comparing the sent password with the hashed value in our
-     *     database using the PBKDF2Hasher class.
+     *     We check by comparing the sent hashed password with the hashed value in our
+     *     database using the SHA512Hasher class.
      * </p>
-     * @param hasher instance of PBKDF2Hasher class
      * @param accountName the login name of the account
-     * @param password plaintext password to compare to
+     * @param password the hashed plaintext password to compare to. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
      * @return if the login matches with values in our database or not
      * @throws SQLException if error occured in database
      */
-    public boolean checkIfLoginValid(PBKDF2Hasher hasher, String accountName, char[] password) throws SQLException{
-        String pwd_hsh = "";
+    public boolean checkIfLoginValid(String accountName, String password) throws SQLException{
+        SHA512Hasher hasher = new SHA512Hasher();
+        String pwd_hsh = "", account_name = "";
+        byte[] salt = null;
+
         // create connection to database
         PreparedStatement stmt = connection.prepareStatement("SELECT * FROM login_info " +
                 "WHERE account_name = ?");
@@ -133,12 +136,53 @@ public class Database {
         // get hashed password from database that's linked to this user
         while (rs.next()) {
             pwd_hsh = rs.getString("pwd_hsh");
+            account_name = rs.getString("account_name");
+            salt = rs.getBytes("account_salt");
         }
-        // if user was not found in database
-        if(pwd_hsh == "") return false;
 
-        // check if entered password matches password in database
-        return hasher.checkPassword(password, pwd_hsh);
+        // if password or username was not found in database
+        if(pwd_hsh.equals("") || account_name.equals(""))
+            return false;
+
+        // check if entered password and username matches entries in database
+        return account_name.equals(accountName) && hasher.checkHashedValue(pwd_hsh, password, salt);
+    }
+
+    /**
+     * Check if the hashed user values matches our values in the database. Requires userId for this.
+     * <p>
+     *     We check by comparing the sent hashed username and password with the hashed values in our
+     *     database using the SHA512Hasher class.
+     * </p>
+     * @param userId the unique ID of the user
+     * @param hashedAccountName the hashed login name of the account. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
+     * @param hashedPassword the hashed plaintext password to compare to. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
+     * @return if the login matches with values in our database or not
+     * @throws SQLException if error occured in database
+     */
+    public boolean checkIfLoginValid(String userId, String hashedAccountName, String hashedPassword) throws SQLException{
+        SHA512Hasher hasher = new SHA512Hasher();
+        String pwd_hsh = "", account_name = "";
+        byte[] salt = null;
+
+        // create connection to database
+        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM login_info " +
+                "WHERE user_id = ?");
+        stmt.setString(1, userId);
+        ResultSet rs = stmt.executeQuery();
+
+        // get hashed password from database that's linked to this user
+        while (rs.next()) {
+            pwd_hsh = rs.getString("pwd_hsh");
+            account_name = rs.getString("account_name");
+            salt = rs.getBytes("account_salt");
+        }
+        // if password or username was not found in database
+        if(pwd_hsh.equals("") || account_name.equals(""))
+            return false;
+
+        // check if entered password and username matches entries in database
+        return hashedPassword.equals(pwd_hsh) && hasher.checkHashedValue(hashedAccountName, account_name, salt);
     }
 
     /**
@@ -146,13 +190,13 @@ public class Database {
      * @param userId the unique ID of the user
      * @param newHashedPwd the hashed password. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
      */
-    public void updateAccountPassword(int userId, String newHashedPwd) throws SQLException {
+    public void updateAccountPassword(String userId, String newHashedPwd) throws SQLException {
         PreparedStatement stmt = connection.prepareStatement("UPDATE login_info " +
                 "SET pwd_hsh = ? " +
                 "WHERE user_id = ?");
 
         stmt.setString(1, newHashedPwd);
-        stmt.setInt(2, userId);
+        stmt.setString(2, userId);
 
         stmt.execute();
     }
@@ -170,11 +214,11 @@ public class Database {
      * @param gamesWon    number of total games won
      * @return true if upload was successful, else false
      */
-    protected void insertProfile(int userId, String displayName, String avatarPath, int gamesPlayed, int gamesWon) throws SQLException {
+    protected void insertProfile(String userId, String displayName, String avatarPath, int gamesPlayed, int gamesWon) throws SQLException {
         PreparedStatement stmt = connection.prepareStatement("INSERT INTO user_info" +
                 "(user_id, display_name, avatar_path, games_played, games_won) VALUES (?, ?, ?, ?, ?)");
 
-        stmt.setInt(1, userId);
+        stmt.setString(1, userId);
         stmt.setString(2, displayName);
         stmt.setString(3, avatarPath);
         stmt.setInt(4, gamesPlayed);
@@ -184,23 +228,23 @@ public class Database {
     }
 
     /**
-     * Get the user by his ID
+     * Get the user by his account name
      *
-     * @param userID the ID of the user
+     * @param userId the user ID of the user
      * @return a data class containing all relevant info about a user
      */
-    public UserInfo getProfile(int userID) {
+    public UserInfo getProfile(String userId) {
         UserInfo userInfo = null;
         try {
             PreparedStatement stmt = connection.prepareStatement("SELECT * FROM user_info " +
                     "WHERE user_id = ?");
-            stmt.setInt(1, userID);
+            stmt.setString(1, userId);
             ResultSet rs = stmt.executeQuery();
 
             // loop over user
             while (rs.next()) {
                 userInfo = new UserInfo(
-                        rs.getInt("user_id"),
+                        rs.getString("user_id"),
                         rs.getString("display_name"),
                         rs.getString("avatar_path"),
                         rs.getInt("games_played"),
@@ -230,7 +274,7 @@ public class Database {
         stmt.setString(2, userInfo.getAvatarPath());
         stmt.setInt(3, userInfo.getGamesPlayed());
         stmt.setInt(4, userInfo.getGamesWon());
-        stmt.setInt(5, userInfo.getUserId());
+        stmt.setString(5, userInfo.getUserId());
 
         stmt.execute();
     }
@@ -298,7 +342,7 @@ public class Database {
      * @param chatName    The name of the user who sent the message
      * @param chatMessage The actual text the user sent to the chat message
      */
-    public void insertChatMessage(String chatName, int userId, String chatMessage) throws SQLException {
+    public void insertChatMessage(String chatName, String userId, String chatMessage) throws SQLException {
         long timestamp = Instant.now().getEpochSecond();
 
         // make query ready to insert data
@@ -306,7 +350,7 @@ public class Database {
                 "(chat_name, user_id, chat_message, timestamp) VALUES (?, ?, ?, ?)");
 
         stmt.setString(1, chatName);
-        stmt.setInt(2, userId);
+        stmt.setString(2, userId);
         stmt.setString(3, chatMessage);
         stmt.setLong(4, timestamp);
 
@@ -334,7 +378,7 @@ public class Database {
             while (rs.next()) {
                 chatMessages.add(new ChatMessage(
                         rs.getString("chat_name"),
-                        rs.getInt("user_id"),
+                        rs.getString("user_id"),
                         rs.getString("chat_message"),
                         rs.getLong("timestamp")
                 ));
@@ -365,9 +409,10 @@ public class Database {
         Statement stmt = connection.createStatement();
 
         stmt.execute("CREATE TABLE login_info (" +
-                "user_id int NOT NULL GENERATED ALWAYS AS IDENTITY(START WITH 0, INCREMENT BY 1)," +
+                "user_id varchar(36) NOT NULL," +
                 "account_name varchar(24) NOT NULL," +
-                "pwd_hsh varchar(120) NOT NULL," +
+                "pwd_hsh varchar(128) NOT NULL," +
+                "account_salt char(16) FOR BIT DATA NOT NULL," +
                 // "user_id" should be unique and primary key
                 "PRIMARY KEY (user_id)," +
                 // "user_name" should be unique
@@ -383,7 +428,7 @@ public class Database {
         Statement stmt = connection.createStatement();
 
         stmt.execute("CREATE TABLE user_info (" +
-                "user_id int NOT NULL," +
+                "user_id varchar(36) NOT NULL," +
                 "display_name varchar(24) NOT NULL," +
                 "avatar_path varchar(120)," +
                 "games_played int NOT NULL," +
@@ -421,7 +466,7 @@ public class Database {
 
         stmt.execute("CREATE TABLE chat_log (" +
                 "chat_name varchar(32) NOT NULL, " +
-                "user_id int NOT NULL, " +
+                "user_id varchar(36) NOT NULL," +
                 "chat_message varchar(8000), " +
                 "timestamp bigint," +
                 // "chat_name" is a foreign key of "room_name" from table "chat_room".

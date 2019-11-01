@@ -1,13 +1,13 @@
 package no.ntnu.imt3281.ludo.server;
 
 public class UserInfo {
-    private final int userId;
+    private final String userId;
     private String displayName;
     private String avatarPath;
     private int gamesPlayed;
     private int gamesWon;
 
-    public UserInfo(int userId, String displayName, String avatarPath, int gamesPlayed, int gamesWon){
+    public UserInfo(String userId, String displayName, String avatarPath, int gamesPlayed, int gamesWon){
         this.userId = userId;
         this.displayName = displayName;
         this.avatarPath = avatarPath;
@@ -15,7 +15,7 @@ public class UserInfo {
         this.gamesWon = gamesWon;
     }
 
-    public int getUserId() {
+    public String getUserId() {
         return userId;
     }
 

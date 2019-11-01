@@ -1,6 +1,6 @@
 package no.ntnu.imt3281.ludo.server;
 
-import no.ntnu.imt3281.ludo.logic.PBKDF2Hasher;
+import no.ntnu.imt3281.ludo.logic.SHA512Hasher;
 import org.junit.*;
 
 import java.sql.*;
@@ -12,7 +12,9 @@ public class DatabaseTest {
     private static final String dbURL = "jdbc:derby:./ludoTestDB";
     private static Database testDatabase;       // our test database
     private static Connection testConnection;          // database connection to execute sql statements
-    private static PBKDF2Hasher hasher = new PBKDF2Hasher();    // our hasher object for hashing passwords
+    private static SHA512Hasher hasher = new SHA512Hasher();    // our hasher object for hashing passwords
+    private static String user1Id, user2Id;         // Unique UUID's of users
+    private static byte[] user1Salt, user2Salt;     // unique salts of users for encryption
 
     /**
      * Sets up database before a new test is run
@@ -30,7 +32,7 @@ public class DatabaseTest {
         try {
             testConnection = DriverManager.getConnection(dbURL);
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
             // fail test if not
             assertFalse(true);
         }
@@ -75,7 +77,8 @@ public class DatabaseTest {
             assertEquals("USER_ID", resultSet.getMetaData().getColumnName(1));
             assertEquals("ACCOUNT_NAME", resultSet.getMetaData().getColumnName(2));
             assertEquals("PWD_HSH", resultSet.getMetaData().getColumnName(3));
-            assertEquals(3, resultSet.getMetaData().getColumnCount());
+            assertEquals("ACCOUNT_SALT", resultSet.getMetaData().getColumnName(4));
+            assertEquals(4, resultSet.getMetaData().getColumnCount());
         } catch (SQLException ex) {
             assertFalse(true);
         }
@@ -146,17 +149,30 @@ public class DatabaseTest {
             String pwd1 = "BobysFavoriteDog123",
                     pwd2 = "SamysMotherMaidenName";
 
-            // hash our passwords
-            pwd1 = hasher.hash(pwd1.toCharArray());
-            pwd2 = hasher.hash(pwd2.toCharArray());
-
             // insert into database
             testDatabase.insertAccount("Boby", pwd1);
             testDatabase.insertAccount("Samy", pwd2);
 
+            // Get the ID's of both users for other test purposes
+            Statement state = testConnection.createStatement();
+            ResultSet rs = state.executeQuery("SELECT * FROM login_info WHERE account_name = 'Boby'");
+
+            // loop over data of user 1 to get user id and hash salt
+            while (rs.next()) {
+                user1Id = rs.getString("user_id");
+                user1Salt = rs.getBytes("account_salt");
+            }
+            rs = state.executeQuery("SELECT * FROM login_info WHERE account_name = 'Samy'");
+
+            // loop over data of user 2 to get user id and hash salt
+            while (rs.next()) {
+                user2Id = rs.getString("user_id");
+                user2Salt = rs.getBytes("account_salt");
+            }
+
             // get the profile information
-            UserInfo user1 = testDatabase.getProfile(0);
-            UserInfo user2 = testDatabase.getProfile(1);
+            UserInfo user1 = testDatabase.getProfile(user1Id);
+            UserInfo user2 = testDatabase.getProfile(user2Id);
 
             // change info for both users
             user1.setDisplayName("Boby");
@@ -197,8 +213,8 @@ public class DatabaseTest {
      */
     private void insertTwoMessages() {
         try {
-            testDatabase.insertChatMessage("Testroom", 0, "Wow, what a great game :)");
-            testDatabase.insertChatMessage("Testroom2", 1, "Ye, this game deserves an 'A'!");
+            testDatabase.insertChatMessage("Testroom", user1Id, "Wow, what a great game :)");
+            testDatabase.insertChatMessage("Testroom2", user2Id, "Ye, this game deserves an 'A'!");
         } catch (SQLException ex) {
             ex.printStackTrace();
             assertTrue(false);
@@ -220,25 +236,25 @@ public class DatabaseTest {
             Statement state = testConnection.createStatement();
 
             // execute SELECT query
-            ResultSet rs = state.executeQuery("SELECT * FROM login_info WHERE user_id=0");
+            ResultSet rs = state.executeQuery("SELECT * FROM login_info WHERE user_id = '" + user1Id + "'");
 
             // loop over data of user 1
             while (rs.next()) {
-                assertEquals(0, rs.getInt("user_id"));
+                assertEquals(user1Id, rs.getString("user_id"));
                 assertEquals("Boby", rs.getString("account_name"));
-                // check that the passwords are correct using the BKDF2Hasher class
-                assertTrue(hasher.checkPassword(pwd1.toCharArray(), rs.getString("pwd_hsh")));
+                // check that the passwords are correct using the SHA512Hash class
+                assertTrue(hasher.checkHashedValue(rs.getString("pwd_hsh"), pwd1, user1Salt));
             }
 
             // execute SELECT query
-            rs = state.executeQuery("SELECT * FROM login_info WHERE user_id=1");
+            rs = state.executeQuery("SELECT * FROM login_info WHERE user_id = '" + user2Id + "'");
 
             // loop over data of user 1
             while (rs.next()) {
-                assertEquals(1, rs.getInt("user_id"));
+                assertEquals(user2Id, rs.getString("user_id"));
                 assertEquals("Samy", rs.getString("account_name"));
-                // check that the passwords are correct using the BKDF2Hasher class
-                assertTrue(hasher.checkPassword(pwd2.toCharArray(), rs.getString("pwd_hsh")));
+                // check that the passwords are correct using the SHA512Hash class
+                assertTrue(hasher.checkHashedValue(rs.getString("pwd_hsh"), pwd2, user2Salt));
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -247,11 +263,11 @@ public class DatabaseTest {
     }
 
     /**
-     * Tets if we can correctly authenticate users trying to log in with both correct
-     * and wrong usernames/passwords
+     * Tests if we can correctly authenticate users who write in their login information directly
+     * with both correct and wrong usernames/passwords
      */
     @Test
-    public void checkIfLoginValidTest(){
+    public void checkUserEnteredLoginValidTest(){
         // insert two users
         insertTwoAccounts();
         // Boby's and Samy's passwords
@@ -260,18 +276,58 @@ public class DatabaseTest {
 
         try{
             // correct paswords + usernames
-            assertTrue(testDatabase.checkIfLoginValid(hasher, "Boby", pwd1.toCharArray()));
-            assertTrue(testDatabase.checkIfLoginValid(hasher, "Samy", pwd2.toCharArray()));
+            assertTrue(testDatabase.checkIfLoginValid("Boby", pwd1));
+            assertTrue(testDatabase.checkIfLoginValid("Samy", pwd2));
 
             // wrong usernames
-            assertFalse(testDatabase.checkIfLoginValid(hasher, "Boby1", pwd1.toCharArray()));
-            assertFalse(testDatabase.checkIfLoginValid(hasher, "Samyy", pwd2.toCharArray()));
+            assertFalse(testDatabase.checkIfLoginValid("Boby1", pwd1));
+            assertFalse(testDatabase.checkIfLoginValid("Samyy", pwd2));
 
             // wrong passwords
             pwd1 += "s";
-            pwd2.substring(0, pwd2.length()-2);
-            assertFalse(testDatabase.checkIfLoginValid(hasher, "Boby1", pwd1.toCharArray()));
-            assertFalse(testDatabase.checkIfLoginValid(hasher, "Samyy", pwd2.toCharArray()));
+            pwd2 = pwd2.substring(0, pwd2.length()-2);
+            assertFalse(testDatabase.checkIfLoginValid("Boby", pwd1));
+            assertFalse(testDatabase.checkIfLoginValid("Samy", pwd2));
+        } catch(SQLException ex){
+            ex.printStackTrace();
+            assertTrue(false);
+        }
+    }
+
+    /**
+     * Tests if we can correctly authenticate users who use the "remember me" login feature
+     * with both correct and wrong usernames/passwords
+     */
+    @Test
+    public void checkRememberedLoginValidTest(){
+        // insert two users
+        insertTwoAccounts();
+        // Boby's and Samy's passwords
+        String pwd1 = "BobysFavoriteDog123",
+                pwd2 = "SamysMotherMaidenName";
+
+        // these would be the hashed values stored on the client's side
+        String hashedAccountName1 = hasher.hash("Boby", user1Salt);
+        String hashedAccountName2 = hasher.hash("Samy", user2Salt);
+        String hashedPwd1 = hasher.hash(pwd1, user1Salt);
+        String hashedPwd2 = hasher.hash(pwd2, user2Salt);
+
+        try{
+            // correct paswords + usernames
+            assertTrue(testDatabase.checkIfLoginValid(user1Id, hashedAccountName1, hashedPwd1));
+            assertTrue(testDatabase.checkIfLoginValid(user2Id, hashedAccountName2, hashedPwd2));
+
+            // wrong ID's
+            assertFalse(testDatabase.checkIfLoginValid(user1Id + "1", hashedAccountName1, hashedPwd1));
+            assertFalse(testDatabase.checkIfLoginValid(user2Id + "1", hashedAccountName2, hashedPwd2));
+
+            // wrong account names
+            assertFalse(testDatabase.checkIfLoginValid(user1Id, hashedAccountName1 + "21", hashedPwd1));
+            assertFalse(testDatabase.checkIfLoginValid(user2Id, hashedAccountName2 + "-", hashedPwd2));
+
+            // wrong passwords
+            assertFalse(testDatabase.checkIfLoginValid(user1Id, hashedAccountName1, hashedPwd1 + "1"));
+            assertFalse(testDatabase.checkIfLoginValid(user2Id, hashedAccountName2, hashedPwd2 + "2"));
         } catch(SQLException ex){
             ex.printStackTrace();
             assertTrue(false);
@@ -292,32 +348,32 @@ public class DatabaseTest {
 
         try{
             // first update password in database with new hashed passwords
-            testDatabase.updateAccountPassword(0, hasher.hash(pwd1.toCharArray()));
-            testDatabase.updateAccountPassword(1, hasher.hash(pwd2.toCharArray()));
+            testDatabase.updateAccountPassword(user1Id, hasher.hash(pwd1, user1Salt));
+            testDatabase.updateAccountPassword(user2Id, hasher.hash(pwd2, user2Salt));
 
             // then check if they match
             Statement state = testConnection.createStatement();
 
             // execute SELECT query
-            ResultSet rs = state.executeQuery("SELECT * FROM login_info WHERE user_id=0");
+            ResultSet rs = state.executeQuery("SELECT * FROM login_info WHERE user_id = '" + user1Id + "'");
 
             // loop over data of user 1
             while (rs.next()) {
-                assertEquals(0, rs.getInt("user_id"));
+                assertEquals(user1Id, rs.getString("user_id"));
                 assertEquals("Boby", rs.getString("account_name"));
-                // check that the passwords are correct using the BKDF2Hasher class
-                assertTrue(hasher.checkPassword(pwd1.toCharArray(), rs.getString("pwd_hsh")));
+                // check that the passwords are correct using the SHA512Hash class
+                assertTrue(hasher.checkHashedValue(rs.getString("pwd_hsh"), pwd1, user1Salt));
             }
 
             // execute SELECT query
-            rs = state.executeQuery("SELECT * FROM login_info WHERE user_id=1");
+            rs = state.executeQuery("SELECT * FROM login_info WHERE user_id = '" + user2Id + "'");
 
             // loop over data of user 2
             while (rs.next()) {
-                assertEquals(1, rs.getInt("user_id"));
+                assertEquals(user2Id, rs.getString("user_id"));
                 assertEquals("Samy", rs.getString("account_name"));
-                // check that the passwords are correct using the BKDF2Hasher class
-                assertTrue(hasher.checkPassword(pwd2.toCharArray(), rs.getString("pwd_hsh")));
+                // check that the passwords are correct using the SHA512Hash class
+                assertTrue(hasher.checkHashedValue(rs.getString("pwd_hsh"), pwd2, user2Salt));
             }
 
         } catch(SQLException ex){
@@ -341,11 +397,11 @@ public class DatabaseTest {
             Statement state = testConnection.createStatement();
 
             // execute SELECT query
-            ResultSet rs = state.executeQuery("SELECT * FROM user_info WHERE user_id=0");
+            ResultSet rs = state.executeQuery("SELECT * FROM user_info WHERE user_id = '" + user1Id + "'");
 
             // loop over data of user 1
             while (rs.next()) {
-                assertEquals(0, rs.getInt("user_id"));
+                assertEquals(user1Id, rs.getString("user_id"));
                 assertEquals("Boby", rs.getString("display_name"));
                 assertEquals("someImage.png", rs.getString("avatar_path"));
                 assertEquals(10, rs.getInt("games_played"));
@@ -353,11 +409,11 @@ public class DatabaseTest {
             }
 
             // execute SELECT query
-            rs = state.executeQuery("SELECT * FROM user_info WHERE user_id=1");
+            rs = state.executeQuery("SELECT * FROM user_info WHERE user_id = '" + user2Id + "'");
 
             // loop over data of user 2
             while (rs.next()) {
-                assertEquals(1, rs.getInt("user_id"));
+                assertEquals(user2Id, rs.getString("user_id"));
                 assertEquals("Samy", rs.getString("display_name"));
                 assertEquals("someOtherImage.png", rs.getString("avatar_path"));
                 assertEquals(6, rs.getInt("games_played"));
@@ -378,18 +434,18 @@ public class DatabaseTest {
         insertTwoAccounts();
 
         // get both users
-        UserInfo user1 = testDatabase.getProfile(0);
-        UserInfo user2 = testDatabase.getProfile(1);
+        UserInfo user1 = testDatabase.getProfile(user1Id);
+        UserInfo user2 = testDatabase.getProfile(user2Id);
 
         // compare data of user1
-        assertEquals(0, user1.getUserId());
+        assertEquals(user1Id, user1.getUserId());
         assertEquals("Boby", user1.getDisplayName());
         assertEquals("someImage.png", user1.getAvatarPath());
         assertEquals(10, user1.getGamesPlayed());
         assertEquals(3, user1.getGamesWon());
 
         // compare data of user2
-        assertEquals(1, user2.getUserId());
+        assertEquals(user2Id, user2.getUserId());
         assertEquals("Samy", user2.getDisplayName());
         assertEquals("someOtherImage.png", user2.getAvatarPath());
         assertEquals(6, user2.getGamesPlayed());
@@ -405,7 +461,7 @@ public class DatabaseTest {
         insertTwoAccounts();
 
         // we'll change some info on user2
-        UserInfo user2 = testDatabase.getProfile(1);
+        UserInfo user2 = testDatabase.getProfile(user2Id);
         user2.setDisplayName("Fredy");
         user2.setGamesPlayed(200);
         user2.setGamesWon(100);
@@ -419,8 +475,8 @@ public class DatabaseTest {
         }
 
         // get the new data and compare
-        user2 = testDatabase.getProfile(1);
-        assertEquals(1, user2.getUserId());
+        user2 = testDatabase.getProfile(user2Id);
+        assertEquals(user2Id, user2.getUserId());
         assertEquals("Fredy", user2.getDisplayName());
         assertEquals("someOtherImage.png", user2.getAvatarPath());
         assertEquals(200, user2.getGamesPlayed());
@@ -542,7 +598,7 @@ public class DatabaseTest {
             //Loop over data and check if values match with our original values
             while (rs.next()) {
                 assertEquals("Testroom", rs.getString("chat_name"));
-                assertEquals(0, rs.getInt("user_id"));
+                assertEquals(user1Id, rs.getString("user_id"));
                 assertEquals("Wow, what a great game :)", rs.getString("chat_message"));
                 assertNotEquals(0, rs.getLong("timestamp"));
             }
@@ -553,7 +609,7 @@ public class DatabaseTest {
             //Loop over data and check if values match with our original values
             while (rs.next()) {
                 assertEquals("Testroom2", rs.getString("chat_name"));
-                assertEquals(1, rs.getInt("user_id"));
+                assertEquals(user2Id, rs.getString("user_id"));
                 assertEquals("Ye, this game deserves an 'A'!", rs.getString("chat_message"));
                 assertNotEquals(0, rs.getLong("timestamp"));
             }
@@ -566,7 +622,7 @@ public class DatabaseTest {
 
     @Test
     public void getChatMessagesTest() {
-        ArrayList<ChatMessage> chatMessages = new ArrayList<>();
+        ArrayList<ChatMessage> chatMessages;
 
         // Insert two users
         insertTwoAccounts();
@@ -584,7 +640,7 @@ public class DatabaseTest {
 
         // check if first message match our insert
         assertEquals("Testroom", chatMessages.get(0).getChatName());
-        assertEquals(0, chatMessages.get(0).getUserId());
+        assertEquals(user1Id, chatMessages.get(0).getUserId());
         assertEquals("Wow, what a great game :)", chatMessages.get(0).getChatMessage());
 
 
@@ -595,7 +651,7 @@ public class DatabaseTest {
 
         // check if second message match our insert
         assertEquals("Testroom2", chatMessages.get(0).getChatName());
-        assertEquals(1, chatMessages.get(0).getUserId());
+        assertEquals(user2Id, chatMessages.get(0).getUserId());
         assertEquals("Ye, this game deserves an 'A'!", chatMessages.get(0).getChatMessage());
     }
 }
