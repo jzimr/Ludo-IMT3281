@@ -1,5 +1,6 @@
 package no.ntnu.imt3281.ludo.logic;
 
+import javafx.application.Platform;
 import no.ntnu.imt3281.ludo.Exceptions.NoRoomForMorePlayersException;
 import no.ntnu.imt3281.ludo.Exceptions.NotEnoughPlayersException;
 

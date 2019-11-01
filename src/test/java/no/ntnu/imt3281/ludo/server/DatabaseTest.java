@@ -645,6 +645,9 @@ public class DatabaseTest {
         }
     }
 
+    /**
+     * Test if we get the correct chat messages from the chat log table
+     */
     @Test
     public void getChatMessagesTest() {
         ArrayList<ChatMessage> chatMessages;
