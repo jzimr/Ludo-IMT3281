@@ -112,6 +112,29 @@ public class Database {
     }
 
     /**
+     * Check if account name is already taken.
+     * <p>
+     *     No-one can have an account name that is already taken.
+     * </p>
+     * @param nameToCheck the account name or display name we want to check
+     * @return if the name is available
+     */
+    public boolean doesAccountNameExist(String nameToCheck) throws SQLException{
+        // create connection to database
+        PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) AS name_count FROM login_info " +
+                "WHERE account_name = ?");
+        stmt.setString(1, nameToCheck);
+        ResultSet rs = stmt.executeQuery();
+
+        rs.next();
+        // get the total count of account names (1 if it exists, 0 else)
+        int count = rs.getInt("name_count");
+        rs.close();
+
+        return count == 0 ? false : true;
+    }
+
+    /**
      * Check if the user-entered login values match the values in the database.
      * <p>
      *     We check by comparing the sent hashed password with the hashed value in our

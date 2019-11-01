@@ -263,6 +263,30 @@ public class DatabaseTest {
     }
 
     /**
+     * Test if we can correctly check if an account name already exists in the database
+     */
+    @Test
+    public void doesAccountNameExistTest(){
+        // insert two users
+        insertTwoAccounts();
+
+        try{
+            // correct user names
+            assertTrue(testDatabase.doesAccountNameExist("Boby"));
+            assertTrue(testDatabase.doesAccountNameExist("Samy"));
+
+            // wrong user names
+            assertFalse(testDatabase.doesAccountNameExist("Bo2by"));
+            assertFalse(testDatabase.doesAccountNameExist("Sam"));
+            assertFalse(testDatabase.doesAccountNameExist(""));
+
+        } catch(SQLException ex){
+            ex.printStackTrace();
+            assertTrue(false);
+        }
+    }
+
+    /**
      * Tests if we can correctly authenticate users who write in their login information directly
      * with both correct and wrong usernames/passwords
      */
@@ -270,6 +294,7 @@ public class DatabaseTest {
     public void checkUserEnteredLoginValidTest(){
         // insert two users
         insertTwoAccounts();
+
         // Boby's and Samy's passwords
         String pwd1 = "BobysFavoriteDog123",
                 pwd2 = "SamysMotherMaidenName";
