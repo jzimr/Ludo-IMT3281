@@ -6,7 +6,6 @@ import java.security.NoSuchAlgorithmException;
 
 
 /** A really simple SHA_512 Encryption example.
- * Taken from: https://github.com/eugenp/tutorials/blob/master/core-java-modules/core-java-security/src/main/java/com/baeldung/passwordhashing/SHA512Hasher.java
  *
  */
 public class SHA512Hasher {

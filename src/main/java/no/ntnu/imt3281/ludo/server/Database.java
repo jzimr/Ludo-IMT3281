@@ -121,7 +121,7 @@ public class Database {
      */
     public boolean doesAccountNameExist(String nameToCheck) throws SQLException{
         // create connection to database
-        PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) AS name_count FROM login_info " +
+        PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(account_name) AS name_count FROM login_info " +
                 "WHERE account_name = ?");
         stmt.setString(1, nameToCheck);
         ResultSet rs = stmt.executeQuery();
@@ -132,6 +132,23 @@ public class Database {
         rs.close();
 
         return count == 0 ? false : true;
+    }
+
+    /**
+     * Get the salt of the particular user we use to hash his password/username
+     * @param userId the UUID of the user
+     */
+    public byte[] retrieveSalt(String userId) throws SQLException{
+        // create connection to database
+        PreparedStatement stmt = connection.prepareStatement("SELECT account_salt FROM login_info " +
+                "WHERE user_id = ?");
+        stmt.setString(1, userId);
+        ResultSet rs = stmt.executeQuery();
+
+        rs.next();
+        byte[] salt = rs.getBytes("account_salt");
+        rs.close();
+        return salt;
     }
 
     /**

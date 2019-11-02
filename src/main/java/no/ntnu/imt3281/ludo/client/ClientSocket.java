@@ -19,11 +19,15 @@ public class ClientSocket {
      * Create a connection from client to server
      *
      * @param serverIP the IP address of the server
+     * @param port the port of the server, do -1 if default
      */
-    public boolean establishConnectionToServer(String serverIP) {
+    public boolean establishConnectionToServer(String serverIP, int port) {
         // try to connect
         try {
-            connection = new Socket(serverIP, DEFAULT_PORT);
+            if(port == -1){
+                port = DEFAULT_PORT;
+            }
+            connection = new Socket(serverIP, port);
             bw = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
             br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             connected = true;
@@ -106,7 +110,7 @@ public class ClientSocket {
 
     /**
      * Gets messages (json) from the listener and deserializes them into the correct objects of type "Message"
-     * @param jsonMessage
+     * @param jsonMessage json message received from server
      */
     public void handleMessagesFromServer(String jsonMessage) {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -122,8 +126,6 @@ public class ClientSocket {
                 default:
                     break;
             }
-
-
 
         } catch (IOException e) {
             e.printStackTrace();

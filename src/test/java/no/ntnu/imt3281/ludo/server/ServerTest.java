@@ -40,7 +40,6 @@ public class ServerTest {
         }
 
         server.stopServer();
-
     }
 
     @Test

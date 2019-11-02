@@ -287,6 +287,34 @@ public class DatabaseTest {
     }
 
     /**
+     * Test if the salt can be successfully retrieved from the database
+     */
+    @Test
+    public void retrieveSaltTest(){
+        // insert two users
+        insertTwoAccounts();
+
+        try{
+            byte[] salt1, salt2;
+
+            salt1 = testDatabase.retrieveSalt(user1Id);
+            salt2 = testDatabase.retrieveSalt(user2Id);
+
+            // compare the salt bytes for user 1
+            for(int i = 0; i < salt1.length; i++){
+                assertTrue(Byte.compare(salt1[i], user1Salt[i]) == 0);
+            }
+            // compare the salt bytes for user 2
+            for(int i = 0; i < salt2.length; i++){
+                assertTrue(Byte.compare(salt2[i], user2Salt[i]) == 0);
+            }
+        } catch(SQLException ex){
+            ex.printStackTrace();
+            assertTrue(false);
+        }
+    }
+
+    /**
      * Tests if we can correctly authenticate users who write in their login information directly
      * with both correct and wrong usernames/passwords
      */
