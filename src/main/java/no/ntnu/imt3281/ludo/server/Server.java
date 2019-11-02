@@ -237,19 +237,20 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	private void handleAction(JsonMessage action){
 		switch (action.getAction()) {
 			case "UserDoesDiceThrow": UserDoesDiceThrow(action); break;
-			case "UserDoesLogin": UserDoesLogin(action); break;
+			case "UserDoesLoginManual": UserDoesLoginManual(action); break;
+			case "UserDoesLoginAuto": UserDoesLoginAuto(action); break;
 			case "UserDoesRegister": UserDoesRegister(action);break;
 		}
 
 	}
 
 
-	private void UserDoesLogin(JsonMessage action){
-		/* todo
+	private void UserDoesLoginManual(JsonMessage action){
+
 		JsonMessage retMsg = new JsonMessage();
 		retMsg.setAction(JsonMessage.Actions.LoginStatus);
 		try {
-			boolean status = db.checkIfLoginValid(hasher,action.getUsername(), action.getPassword().toCharArray());
+			boolean status = db.checkIfLoginValid(action.getUsername(), action.getPassword());
 			retMsg.setLoginOrRegisterStatus(status);
 
 		} catch (SQLException e) {
@@ -261,18 +262,35 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			messagesToSend.add(retMsg);
 		}
 
-		 */
+	}
+
+	private void UserDoesLoginAuto(JsonMessage action){
+
+		JsonMessage retMsg = new JsonMessage();
+		retMsg.setAction(JsonMessage.Actions.LoginStatus);
+		try {
+			boolean status = db.checkIfLoginValid(String.valueOf(action.getPlayerId()),action.getUsername(), action.getPassword());
+			retMsg.setLoginOrRegisterStatus(status);
+
+		} catch (SQLException e) {
+			retMsg.setLoginOrRegisterStatus(false);
+			e.printStackTrace();
+		}
+
+		synchronized (messagesToSend) {
+			messagesToSend.add(retMsg);
+		}
+
 	}
 
 	private void UserDoesRegister(JsonMessage action){
-		/* todo
+
 		JsonMessage retMsg = new JsonMessage();
 		retMsg.setAction(JsonMessage.Actions.RegisterStatus);
 		System.out.println(action.getUsername());
 		System.out.println(action.getPassword());
 		try {
-			String hashedpwd = hasher.hash(action.getPassword().toCharArray());
-			db.insertAccount(action.getUsername(), hashedpwd);
+			db.insertAccount(action.getUsername(), action.getPassword());
 			retMsg.setLoginOrRegisterStatus(true);
 		} catch (SQLException e) {
 			retMsg.setLoginOrRegisterStatus(false);
@@ -281,7 +299,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		synchronized (messagesToSend) {
 			messagesToSend.add(retMsg);
 		}
-		 */
+
 	}
 
 	private void UserDoesDiceThrow(JsonMessage action){
