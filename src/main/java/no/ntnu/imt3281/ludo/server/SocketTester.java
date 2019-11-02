@@ -41,6 +41,9 @@ public class SocketTester {
                 String gotMessage = br.readLine();
                 System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
 
+                gotMessage = br.readLine();
+                System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+
                 Thread.sleep(100);
                 connection.close();
             } catch (IOException | InterruptedException e) {

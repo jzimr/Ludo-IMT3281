@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.imt3281.ludo.logic.*;
 import no.ntnu.imt3281.ludo.logic.messages.LoginOrRegisterResponse;
 import no.ntnu.imt3281.ludo.logic.messages.ServerThrowDice;
+import no.ntnu.imt3281.ludo.logic.messages.UserHasConnected;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -140,7 +141,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						while (iterator.hasNext()) {
 							Client c = iterator.next();
 							//TODO: Send back to user with ID or SessionID:
-							if (c.getUserId() == msg.getPlayerId() || c.getUsername() == msg.getUsername()) {
+							if (c.getUserId() == msg.getRecipientPlayerid() || c.getUsername() == msg.getRecipientUsername()) {
 								try {
 									String converted = convertToCorrectJson(msg);
 									c.send(converted);
@@ -222,6 +223,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
                     String retString = mapper.writeValueAsString(ret);
                     return retString;
                 }
+				case "UserHasConnected" : {
+					UserHasConnected ret;
+					ret = mapper.readValue(msgJson, UserHasConnected.class);
+					String retString = mapper.writeValueAsString(ret);
+					return retString;
+				}
 				default: {
 					return "{\"ERROR\":\"something went wrong\"}";
 				}
@@ -242,7 +249,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserDoesDiceThrow": UserDoesDiceThrow(action); break;
 			case "UserDoesLoginManual": UserDoesLoginManual(action); break;
 			case "UserDoesLoginAuto": UserDoesLoginAuto(action); break;
-			case "UserDoesRegister": UserDoesRegister(action);break;
+			case "UserDoesRegister": UserDoesRegister(action); break;
 		}
 
 	}
@@ -252,6 +259,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 		JsonMessage retMsg = new JsonMessage();
 		retMsg.setAction(JsonMessage.Actions.LoginStatus);
+		retMsg.setRecipientUsername(action.getUsername());
 		try {
 			boolean status = db.checkIfLoginValid(action.getUsername(), action.getPassword());
 			retMsg.setLoginOrRegisterStatus(status);
@@ -265,12 +273,15 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			messagesToSend.add(retMsg);
 		}
 
+		AnnounceUserLoggedOn(action);
+
 	}
 
 	private void UserDoesLoginAuto(JsonMessage action){
 
 		JsonMessage retMsg = new JsonMessage();
 		retMsg.setAction(JsonMessage.Actions.LoginStatus);
+		retMsg.setRecipientUsername(action.getUsername());
 		try {
 			boolean status = db.checkIfLoginValid(String.valueOf(action.getPlayerId()),action.getUsername(), action.getPassword());
 			retMsg.setLoginOrRegisterStatus(status);
@@ -284,12 +295,35 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			messagesToSend.add(retMsg);
 		}
 
+		AnnounceUserLoggedOn(action);
+
+	}
+
+	private void AnnounceUserLoggedOn(JsonMessage action){
+		Iterator<Client> iterator = clients.iterator();
+		while(iterator.hasNext()){
+			Client c = iterator.next();
+
+			JsonMessage retMsg = new JsonMessage();
+			retMsg.setRecipientUsername(c.getUsername());
+			retMsg.setRecipientPlayerid(c.getUserId());
+			retMsg.setUsername(action.getUsername());
+			retMsg.setPlayerId(action.getPlayerId());
+			retMsg.setAction(JsonMessage.Actions.UserHasConnected);
+
+			if (retMsg.getRecipientUsername() != retMsg.getUsername() || retMsg.getRecipientPlayerid() != retMsg.getPlayerId()){
+				synchronized (messagesToSend) {
+					messagesToSend.add(retMsg);
+				}
+			}
+		}
 	}
 
 	private void UserDoesRegister(JsonMessage action){
 
 		JsonMessage retMsg = new JsonMessage();
 		retMsg.setAction(JsonMessage.Actions.RegisterStatus);
+		retMsg.setRecipientUsername(action.getUsername());
 		System.out.println(action.getUsername());
 		System.out.println(action.getPassword());
 		try {
@@ -343,7 +377,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
             /* Do Stuff */
             retMsg.setAction(JsonMessage.Actions.ServerThrowDice);
-            retMsg.setPlayerId(playerIds[i]);
+            retMsg.setRecipientPlayerid(playerIds[i]);
+            retMsg.setPlayerId(diceEvent.getPlayerID());
             retMsg.setLudoId(0); //TODO: This has to be found somehow.
             retMsg.setDiceRolled(diceEvent.getDiceRolled());
 
@@ -356,7 +391,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	@Override
 	public void pieceMoved(PieceEvent pieceEvent) {
-
 	}
 
 	@Override

@@ -48,6 +48,10 @@ public class JsonMessage {
     String password;
     Boolean loginOrRegisterStatus;
 
+    //Info to whom the message is to be sent to.
+    String recipientUsername;
+    int recipientPlayerid;
+
 
     public JsonMessage(){}
 
@@ -113,6 +117,22 @@ public class JsonMessage {
 
     public int getPlayerWonId() {
         return playerWonId;
+    }
+
+    public void setRecipientPlayerid(int recipientPlayerid) {
+        this.recipientPlayerid = recipientPlayerid;
+    }
+
+    public int getRecipientPlayerid() {
+        return recipientPlayerid;
+    }
+
+    public void setRecipientUsername(String recipientUsername) {
+        this.recipientUsername = recipientUsername;
+    }
+
+    public String getRecipientUsername() {
+        return recipientUsername;
     }
 }
 
