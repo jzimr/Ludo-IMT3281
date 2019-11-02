@@ -4,15 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.imt3281.ludo.logic.*;
 import no.ntnu.imt3281.ludo.logic.messages.LoginOrRegisterResponse;
+import no.ntnu.imt3281.ludo.logic.messages.ServerThrowDice;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
@@ -30,8 +28,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	private static SHA512Hasher hasher = new SHA512Hasher();    // our hasher object for hashing passwords
 
-	//Might change to arrayList for easy managment.
-	LinkedList<Ludo> activeLudoGames = new LinkedList<>();
+	ArrayList<Ludo> activeLudoGames = new ArrayList<>();
 
 	LinkedList<Client> clients = new LinkedList<>();
 	boolean stopping = false;
@@ -116,7 +113,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 								JsonMessage json = parse.parseActionJson(msg); //Parse the json into a object
 								synchronized (objectsToHandle) {
 									objectsToHandle.add(json); //Add the object to queue for handling
-									System.out.println(objectsToHandle.size());
 								}
 
 							}
@@ -143,6 +139,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						Iterator<Client> iterator = clients.iterator();
 						while (iterator.hasNext()) {
 							Client c = iterator.next();
+							//TODO: Send back to user with ID or SessionID:
 							if (c.getUserId() == msg.getPlayerId() || c.getUsername() == msg.getUsername()) {
 								try {
 									String converted = convertToCorrectJson(msg);
@@ -218,6 +215,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(ret);
 					return retString;
 				}
+                case "ServerThrowDice" : {
+                    //TODO : Not done.
+                    ServerThrowDice ret;
+                    ret = mapper.readValue(msgJson, ServerThrowDice.class);
+                    String retString = mapper.writeValueAsString(ret);
+                    return retString;
+                }
 				default: {
 					return "{\"ERROR\":\"something went wrong\"}";
 				}
@@ -302,20 +306,14 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 
 	private void UserDoesDiceThrow(JsonMessage action){
+	        int i = 0; //Loop variable
+
+            while (i <= activeLudoGames.size() && i != action.getLudoId()) {
+                i++;
+            }
+	        Ludo selectedGame = activeLudoGames.get(i);
 			/* ludo logic */
-
-
-
-			/* Do Stuff */
-			JsonMessage retMsg = new JsonMessage();
-			retMsg.setAction(JsonMessage.Actions.ServerThrowDice);
-			retMsg.setPlayerId(action.getPlayerId());
-			retMsg.setLudoId(action.getLudoId());
-			retMsg.setDiceRolled(2);
-			synchronized (messagesToSend){
-				messagesToSend.add(retMsg);
-			}
-			/* Send message back to original sender */
+            selectedGame.throwDice(); //Event will be called.
 	}
 
 	public class JsonMessageParser {
@@ -334,28 +332,25 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
-	public class activeLudoGame{
-		Ludo game;
-		int[] players;
-
-		void setGame (Ludo game) {
-			this.game = game;
-		}
-
-		Ludo getGame() {
-			return this.game;
-		}
-
-	}
-
-
 	@Override
 	public void diceThrown(DiceEvent diceEvent) {
-		/* Logic for throw dice in ludo class */
-		/* Ludo game = diceEvent.getLudoGame();
-		game.addDiceListener(this);*/
 
-		/* Add messages that are to be sent to users in the game. */
+	    //All player ids that we want to return information to.
+	    int playerIds[] = new int[4];
+
+	    for(int i = 0; i < 4; i++) {
+            JsonMessage retMsg = new JsonMessage();
+
+            /* Do Stuff */
+            retMsg.setAction(JsonMessage.Actions.ServerThrowDice);
+            retMsg.setPlayerId(playerIds[i]);
+            retMsg.setLudoId(0); //TODO: This has to be found somehow.
+            retMsg.setDiceRolled(diceEvent.getDiceRolled());
+
+            synchronized (messagesToSend){
+                messagesToSend.add(retMsg);
+            }
+        }
 
 	}
 
