@@ -7,7 +7,7 @@ import no.ntnu.imt3281.ludo.logic.JsonMessage;
 import java.io.*;
 import java.net.Socket;
 
-class Client {
+public class Client {
     ObjectMapper mapper = new ObjectMapper();
     int userId;
     String username;

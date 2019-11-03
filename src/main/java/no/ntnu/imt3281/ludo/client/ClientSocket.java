@@ -2,20 +2,22 @@ package no.ntnu.imt3281.ludo.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import no.ntnu.imt3281.ludo.logic.messages.ClientSessionID;
 import no.ntnu.imt3281.ludo.logic.messages.Message;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class ClientSocket {
     private static final int DEFAULT_PORT = 4567;
     private Socket connection = null;
     private boolean connected = false;
-    private BufferedWriter bw;
-    private BufferedReader br;
+    protected BufferedWriter bw;
+    protected BufferedReader br;
 
-    ArrayBlockingQueue<Message> serverMessages = new ArrayBlockingQueue<>(100);
+    //ArrayBlockingQueue<Message> serverMessages = new ArrayBlockingQueue<>(100);
 
     /**
      * Create a connection from client to server
@@ -36,7 +38,7 @@ public class ClientSocket {
             listenToServer();
 
             // send a unique session id to the server so it knows it's us
-            // todo sendMessageToServer(new ClientSessionID());
+            sendMessageToServer(new ClientSessionID(UUID.randomUUID().toString()));
 
             connected = true;
             return true;
@@ -76,7 +78,7 @@ public class ClientSocket {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonMessage = objectMapper.writeValueAsString(message);  // json message to send
 
-            System.out.println(jsonMessage);
+            System.out.println("Sending message to server: " + jsonMessage);
 
             bw.write(jsonMessage);          // write to outputstream
             bw.newLine();
@@ -98,6 +100,7 @@ public class ClientSocket {
                         try {
                             final String inMessage = br.readLine();
                             // todo trenger denne en queue?
+                            System.out.println("Got message from server: " + inMessage);
                             handleMessagesFromServer(inMessage);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -130,6 +133,9 @@ public class ClientSocket {
             JsonNode jsonNode = objectMapper.readTree(jsonMessage);
             String action = jsonNode.get("action").asText();
 
+            switch(action){
+
+            }
             /*
             switch (action) {
                 case "UserDoesLoginManual":
@@ -142,8 +148,6 @@ public class ClientSocket {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 
 
