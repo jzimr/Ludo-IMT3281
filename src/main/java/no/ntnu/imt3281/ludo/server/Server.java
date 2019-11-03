@@ -278,7 +278,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 
 	private void UserDoesLoginAuto(JsonMessage action){
-
+		/*
 		JsonMessage retMsg = new JsonMessage();
 		retMsg.setAction(JsonMessage.Actions.LoginStatus);
 		retMsg.setRecipientUsername(action.getUsername());
@@ -296,7 +296,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 
 		AnnounceUserLoggedOn(action);
-
+		*/
 	}
 
 	private void AnnounceUserLoggedOn(JsonMessage action){

@@ -31,6 +31,7 @@ public class Database {
                     connection = DriverManager.getConnection(dbURL + ";create=true");
                     createLoginInformationTable();
                     createUserInformationTable();
+                    createSessionInformationTable();
                     createChatRoomTable();
                     createChatLogTable();
                 } catch (SQLException ex2) {      // could not create database, we exit.
@@ -48,11 +49,13 @@ public class Database {
         try {
             createLoginInformationTable();
             createUserInformationTable();
+            createSessionInformationTable();
             createChatRoomTable();
             createChatLogTable();
         } catch (SQLException ex) {
             // if error is something else than that the table already exists
             if (!ex.getMessage().equals("Table/View 'LOGIN_INFO' already exists in Schema 'APP'.")
+                    && !ex.getMessage().equals("Table/View 'SESSION_INFO' already exists in Schema 'APP'.")
                     && !ex.getMessage().equals("Table/View 'USER_INFO' already exists in Schema 'APP'.")
                     && !ex.getMessage().equals("Table/View 'CHAT_ROOM' already exists in Schema 'APP'.")
                     && !ex.getMessage().equals("Table/View 'CHAT_LOG' already exists in Schema 'APP'.")) {
@@ -135,23 +138,6 @@ public class Database {
     }
 
     /**
-     * Get the salt of the particular user we use to hash his password/username
-     * @param userId the UUID of the user
-     */
-    public byte[] retrieveSalt(String userId) throws SQLException{
-        // create connection to database
-        PreparedStatement stmt = connection.prepareStatement("SELECT account_salt FROM login_info " +
-                "WHERE user_id = ?");
-        stmt.setString(1, userId);
-        ResultSet rs = stmt.executeQuery();
-
-        rs.next();
-        byte[] salt = rs.getBytes("account_salt");
-        rs.close();
-        return salt;
-    }
-
-    /**
      * Check if the user-entered login values match the values in the database.
      * <p>
      *     We check by comparing the sent hashed password with the hashed value in our
@@ -189,40 +175,57 @@ public class Database {
     }
 
     /**
-     * Check if the hashed user values matches our values in the database. Requires userId for this.
+     * Check if the sessionId is to be found in our database.
      * <p>
-     *     We check by comparing the sent hashed username and password with the hashed values in our
-     *     database using the SHA512Hasher class.
+     *     We check by searching for occurences of the entered "sessionId" in the database.
+     *     If none found, the token is not valid.
      * </p>
-     * @param userId the unique ID of the user
-     * @param hashedAccountName the hashed login name of the account. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
-     * @param hashedPassword the hashed plaintext password to compare to. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
+     * @param sessionId the ID of the session user tries to log in with
      * @return if the login matches with values in our database or not
      * @throws SQLException if error occured in database
      */
-    public boolean checkIfLoginValid(String userId, String hashedAccountName, String hashedPassword) throws SQLException{
-        SHA512Hasher hasher = new SHA512Hasher();
-        String pwd_hsh = "", account_name = "";
-        byte[] salt = null;
-
+    public boolean checkIfLoginValid(String sessionId) throws SQLException{
         // create connection to database
-        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM login_info " +
-                "WHERE user_id = ?");
-        stmt.setString(1, userId);
+        PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) AS session_count FROM session_info " +
+                "WHERE session_id = ?");
+        stmt.setString(1, sessionId);
         ResultSet rs = stmt.executeQuery();
 
-        // get hashed password from database that's linked to this user
-        while (rs.next()) {
-            pwd_hsh = rs.getString("pwd_hsh");
-            account_name = rs.getString("account_name");
-            salt = rs.getBytes("account_salt");
-        }
-        // if password or username was not found in database
-        if(pwd_hsh.equals("") || account_name.equals(""))
-            return false;
+        rs.next();
+        // get the total count of session_info names (1 if it exists, 0 else)
+        int count = rs.getInt("session_count");
+        rs.close();
 
-        // check if entered password and username matches entries in database
-        return hashedPassword.equals(pwd_hsh) && hasher.checkHashedValue(hashedAccountName, account_name, salt);
+        // check if sessionID is valid
+        return count == 0 ? false : true;
+    }
+
+    /**
+     * Insert a new session for the particular user.
+     * @param sessionId the session of the user.
+     * @param userId the ID of the user.
+     * @throws SQLException if error occured in database
+     */
+    public void insertSessionToken(String sessionId, String userId) throws SQLException{
+        PreparedStatement stmt = connection.prepareStatement("INSERT INTO session_info" +
+                "(session_id, user_id) VALUES (?, ?)");
+
+        stmt.setString(1, sessionId);
+        stmt.setString(2, userId);
+        stmt.execute();
+    }
+
+    /**
+     * Remove a session token from a particular user
+     * @param userId the ID of the user to remove token from
+     * @throws SQLException if error occured in database
+     */
+    public void terminateSessionToken(String userId) throws SQLException{
+        PreparedStatement stmt = connection.prepareStatement("DELETE FROM session_info " +
+                "WHERE user_id = ?");
+
+        stmt.setString(1, userId);
+        stmt.execute();
     }
 
     /**
@@ -480,6 +483,23 @@ public class Database {
                 // "user_id" is a foreign key of "user_id" from table "login_info".
                 // We set the RESTRICT constraint, since users should never be completely deleted
                 "FOREIGN KEY (user_id) references login_info(user_id) ON DELETE RESTRICT)");
+    }
+
+    /**
+     * Create the table for session tokens
+     * @throws SQLException if table could not be created, else none
+     */
+    private void createSessionInformationTable() throws SQLException{
+        Statement stmt = connection.createStatement();
+
+        stmt.execute("CREATE TABLE session_info (" +
+                "session_id varchar(36) NOT NULL," +
+                "user_id varchar(36) NOT NULL," +
+                // "session_id" should be unique and primary key
+                "PRIMARY KEY (session_id)," +
+                "UNIQUE (user_id)," +
+                // ON DELETE CASCADE because no point in having a session if user does not exist
+                "FOREIGN KEY (user_id) references login_info(user_id) ON DELETE CASCADE)");
     }
 
     /**

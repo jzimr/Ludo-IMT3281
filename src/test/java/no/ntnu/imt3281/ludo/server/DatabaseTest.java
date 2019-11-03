@@ -5,6 +5,7 @@ import org.junit.*;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -15,6 +16,7 @@ public class DatabaseTest {
     private static SHA512Hasher hasher = new SHA512Hasher();    // our hasher object for hashing passwords
     private static String user1Id, user2Id;         // Unique UUID's of users
     private static byte[] user1Salt, user2Salt;     // unique salts of users for encryption
+    private static String user1Session, user2Session;     // unique sessionIDs for creating sessions
 
     /**
      * Sets up database before a new test is run
@@ -48,6 +50,7 @@ public class DatabaseTest {
             Statement statement = testConnection.createStatement();
             statement.execute("DROP TABLE chat_log");
             statement.execute("DROP TABLE chat_room");
+            statement.execute("DROP TABLE session_info");
             statement.execute("DROP TABLE user_info");
             statement.execute("DROP TABLE login_info");
         } catch (SQLException ex) {
@@ -83,6 +86,7 @@ public class DatabaseTest {
             assertFalse(true);
         }
 
+
         // test user_info table
         try {
             statement = testConnection.createStatement();
@@ -103,6 +107,24 @@ public class DatabaseTest {
             assertFalse(true);
         }
 
+        // test session_info table
+        try {
+            statement = testConnection.createStatement();
+            resultSet = statement.executeQuery("SELECT * FROM session_info");
+        } catch (SQLException ex) {
+            assertFalse(true);
+        }
+
+        // check if tables have all the required columns and only has 2 columns
+        try {
+            assertEquals("SESSION_ID", resultSet.getMetaData().getColumnName(1));
+            assertEquals("USER_ID", resultSet.getMetaData().getColumnName(2));
+            assertEquals(2, resultSet.getMetaData().getColumnCount());
+        } catch (SQLException ex) {
+            assertFalse(true);
+        }
+
+
         // test chat_log table
         try {
             statement = testConnection.createStatement();
@@ -121,6 +143,7 @@ public class DatabaseTest {
         } catch (SQLException ex) {
             assertFalse(true);
         }
+
 
         // test chat_room table
         try {
@@ -188,6 +211,13 @@ public class DatabaseTest {
             // update data for both users in database
             testDatabase.updateProfile(user1);
             testDatabase.updateProfile(user2);
+
+            // set the user's session tokens
+            user1Session = UUID.randomUUID().toString();
+            user2Session = UUID.randomUUID().toString();
+            // insert them into database
+            testDatabase.insertSessionToken(user1Session, user1Id);
+            testDatabase.insertSessionToken(user2Session, user2Id);
         } catch (SQLException ex) {
             ex.printStackTrace();
             assertTrue(false);
@@ -287,34 +317,6 @@ public class DatabaseTest {
     }
 
     /**
-     * Test if the salt can be successfully retrieved from the database
-     */
-    @Test
-    public void retrieveSaltTest(){
-        // insert two users
-        insertTwoAccounts();
-
-        try{
-            byte[] salt1, salt2;
-
-            salt1 = testDatabase.retrieveSalt(user1Id);
-            salt2 = testDatabase.retrieveSalt(user2Id);
-
-            // compare the salt bytes for user 1
-            for(int i = 0; i < salt1.length; i++){
-                assertTrue(Byte.compare(salt1[i], user1Salt[i]) == 0);
-            }
-            // compare the salt bytes for user 2
-            for(int i = 0; i < salt2.length; i++){
-                assertTrue(Byte.compare(salt2[i], user2Salt[i]) == 0);
-            }
-        } catch(SQLException ex){
-            ex.printStackTrace();
-            assertTrue(false);
-        }
-    }
-
-    /**
      * Tests if we can correctly authenticate users who write in their login information directly
      * with both correct and wrong usernames/passwords
      */
@@ -348,40 +350,85 @@ public class DatabaseTest {
     }
 
     /**
-     * Tests if we can correctly authenticate users who use the "remember me" login feature
-     * with both correct and wrong usernames/passwords
+     * Tests if we can correctly authenticate users by their sessionTokens
      */
     @Test
     public void checkRememberedLoginValidTest(){
         // insert two users
         insertTwoAccounts();
-        // Boby's and Samy's passwords
-        String pwd1 = "BobysFavoriteDog123",
-                pwd2 = "SamysMotherMaidenName";
-
-        // these would be the hashed values stored on the client's side
-        String hashedAccountName1 = hasher.hash("Boby", user1Salt);
-        String hashedAccountName2 = hasher.hash("Samy", user2Salt);
-        String hashedPwd1 = hasher.hash(pwd1, user1Salt);
-        String hashedPwd2 = hasher.hash(pwd2, user2Salt);
 
         try{
             // correct paswords + usernames
-            assertTrue(testDatabase.checkIfLoginValid(user1Id, hashedAccountName1, hashedPwd1));
-            assertTrue(testDatabase.checkIfLoginValid(user2Id, hashedAccountName2, hashedPwd2));
+            assertTrue(testDatabase.checkIfLoginValid(user1Session));
+            assertTrue(testDatabase.checkIfLoginValid(user2Session));
 
-            // wrong ID's
-            assertFalse(testDatabase.checkIfLoginValid(user1Id + "1", hashedAccountName1, hashedPwd1));
-            assertFalse(testDatabase.checkIfLoginValid(user2Id + "1", hashedAccountName2, hashedPwd2));
-
-            // wrong account names
-            assertFalse(testDatabase.checkIfLoginValid(user1Id, hashedAccountName1 + "21", hashedPwd1));
-            assertFalse(testDatabase.checkIfLoginValid(user2Id, hashedAccountName2 + "-", hashedPwd2));
-
-            // wrong passwords
-            assertFalse(testDatabase.checkIfLoginValid(user1Id, hashedAccountName1, hashedPwd1 + "1"));
-            assertFalse(testDatabase.checkIfLoginValid(user2Id, hashedAccountName2, hashedPwd2 + "2"));
+            // wrong sessions
+            assertFalse(testDatabase.checkIfLoginValid(user1Session + "asd"));
+            assertFalse(testDatabase.checkIfLoginValid(user2Session + "a"));
         } catch(SQLException ex){
+            ex.printStackTrace();
+            assertTrue(false);
+        }
+    }
+
+    /**
+     * Test if we can insert session tokens for users
+     */
+    @Test
+    public void insertSessionTokenTest(){
+        // insert two users (and their session tokens)
+        insertTwoAccounts();
+
+        try {
+            Statement state = testConnection.createStatement();
+
+            // execute SELECT query
+            ResultSet rs = state.executeQuery("SELECT * FROM session_info WHERE user_id = '" + user1Id + "'");
+
+            // loop over data of user 1
+            while (rs.next()) {
+                assertEquals(user1Session, rs.getString("session_id"));
+                assertEquals(user1Id, rs.getString("user_id"));
+            }
+
+            // execute SELECT query
+            rs = state.executeQuery("SELECT * FROM session_info WHERE user_id = '" + user2Id + "'");
+
+            // loop over data of user 2
+            while (rs.next()) {
+                assertEquals(user2Session, rs.getString("session_id"));
+                assertEquals(user2Id, rs.getString("user_id"));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            assertTrue(false);
+        }
+    }
+
+    @Test
+    public void terminateSessionTokenTest(){
+        // insert two users (and their session tokens)
+        insertTwoAccounts();
+
+        // delete session tokens
+        try{
+            testDatabase.terminateSessionToken(user2Id);
+            testDatabase.terminateSessionToken(user1Id);
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            assertTrue(false);
+        }
+
+        // sjekk om token faktisk er sletta (burde være ingen entries i databasen nå)
+        try{
+            PreparedStatement stmt = testConnection.prepareStatement("SELECT COUNT(*) AS session_count FROM session_info");
+            ResultSet rs = stmt.executeQuery();
+
+            rs.next();
+            // the count should be 0
+            assertEquals(0, rs.getInt("session_count"));
+            rs.close();
+        } catch (SQLException ex) {
             ex.printStackTrace();
             assertTrue(false);
         }
