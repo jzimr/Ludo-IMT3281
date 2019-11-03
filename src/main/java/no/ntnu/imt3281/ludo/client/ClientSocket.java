@@ -4,16 +4,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.imt3281.ludo.client.messages.ClientLogin;
 import no.ntnu.imt3281.ludo.client.messages.Message;
+import no.ntnu.imt3281.ludo.client.messages.ClientSessionID;
+import no.ntnu.imt3281.ludo.logic.JsonMessage;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class ClientSocket {
-    private static final int DEFAULT_PORT = 4000;
+    private static final int DEFAULT_PORT = 4567;
     private Socket connection = null;
     private boolean connected = false;
     private BufferedWriter bw;
     private BufferedReader br;
+
+    ArrayBlockingQueue<Message> serverMessages = new ArrayBlockingQueue<>(100);
 
     /**
      * Create a connection from client to server
@@ -30,6 +35,12 @@ public class ClientSocket {
             connection = new Socket(serverIP, port);
             bw = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
             br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+            listenToServer();
+
+            // send a unique session id to the server so it knows it's us
+            // todo sendMessageToServer(new ClientSessionID());
+
             connected = true;
             return true;
 
@@ -68,6 +79,8 @@ public class ClientSocket {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonMessage = objectMapper.writeValueAsString(message);  // json message to send
 
+            System.out.println(jsonMessage);
+
             bw.write(jsonMessage);          // write to outputstream
             bw.newLine();
             bw.flush();
@@ -80,7 +93,7 @@ public class ClientSocket {
     /**
      * Create own thread that listens to the server sending the client messages
      */
-    public void listenToServer() {
+    private void listenToServer() {
         Thread t = new Thread() {
             public void run() {
                 while (true) {
@@ -112,7 +125,7 @@ public class ClientSocket {
      * Gets messages (json) from the listener and deserializes them into the correct objects of type "Message"
      * @param jsonMessage json message received from server
      */
-    public void handleMessagesFromServer(String jsonMessage) {
+    private void handleMessagesFromServer(String jsonMessage) {
         ObjectMapper objectMapper = new ObjectMapper();
         Message message = null;
 
@@ -120,12 +133,14 @@ public class ClientSocket {
             JsonNode jsonNode = objectMapper.readTree(jsonMessage);
             String action = jsonNode.get("action").asText();
 
+            /*
             switch (action) {
                 case "UserDoesLoginManual":
                     message = new ClientLogin(jsonNode.get("action").asText(), jsonNode.get("username").asText(), jsonNode.get("password").asText());
                 default:
-                    break;
+                    System.out.println("Json not recognized: " + jsonMessage);
             }
+             */
 
         } catch (IOException e) {
             e.printStackTrace();

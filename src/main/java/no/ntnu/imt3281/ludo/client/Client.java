@@ -5,6 +5,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import no.ntnu.imt3281.ludo.client.messages.ClientLogin;
+import no.ntnu.imt3281.ludo.client.messages.ClientThrowDice;
+import no.ntnu.imt3281.ludo.client.messages.Message;
 
 /**
  * 
@@ -29,9 +32,16 @@ public class Client extends Application {
 	}
 
 	public static void main(String[] args) {
-		launch(args);
+		//launch(args);
 
 		// for testing
 		ClientSocket lol = new ClientSocket();
+		//lol.establishConnectionToServer("0.0.0.0", -1);
+		//lol.sendMessageToServer(new ClientLogin("someAction", "someUser", "somePass"));
+
+		//Message asd = new ClientLogin("someAction", "someUser", "somePass");
+		//((ClientLogin) asd).getPassword();
+
+
 	}
 }
