@@ -1,11 +1,10 @@
 package no.ntnu.imt3281.ludo.logic.messages;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class UserHasConnected {
+public class UserHasConnected extends Message{
     public String username;
     public int userid;
+
+    public UserHasConnected(String action){super(action);}
 
     public void setUserid(int userid) {
         this.userid = userid;

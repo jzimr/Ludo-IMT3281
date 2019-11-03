@@ -1,5 +1,6 @@
 package no.ntnu.imt3281.ludo.server;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.imt3281.ludo.logic.JsonMessage;
 
@@ -55,17 +56,14 @@ class Client {
         return this.userId;
     }
 
-    public JsonMessage parseUsername(String json) {
+    public void parseUsername(String json) {
 
         try {
-            JsonMessage jsonObj = mapper.readValue(json, JsonMessage.class);
-            username = jsonObj.getUsername();
-            return jsonObj;
+            JsonNode jsonNode = mapper.readTree(json);
+            username = jsonNode.get("username").asText();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return null;
 
     }
 

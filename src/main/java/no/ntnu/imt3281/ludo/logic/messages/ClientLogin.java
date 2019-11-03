@@ -1,6 +1,4 @@
-package no.ntnu.imt3281.ludo.client.messages;
-
-import no.ntnu.imt3281.ludo.logic.JsonMessage;
+package no.ntnu.imt3281.ludo.logic.messages;
 
 public class ClientLogin extends Message {
     private String username;

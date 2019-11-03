@@ -1,4 +1,4 @@
-package no.ntnu.imt3281.ludo.client.messages;
+package no.ntnu.imt3281.ludo.logic.messages;
 
 public class ClientThrowDice extends Message {
 

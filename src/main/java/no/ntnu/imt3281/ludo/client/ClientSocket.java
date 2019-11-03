@@ -2,10 +2,7 @@ package no.ntnu.imt3281.ludo.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.ntnu.imt3281.ludo.client.messages.ClientLogin;
-import no.ntnu.imt3281.ludo.client.messages.Message;
-import no.ntnu.imt3281.ludo.client.messages.ClientSessionID;
-import no.ntnu.imt3281.ludo.logic.JsonMessage;
+import no.ntnu.imt3281.ludo.logic.messages.Message;
 
 import java.io.*;
 import java.net.Socket;
