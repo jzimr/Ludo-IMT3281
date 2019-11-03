@@ -1,22 +1,12 @@
 package no.ntnu.imt3281.ludo.logic.messages;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import no.ntnu.imt3281.ludo.logic.JsonMessage;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ServerThrowDice {
-    JsonMessage.Actions action;
+public class ServerThrowDice extends Message {
     int playerId;
     int ludoId;
     int diceRolled;
 
-    public void setAction(JsonMessage.Actions action) {
-        this.action = action;
-    }
-
-    public JsonMessage.Actions getAction() {
-        return action;
-    }
+    public ServerThrowDice(String action){super(action);}
 
     public void setDiceRolled(int diceRolled) {
         this.diceRolled = diceRolled;

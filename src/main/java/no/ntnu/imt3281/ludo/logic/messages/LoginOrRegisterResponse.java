@@ -1,18 +1,17 @@
 package no.ntnu.imt3281.ludo.logic.messages;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class LoginOrRegisterResponse {
-    boolean loginStatus;
+public class LoginOrRegisterResponse extends Message{
+    boolean LoginOrRegisterStatus;
 
-    public void setLoginStatus(boolean loginStatus) {
-        this.loginStatus = loginStatus;
+    public LoginOrRegisterResponse(String action){super(action);}
+
+    public void setLoginOrRegisterStatus(boolean LoginOrRegisterStatus) {
+        this.LoginOrRegisterStatus = LoginOrRegisterStatus;
     }
 
-    public boolean isLoginStatus() {
-        return loginStatus;
+    public boolean isLoginOrRegisterStatus() {
+        return LoginOrRegisterStatus;
     }
 
-    LoginOrRegisterResponse(){}
 }

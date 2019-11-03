@@ -5,9 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
-import no.ntnu.imt3281.ludo.client.messages.ClientLogin;
-import no.ntnu.imt3281.ludo.client.messages.ClientThrowDice;
-import no.ntnu.imt3281.ludo.client.messages.Message;
 
 /**
  * 
