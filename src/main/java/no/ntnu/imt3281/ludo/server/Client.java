@@ -69,7 +69,7 @@ public class Client {
 
         try {
             JsonNode jsonNode = mapper.readTree(json);
-            uuid = jsonNode.get("uuid").asText();
+            uuid = jsonNode.get("recipientSessionId").asText();
             System.out.println(uuid);
         } catch (IOException e) {
             e.printStackTrace();
