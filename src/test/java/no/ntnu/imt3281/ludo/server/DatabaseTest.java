@@ -435,7 +435,7 @@ public class DatabaseTest {
     }
 
     /**
-     * Test if we successfully get the ID via the session token
+     * Test if we successfully get the ID via the account name of the user
      */
     @Test
     public void getUserIdTest(){
@@ -443,14 +443,18 @@ public class DatabaseTest {
         insertTwoAccounts();
 
         // get both users
-        String user1 = testDatabase.getUserId(user1Session);
-        String user2 = testDatabase.getUserId(user2Session);
+        String user1 = testDatabase.getUserId("Boby");
+        String user2 = testDatabase.getUserId("Samy");
+        String userNull = testDatabase.getUserId("Non-existent");
 
         // compare data of user1
         assertEquals(user1Id, user1);
 
         // compare data of user2
         assertEquals(user2Id, user2);
+
+        // faail to get data for non-existent user
+        assertEquals("", userNull);
     }
 
     /**

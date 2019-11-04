@@ -29,10 +29,10 @@ public class Client extends Application {
 	}
 
 	public static void main(String[] args) {
-		//launch(args);
+		launch(args);
 
 		// for testing
-		ClientSocket lol = new ClientSocket();
+		//ClientSocket lol = new ClientSocket();
 		//lol.establishConnectionToServer("0.0.0.0", -1);
 		//lol.sendMessageToServer(new ClientLogin("someAction", "someUser", "somePass"));
 

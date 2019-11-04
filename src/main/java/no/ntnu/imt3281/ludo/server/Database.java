@@ -234,16 +234,16 @@ public class Database {
     }
 
     /**
-     * Return the userID via the sessionsToken
+     * Return the userID via the account name
      *
-     * @param sessionToken the unique session between the client and the server
+     * @param accountName the unique account name of the user
      */
-    public String getUserId(String sessionToken) {
+    public String getUserId(String accountName) {
         String userId = "";
         try {
-            PreparedStatement stmt = connection.prepareStatement("SELECT user_id FROM session_info " +
-                    "WHERE session_id = ?");
-            stmt.setString(1, sessionToken);
+            PreparedStatement stmt = connection.prepareStatement("SELECT user_id FROM login_info " +
+                    "WHERE account_name = ?");
+            stmt.setString(1, accountName);
             ResultSet rs = stmt.executeQuery();
 
             rs.next();
