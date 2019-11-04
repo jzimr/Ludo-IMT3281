@@ -2,13 +2,10 @@ package no.ntnu.imt3281.ludo.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.ntnu.imt3281.ludo.logic.messages.ClientSessionID;
 import no.ntnu.imt3281.ludo.logic.messages.Message;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
 
 public class ClientSocket {
     private static final int DEFAULT_PORT = 4567;
@@ -36,9 +33,6 @@ public class ClientSocket {
             br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
             listenToServer();
-
-            // send a unique session id to the server so it knows it's us
-            sendMessageToServer(new ClientSessionID(UUID.randomUUID().toString()));
 
             connected = true;
             return true;
@@ -111,7 +105,7 @@ public class ClientSocket {
                         try {
                             Thread.sleep(50);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            System.out.println("Server timeout: " + e.getMessage());
                         }
                     }
                 }
@@ -134,7 +128,8 @@ public class ClientSocket {
             String action = jsonNode.get("action").asText();
 
             switch(action){
-
+                // todo LoginResponse
+                // todo RegisterRResponse
             }
             /*
             switch (action) {
@@ -149,6 +144,16 @@ public class ClientSocket {
             e.printStackTrace();
         }
     }
+
+    private void handleLoginResponse(){
+
+    }
+
+    private void handleRegisterResponse(){
+
+    }
+
+
 
 
 }

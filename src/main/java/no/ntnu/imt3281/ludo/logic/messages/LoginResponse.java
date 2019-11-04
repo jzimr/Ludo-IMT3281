@@ -22,3 +22,4 @@ public class LoginResponse extends Message {
         return reponse;
     }
 }
+

@@ -3,6 +3,7 @@ package no.ntnu.imt3281.ludo.client;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Tab;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
@@ -19,7 +20,8 @@ public class Client extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			AnchorPane root = (AnchorPane)FXMLLoader.load(getClass().getResource("../gui/Ludo.fxml"));
+			//AnchorPane root = new FXMLLoader(getClass().getResource("../gui/Ludo.fxml")).load();
+			AnchorPane root = FXMLLoader.load(getClass().getResource("../gui/Ludo.fxml"));
 			Scene scene = new Scene(root);
 			primaryStage.setScene(scene);
 			primaryStage.show();

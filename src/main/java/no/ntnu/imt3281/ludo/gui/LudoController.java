@@ -10,6 +10,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.AnchorPane;
+import no.ntnu.imt3281.ludo.client.ClientSocket;
 
 public class LudoController {
 
@@ -18,6 +19,37 @@ public class LudoController {
 
     @FXML
     private TabPane tabbedPane;
+
+	private ClientSocket clientSocket;
+
+	// controllers
+    private LoginController loginController;
+
+	@FXML
+	public void initialize(){
+		FXMLLoader loader = new FXMLLoader(getClass().getResource("Login.fxml"));
+		loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+
+		clientSocket = new ClientSocket();
+
+
+		try {
+			AnchorPane loginBoard = loader.load();
+			Tab tab = new Tab("Login");
+			tab.setContent(loginBoard);
+			tabbedPane.getTabs().add(tab);
+			loginController = loader.getController();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		if(loginController == null)
+			System.out.println("fuck");
+
+		loginController.setClientSocket(clientSocket);
+
+	}
 
     @FXML
     public void joinRandomGame(ActionEvent e) {  	

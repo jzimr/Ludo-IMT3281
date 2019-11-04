@@ -1,7 +1,6 @@
 package no.ntnu.imt3281.ludo.logic.messages;
 
 public class ClientLogin extends Message {
-    private String uuid;
     private String username;
     private String password;
 
@@ -9,14 +8,6 @@ public class ClientLogin extends Message {
         super(action);
         this.username = username;
         this.password = password;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    public String getUuid() {
-        return uuid;
     }
 
     public String getUsername() {

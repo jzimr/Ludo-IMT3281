@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="$CONTROLLER_NAME$"
-            prefHeight="400.0" prefWidth="600.0">
-
+<AnchorPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="no.ntnu.imt3281.ludo.gui.LoginController">
+   <children>
+      <Pane prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <Button layoutX="270.0" layoutY="264.0" mnemonicParsing="false" onAction="#userDoesLogin" text="Login" />
+            <Button layoutX="257.0" layoutY="312.0" mnemonicParsing="false" onAction="#userDoesRegister" text="New User?" />
+            <TextField fx:id="usernameTextInput" layoutX="219.0" layoutY="188.0" promptText="username" />
+            <TextField fx:id="passwordTextInput" accessibleRole="PASSWORD_FIELD" layoutX="219.0" layoutY="221.0" promptText="password" />
+            <TextField fx:id="serverAddressTextInput" layoutX="219.0" layoutY="83.0" promptText="server-IP:Port" text="0.0.0.0:4567" />
+         </children>
+      </Pane>
+   </children>
 </AnchorPane>

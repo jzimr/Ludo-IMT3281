@@ -2,7 +2,6 @@ package no.ntnu.imt3281.ludo.logic.messages;
 
 
 public class ServerThrowDice extends Message {
-    int playerId;
     int ludoId;
     int diceRolled;
 
@@ -24,12 +23,5 @@ public class ServerThrowDice extends Message {
         return ludoId;
     }
 
-    public int getPlayerId() {
-        return playerId;
-    }
-
-    public void setPlayerId(int playerId) {
-        this.playerId = playerId;
-    }
 }
 
