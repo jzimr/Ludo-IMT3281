@@ -462,12 +462,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				switch(action.get("action").asText()) {
 					case "UserDoesLoginManual":{
 						msg = new ClientLogin(action.get("action").asText(),action.get("username").asText(),action.get("password").asText());
-						msg.setRecipientSessionId(action.get("uuid").asText());
+						msg.setRecipientSessionId(action.get("recipientSessionId").asText());
 						return msg;
 					}
 					case "UserDoesRegister":{
 						msg = new ClientRegister(action.get("action").asText(),action.get("username").asText(),action.get("password").asText());
-						msg.setRecipientSessionId(action.get("uuid").asText());
+						msg.setRecipientSessionId(action.get("recipientSessionId").asText());
 						return msg;
 					}
 				}
