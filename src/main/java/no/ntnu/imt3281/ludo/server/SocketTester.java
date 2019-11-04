@@ -2,6 +2,7 @@ package no.ntnu.imt3281.ludo.server;
 
 import java.net.*;
 import java.io.*;
+import java.util.UUID;
 
 /**
  * This code is only used to test message handling from the client without having
@@ -12,11 +13,13 @@ public class SocketTester {
 
     private static final int DEFAULT_PORT = 4567;
 
+    UUID uuid = UUID.randomUUID();
+
     private Socket connection = null;
     private BufferedWriter bw;
     private BufferedReader br;
 
-    private String LoginMessage = "{\"action\" : \"UserDoesLoginManual\",\"username\": \"test\",\"password\": \"test\"}";
+    private String LoginMessage = "{\"action\" : \"UserDoesLoginManual\" ,\"username\": \"test\" ,\"uuid\":\""+ uuid.toString() +"\" ,\"password\": \"test\"}";
     String RegisterMessage = "{\"action\" : \"UserDoesRegister\",\"username\": \"test\",\"password\": \"test\"}";
 
     private String message = "{\"action\" : \"UserDoesDiceThrow\", \"playerId\": 1, \"ludoId\" : 2}";

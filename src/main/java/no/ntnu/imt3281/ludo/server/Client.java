@@ -9,6 +9,7 @@ import java.net.Socket;
 
 public class Client {
     ObjectMapper mapper = new ObjectMapper();
+    String uuid;
     int userId;
     String username;
 
@@ -56,15 +57,25 @@ public class Client {
         return this.userId;
     }
 
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
     public void parseUsername(String json) {
 
         try {
             JsonNode jsonNode = mapper.readTree(json);
-            username = jsonNode.get("username").asText();
+            uuid = jsonNode.get("uuid").asText();
+            System.out.println(uuid);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
+
 
 }

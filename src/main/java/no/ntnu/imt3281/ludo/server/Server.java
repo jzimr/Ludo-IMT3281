@@ -15,33 +15,28 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
- * 
- * This is the main class for the server. 
- * **Note, change this to extend other classes if desired.**
- * 
- * @author 
- *
+ * This is the main class for the server.
  */
 public class Server implements DiceListener, PieceListener, PlayerListener {
 
-	final private int SERVER_PORT = 4567;
-	Database db = Database.getDatabase();
+	final private int SERVER_PORT = 4567; //Server Port
+	Database db = Database.getDatabase(); //Database singleton
 
-	private static SHA512Hasher hasher = new SHA512Hasher();    // our hasher object for hashing passwords
+	ArrayList<Ludo> activeLudoGames = new ArrayList<>(); //ArrayList over active games.
+	ArrayList<String> activeChatRooms = new ArrayList<>(); //ArrayList over chat rooms.
 
-	ArrayList<Ludo> activeLudoGames = new ArrayList<>();
+	LinkedList<Client> clients = new LinkedList<>(); //LinkedList containing clients
 
-	LinkedList<Client> clients = new LinkedList<>();
-	boolean stopping = false;
+	boolean stopping = false; //Boolean to stop the server
 
-	ArrayBlockingQueue<Message> objectsToHandle = new ArrayBlockingQueue<>(100);
+	ArrayBlockingQueue<Message> objectsToHandle = new ArrayBlockingQueue<>(100); //Queue for incoming messages
 
-	ArrayBlockingQueue<Message> messagesToSend = new ArrayBlockingQueue<>(100);
+	ArrayBlockingQueue<Message> messagesToSend = new ArrayBlockingQueue<>(100); //Queue for outbound messages
 
-	ArrayBlockingQueue<Client> disconnectedClients = new ArrayBlockingQueue<>(1000);
+	ArrayBlockingQueue<Client> disconnectedClients = new ArrayBlockingQueue<>(1000); //Queue for clients that is to be disconnected.
 
 	public static void main(String[] args) {
-		new Server();
+		new Server(); //Create a new server instance.
 	}
 
 	public Server(){
@@ -52,6 +47,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		startRemoveDisconnectedClientsThread();
 
 		System.out.println("Ludo server is now listening at 0.0.0.0:"+SERVER_PORT);
+
+		activeChatRooms = db.getAllChatRooms();
+		System.out.println(activeChatRooms);
 
 	}
 
@@ -108,7 +106,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 							if (msg != null && msg.contains("UserDoesLogin")) {
 								synchronized (objectsToHandle) {
 									c.parseUsername(msg);
-									System.out.println("Connected user : " + c.getUsername());
+									System.out.println("Connected user : " + c.getUuid());
 									objectsToHandle.add(parser.parseJson(msg)); //Add the object to queue for handling
 								}
 							} else if (msg != null ) {
@@ -189,7 +187,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 
 	/**
- 	*
+ 	* Thread to handle incoming messages from users.
  	*/
 	private void startHandlingActions(){
 		Thread handleActions = new Thread(() -> {
@@ -207,6 +205,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		handleActions.start();
 	}
 
+	/**
+	 * Determines what function is to be called by checking what action a message
+	 * that comes from a client is.
+	 * @param action
+	 */
 	private void handleAction(Message action){
 		switch (action.getAction()) {
 			case "UserDoesDiceThrow": UserDoesDiceThrow(action);break;
@@ -217,6 +220,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	/**
+	 * This function converts from messages the server got and handled to a format
+	 * the user can expect to receive.
+	 * @param msg
+	 * @return String json message
+	 */
 	private String convertToCorrectJson(Message msg) {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
@@ -259,6 +268,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		return null;
 	}
 
+	/**
+	 * When the user logs in without using the remember me function.
+	 * @param action
+	 */
 	private void UserDoesLoginManual(ClientLogin action){
 
 		LoginOrRegisterResponse retMsg = new LoginOrRegisterResponse("LoginStatus");
@@ -266,8 +279,18 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		try {
 			boolean status = db.checkIfLoginValid(action.getUsername(), action.getPassword());
 			retMsg.setLoginOrRegisterStatus(status);
+			// if true msg = "OK"
+			//if false msg = "Username or password is incorrect
+
+			if(retMsg.isLoginOrRegisterStatus()){ //If login was successful we set the userid on the client.
+
+				/* Do stuff */
+
+
+			}
 
 		} catch (SQLException e) {
+			//Msg = internal server error.
 			retMsg.setLoginOrRegisterStatus(false);
 			e.printStackTrace();
 		}
@@ -284,6 +307,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	/**
+	 * When a user logs in automatically using a remember me function.
+	 * @param action
+	 */
 	private void UserDoesLoginAuto(ClientLogin action){
 
 		LoginOrRegisterResponse retMsg = new LoginOrRegisterResponse("LoginStatus");
@@ -310,6 +337,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 	}
 
+	/**
+	 * When a new user logs into to the game server we announce their presence to all other clients.
+	 * @param action
+	 */
 	private void AnnounceUserLoggedOn(Message action){
 		Iterator<Client> iterator = clients.iterator();
 		while(iterator.hasNext()){
@@ -330,10 +361,17 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 	}
 
+	/**
+	 * Logic for when a client want to register an account.
+	 * @param action
+	 */
 	private void UserDoesRegister(ClientLogin action){
 
 		Message retMsg = new LoginOrRegisterResponse("RegisterStatus");
 		retMsg.setRecipientUsername(action.getUsername());
+
+		/* Check if the username already exists */
+
 		try {
 			db.insertAccount(action.getUsername(), action.getPassword());
 			((LoginOrRegisterResponse)retMsg).setLoginOrRegisterStatus(true);
@@ -359,9 +397,17 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			*/
 	}
 
+	/**
+	 * Class that parses incoming messages and classifies them.
+	 */
 	public class JsonMessageParser {
 		ObjectMapper mapper = new ObjectMapper();
 
+		/**
+		 * Parses incoming json from a client and creates a object of the correct type and returns it.
+		 * @param json
+		 * @return Message object with correct information
+		 */
 		public Message parseJson(String json) {
 			Message msg = null;
 			try {
@@ -382,6 +428,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	/**
+	 * Implemented interface DiceListener
+	 * @param diceEvent returns data about dice rolled
+	 */
 	@Override
 	public void diceThrown(DiceEvent diceEvent) {
 		/*
@@ -407,10 +457,18 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	/**
+	 * Implemented interface PieceListener
+	 * @param pieceEvent returns data about the piece moved
+	 */
 	@Override
 	public void pieceMoved(PieceEvent pieceEvent) {
 	}
 
+	/**
+	 * Implemented interface PlayerListener
+	 * @param event PlayerEvent containing info about what state the player is in.
+	 */
 	@Override
 	public void playerStateChanged(PlayerEvent event) {
 
