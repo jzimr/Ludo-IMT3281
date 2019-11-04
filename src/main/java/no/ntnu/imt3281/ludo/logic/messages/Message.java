@@ -6,7 +6,6 @@ package no.ntnu.imt3281.ludo.logic.messages;
 public class Message {
     public String recipientuuid;
 
-
     public String action;
 
     public Message(String action){

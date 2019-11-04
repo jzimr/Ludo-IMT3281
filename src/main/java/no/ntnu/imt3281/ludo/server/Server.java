@@ -236,8 +236,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			String action = jsonNode.get("action").asText();
 
 			switch (action) {
-				case "LoginStatus" :{
-					LoginResponse message = new LoginResponse("LoginStatus");
+				case "LoginResponse" :{
+					LoginResponse message = new LoginResponse("LoginResponse");
 					message.setLoginStatus(( (LoginResponse) msg) .isLoginStatus());
 					message.setReponse(((LoginResponse) msg).getReponse());
 					String retString = mapper.writeValueAsString(message);
@@ -283,7 +283,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	private void UserDoesLoginManual(ClientLogin action){
 
-		LoginResponse retMsg = new LoginResponse("LoginStatus");
+		LoginResponse retMsg = new LoginResponse("LoginResponse");
 		retMsg.setrecipientuuid(action.getrecipientuuid());
 		try {
 			boolean status = db.checkIfLoginValid(action.getUsername(), action.getPassword());
@@ -323,7 +323,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	private void UserDoesLoginAuto(ClientLogin action){
 
-		LoginResponse retMsg = new LoginResponse("LoginStatus");
+		LoginResponse retMsg = new LoginResponse("LoginResponse");
 		retMsg.setrecipientuuid(action.getrecipientuuid());
 
 					/*
