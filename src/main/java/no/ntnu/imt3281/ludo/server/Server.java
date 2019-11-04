@@ -240,11 +240,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
                     return retString;
                 }
 				case "UserHasConnected" : {
-					/*
-					UserHasConnected ret;
-					ret = mapper.readValue(msgJson, UserHasConnected.class);
-					String retString = mapper.writeValueAsString(ret);
-					return retString;*/
+					UserHasConnected message = new UserHasConnected("UserHasConnected");
+					message.setUsername(((UserHasConnected)msg).getUsername());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
 				}
 				default: {
 					return "{\"ERROR\":\"something went wrong\"}";
@@ -261,7 +260,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 
 	private void UserDoesLoginManual(ClientLogin action){
-
 
 		LoginOrRegisterResponse retMsg = new LoginOrRegisterResponse("LoginStatus");
 		retMsg.setRecipientUsername(action.getUsername());
