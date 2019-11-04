@@ -434,6 +434,22 @@ public class DatabaseTest {
         }
     }
 
+    @Test
+    public void getUserIdTest(){
+        // insert two users
+        insertTwoAccounts();
+
+        // get both users
+        String user1 = testDatabase.getUserId(user1Session);
+        String user2 = testDatabase.getUserId(user2Session);
+
+        // compare data of user1
+        assertEquals(user1Id, user1);
+
+        // compare data of user2
+        assertEquals(user2Id, user2);
+    }
+
     /**
      * Test if we can successfully change the password in our account
      */
