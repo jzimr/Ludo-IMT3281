@@ -20,7 +20,7 @@ public class SocketTester {
     private BufferedReader br;
 
     private String LoginMessage = "{\"action\" : \"UserDoesLoginManual\" ,\"username\": \"test\" ,\"uuid\":\""+ uuid.toString() +"\" ,\"password\": \"test\"}";
-    String RegisterMessage = "{\"action\" : \"UserDoesRegister\",\"username\": \"test\",\"password\": \"test\"}";
+    String RegisterMessage = "{\"action\" : \"UserDoesRegister\",\"username\": \"test\", \"uuid\":\"" + uuid.toString() + "\" ,\"password\": \"test\"}";
 
     private String message = "{\"action\" : \"UserDoesDiceThrow\", \"playerId\": 1, \"ludoId\" : 2}";
 

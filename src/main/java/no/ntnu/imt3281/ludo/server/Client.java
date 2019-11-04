@@ -10,7 +10,7 @@ import java.net.Socket;
 public class Client {
     ObjectMapper mapper = new ObjectMapper();
     String uuid;
-    int userId;
+    String userId;
     String username;
 
     Socket s;
@@ -49,11 +49,11 @@ public class Client {
         return username;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public int getUserId(){
+    public String getUserId(){
         return this.userId;
     }
 

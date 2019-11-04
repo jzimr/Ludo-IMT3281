@@ -103,10 +103,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						try {
 							String msg = c.read();
 
-							if (msg != null && msg.contains("UserDoesLogin")) {
+							if (msg != null && (msg.contains("UserDoesLogin") || msg.contains("UserDoesRegister"))) {
 								synchronized (objectsToHandle) {
 									c.parseUsername(msg);
-									System.out.println("Connected user : " + c.getUuid());
+									System.out.println("Connected user : " + c.getUuid() + " " + msg);
 									objectsToHandle.add(parser.parseJson(msg)); //Add the object to queue for handling
 								}
 							} else if (msg != null ) {
@@ -140,8 +140,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						while (iterator.hasNext()) {
 							Client c = iterator.next();
 							//TODO: Send back to user with ID or SessionID:
-							System.out.println("User: " + msg.getRecipientUsername());
-							if (msg.getRecipientUsername().contentEquals(c.getUsername())) {
+								System.out.println("Recipientid: " + msg.getrecipientuuid());
+								System.out.println("Clientid : " + c.getUuid());
+							if (msg.getrecipientuuid().contentEquals(c.getUuid())) {
 								System.out.println("Sender : " + msg.getAction());
 								try {
 									String converted = convertToCorrectJson(msg);
@@ -215,7 +216,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserDoesDiceThrow": UserDoesDiceThrow(action);break;
 			case "UserDoesLoginManual": UserDoesLoginManual((ClientLogin) action);break;
 			case "UserDoesLoginAuto": UserDoesLoginAuto((ClientLogin) action); break;
-			case "UserDoesRegister": UserDoesRegister((ClientLogin) action); break;
+			case "UserDoesRegister": UserDoesRegister((ClientRegister) action); break;
 		}
 
 	}
@@ -235,9 +236,17 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			String action = jsonNode.get("action").asText();
 
 			switch (action) {
-				case "LoginStatus" : case "RegisterStatus":{
-					LoginOrRegisterResponse message = new LoginOrRegisterResponse("LoginOrRegisterStatus");
-					message.setLoginOrRegisterStatus(( (LoginOrRegisterResponse) msg) .isLoginOrRegisterStatus());
+				case "LoginStatus" :{
+					LoginResponse message = new LoginResponse("LoginStatus");
+					message.setLoginStatus(( (LoginResponse) msg) .isLoginStatus());
+					message.setReponse(((LoginResponse) msg).getReponse());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "RegisterStatus": {
+					RegisterResponse message = new RegisterResponse("RegisterStatus");
+					message.setRegisterStatus(( (RegisterResponse) msg) .isRegisterStatus());
+					message.setReponse(((RegisterResponse) msg).getReponse());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -274,35 +283,36 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	private void UserDoesLoginManual(ClientLogin action){
 
-		LoginOrRegisterResponse retMsg = new LoginOrRegisterResponse("LoginStatus");
-		retMsg.setRecipientUsername(action.getUsername());
+		LoginResponse retMsg = new LoginResponse("LoginStatus");
+		retMsg.setrecipientuuid(action.getrecipientuuid());
 		try {
 			boolean status = db.checkIfLoginValid(action.getUsername(), action.getPassword());
-			retMsg.setLoginOrRegisterStatus(status);
-			// if true msg = "OK"
-			//if false msg = "Username or password is incorrect
+			retMsg.setLoginStatus(status);
 
-			if(retMsg.isLoginOrRegisterStatus()){ //If login was successful we set the userid on the client.
+			if(retMsg.isLoginStatus()){ //If login was successful we set the userid on the client.
+				retMsg.setReponse("OK");
 
-				/* Do stuff */
+				String userid = db.getUserId(action.getUsername());
+				setUseridToClient(action.getUuid(), userid);
+				System.out.println("userid : " + userid);
 
+				db.insertSessionToken(action.getrecipientuuid(), userid);
 
+				//Announce to users that the client has connected.
+				AnnounceUserLoggedOn(action);
+
+			} else {
+				retMsg.setReponse("Username and/or password are incorrect");
 			}
 
 		} catch (SQLException e) {
-			//Msg = internal server error.
-			retMsg.setLoginOrRegisterStatus(false);
+			retMsg.setReponse("Internal Server Error");
+			retMsg.setLoginStatus(false);
 			e.printStackTrace();
 		}
 
-		System.out.println("UserDoesLoginManual : " + retMsg.getAction());
-
 		synchronized (messagesToSend) {
 			messagesToSend.add(retMsg);
-		}
-
-		if (retMsg.isLoginOrRegisterStatus()){
-			AnnounceUserLoggedOn(action);
 		}
 
 	}
@@ -313,8 +323,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	private void UserDoesLoginAuto(ClientLogin action){
 
-		LoginOrRegisterResponse retMsg = new LoginOrRegisterResponse("LoginStatus");
-		retMsg.setRecipientUsername(action.getUsername());
+		LoginResponse retMsg = new LoginResponse("LoginStatus");
+		retMsg.setrecipientuuid(action.getrecipientuuid());
 
 					/*
 		try {
@@ -332,7 +342,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			messagesToSend.add(retMsg);
 		}
 
-		if (retMsg.isLoginOrRegisterStatus()){
+		if (retMsg.isLoginStatus()){
 			AnnounceUserLoggedOn(action);
 		}
 	}
@@ -347,13 +357,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			Client c = iterator.next();
 
 			Message retMsg = new UserHasConnected("UserHasConnected");
-			retMsg.setRecipientUsername(c.getUsername());
-			retMsg.setRecipientId(c.getUserId());
+			retMsg.setrecipientuuid(c.getUuid());
 			((UserHasConnected) retMsg).setUsername(( (ClientLogin) action) .getUsername() );
+			//TODO: SET username and playerid later.
 			//retMsg.setPlayerId(action.getPlayerId());
 
 			//No need to announce to the originator of the message.
-			if (retMsg.getRecipientUsername() != ((UserHasConnected)retMsg).getUsername() /*|| retMsg.getRecipientId() != ((ClientLogin)retMsg).getPlayerId())*/){
+			if (c.getUuid() != retMsg.getrecipientuuid()){
 				synchronized (messagesToSend) {
 					messagesToSend.add(retMsg);
 				}
@@ -365,18 +375,27 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 * Logic for when a client want to register an account.
 	 * @param action
 	 */
-	private void UserDoesRegister(ClientLogin action){
+	private void UserDoesRegister(ClientRegister action){
 
-		Message retMsg = new LoginOrRegisterResponse("RegisterStatus");
-		retMsg.setRecipientUsername(action.getUsername());
+		Message retMsg = new RegisterResponse("RegisterStatus");
+		retMsg.setrecipientuuid(action.getrecipientuuid());
 
 		/* Check if the username already exists */
 
 		try {
-			db.insertAccount(action.getUsername(), action.getPassword());
-			((LoginOrRegisterResponse)retMsg).setLoginOrRegisterStatus(true);
+			boolean usernameExists = db.doesAccountNameExist(action.getUsername());
+			if (!usernameExists) {
+				db.insertAccount(action.getUsername(), action.getPassword());
+				((RegisterResponse)retMsg).setRegisterStatus(true);
+				((RegisterResponse)retMsg).setReponse("Registration successful");
+			} else {
+				((RegisterResponse)retMsg).setRegisterStatus(false);
+				((RegisterResponse)retMsg).setReponse("User with username " + action.getUsername() + " already exists");
+			}
+
 		} catch (SQLException e) {
-			((LoginOrRegisterResponse)retMsg).setLoginOrRegisterStatus(false);
+			((RegisterResponse)retMsg).setRegisterStatus(false);
+			((RegisterResponse)retMsg).setReponse("Internal server error");
 			e.printStackTrace();
 		}
 		synchronized (messagesToSend) {
@@ -398,6 +417,34 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 
 	/**
+	 * Converts session UUID to userid
+	 * @param sessionId
+	 * @return userid
+	 */
+	private String sessionIdToUserId(String sessionId){
+		Iterator<Client> c = clients.iterator();
+		while(c.hasNext()) {
+			Client client = c.next();
+			if (client.getUuid() == sessionId) {
+				return client.getUserId();
+			}
+		}
+
+		return null;
+	}
+
+	private void setUseridToClient(String sessionId , String userid){
+		Iterator<Client> c = clients.iterator();
+		while(c.hasNext()) {
+			Client client = c.next();
+			if (client.getUuid() == sessionId) {
+				client.setUserId(userid);
+				return;
+			}
+		}
+	}
+
+	/**
 	 * Class that parses incoming messages and classifies them.
 	 */
 	public class JsonMessageParser {
@@ -416,6 +463,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				switch(action.get("action").asText()) {
 					case "UserDoesLoginManual":{
 						msg = new ClientLogin(action.get("action").asText(),action.get("username").asText(),action.get("password").asText());
+						msg.setrecipientuuid(action.get("uuid").asText());
+						return msg;
+					}
+					case "UserDoesRegister":{
+						msg = new ClientRegister(action.get("action").asText(),action.get("username").asText(),action.get("password").asText());
+						msg.setrecipientuuid(action.get("uuid").asText());
 						return msg;
 					}
 				}
