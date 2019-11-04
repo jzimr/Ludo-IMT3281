@@ -434,6 +434,9 @@ public class DatabaseTest {
         }
     }
 
+    /**
+     * Test if we successfully get the ID via the session token
+     */
     @Test
     public void getUserIdTest(){
         // insert two users

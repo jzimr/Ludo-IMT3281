@@ -85,7 +85,7 @@ public class Database {
      * </p>
      *
      * @param accountName the login username of the user
-     * @param password the password in plain text.
+     * @param password    the password in plain text.
      */
     public void insertAccount(String accountName, String password) throws SQLException {
         SHA512Hasher hasher = new SHA512Hasher();
@@ -117,12 +117,13 @@ public class Database {
     /**
      * Check if account name is already taken.
      * <p>
-     *     No-one can have an account name that is already taken.
+     * No-one can have an account name that is already taken.
      * </p>
+     *
      * @param nameToCheck the account name or display name we want to check
      * @return if the name is available
      */
-    public boolean doesAccountNameExist(String nameToCheck) throws SQLException{
+    public boolean doesAccountNameExist(String nameToCheck) throws SQLException {
         // create connection to database
         PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(account_name) AS name_count FROM login_info " +
                 "WHERE account_name = ?");
@@ -140,15 +141,16 @@ public class Database {
     /**
      * Check if the user-entered login values match the values in the database.
      * <p>
-     *     We check by comparing the sent hashed password with the hashed value in our
-     *     database using the SHA512Hasher class.
+     * We check by comparing the sent hashed password with the hashed value in our
+     * database using the SHA512Hasher class.
      * </p>
+     *
      * @param accountName the login name of the account
-     * @param password the hashed plaintext password to compare to. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
+     * @param password    the hashed plaintext password to compare to. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
      * @return if the login matches with values in our database or not
      * @throws SQLException if error occured in database
      */
-    public boolean checkIfLoginValid(String accountName, String password) throws SQLException{
+    public boolean checkIfLoginValid(String accountName, String password) throws SQLException {
         SHA512Hasher hasher = new SHA512Hasher();
         String pwd_hsh = "", account_name = "";
         byte[] salt = null;
@@ -167,7 +169,7 @@ public class Database {
         }
 
         // if password or username was not found in database
-        if(pwd_hsh.equals("") || account_name.equals(""))
+        if (pwd_hsh.equals("") || account_name.equals(""))
             return false;
 
         // check if entered password and username matches entries in database
@@ -177,14 +179,15 @@ public class Database {
     /**
      * Check if the sessionId is to be found in our database.
      * <p>
-     *     We check by searching for occurences of the entered "sessionId" in the database.
-     *     If none found, the token is not valid.
+     * We check by searching for occurences of the entered "sessionId" in the database.
+     * If none found, the token is not valid.
      * </p>
+     *
      * @param sessionId the ID of the session user tries to log in with
      * @return if the login matches with values in our database or not
      * @throws SQLException if error occured in database
      */
-    public boolean checkIfLoginValid(String sessionId) throws SQLException{
+    public boolean checkIfLoginValid(String sessionId) throws SQLException {
         // create connection to database
         PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) AS session_count FROM session_info " +
                 "WHERE session_id = ?");
@@ -202,11 +205,12 @@ public class Database {
 
     /**
      * Insert a new session for the particular user.
+     *
      * @param sessionId the session of the user.
-     * @param userId the ID of the user.
+     * @param userId    the ID of the user.
      * @throws SQLException if error occured in database
      */
-    public void insertSessionToken(String sessionId, String userId) throws SQLException{
+    public void insertSessionToken(String sessionId, String userId) throws SQLException {
         PreparedStatement stmt = connection.prepareStatement("INSERT INTO session_info" +
                 "(session_id, user_id) VALUES (?, ?)");
 
@@ -217,10 +221,11 @@ public class Database {
 
     /**
      * Remove a session token from a particular user
+     *
      * @param userId the ID of the user to remove token from
      * @throws SQLException if error occured in database
      */
-    public void terminateSessionToken(String userId) throws SQLException{
+    public void terminateSessionToken(String userId) throws SQLException {
         PreparedStatement stmt = connection.prepareStatement("DELETE FROM session_info " +
                 "WHERE user_id = ?");
 
@@ -229,11 +234,11 @@ public class Database {
     }
 
     /**
+     * Return the userID via the sessionsToken
      *
-     * @param sessionToken
-     * @throws SQLException
+     * @param sessionToken the unique session between the client and the server
      */
-    public String getUserId(String sessionToken){
+    public String getUserId(String sessionToken) {
         String userId = "";
         try {
             PreparedStatement stmt = connection.prepareStatement("SELECT user_id FROM session_info " +
@@ -254,7 +259,8 @@ public class Database {
 
     /**
      * Update the password of the account for a given user
-     * @param userId the unique ID of the user
+     *
+     * @param userId       the unique ID of the user
      * @param newHashedPwd the hashed password. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
      */
     public void updateAccountPassword(String userId, String newHashedPwd) throws SQLException {
@@ -274,7 +280,7 @@ public class Database {
      * Must first have an account for insertion to work.
      * </p>
      *
-     * @param userId the unique ID of the user
+     * @param userId      the unique ID of the user
      * @param displayName the name of the user
      * @param avatarPath  the image file path of the user's avatar
      * @param gamesPlayed number of total games played
@@ -511,9 +517,10 @@ public class Database {
 
     /**
      * Create the table for session tokens
+     *
      * @throws SQLException if table could not be created, else none
      */
-    private void createSessionInformationTable() throws SQLException{
+    private void createSessionInformationTable() throws SQLException {
         Statement stmt = connection.createStatement();
 
         stmt.execute("CREATE TABLE session_info (" +
