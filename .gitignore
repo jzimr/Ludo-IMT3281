@@ -4,4 +4,4 @@ target
 derby.log
 ludoTestDB
 ludoDB
-/session.data
+/session.dta
