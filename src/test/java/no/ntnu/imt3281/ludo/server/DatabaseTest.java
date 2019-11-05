@@ -809,4 +809,32 @@ public class DatabaseTest {
         assertEquals(user2Id, chatMessages.get(0).getUserId());
         assertEquals("Ye, this game deserves an 'A'!", chatMessages.get(0).getChatMessage());
     }
+
+    /**
+     * Test if creation of a global chatroom was successful
+     */
+    @Test
+    public void createGlobalChatroomTest(){
+        try {
+            testDatabase.createGlobalChatroom();
+            ArrayList<String> rooms = testDatabase.getAllChatRooms();
+            assertEquals(rooms.get(0), "Global");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Test if we can see the count of chatroom with name x
+     */
+    @Test
+    public void isChatRoomTest(){
+        try {
+            testDatabase.insertChatRoom("Test");
+            boolean result = testDatabase.isChatRoom("Test");
+            assertTrue(result);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

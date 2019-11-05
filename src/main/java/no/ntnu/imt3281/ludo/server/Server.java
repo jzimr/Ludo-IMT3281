@@ -47,8 +47,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 		System.out.println("Ludo server is now listening at 0.0.0.0:"+SERVER_PORT);
 
+		try {
+			db.createGlobalChatroom(); //Create global chatroom
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		activeChatRooms = db.getAllChatRooms();
-		System.out.println(activeChatRooms);
+		System.out.println("Chatrooms: " + activeChatRooms);
 
 	}
 

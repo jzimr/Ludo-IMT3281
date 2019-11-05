@@ -458,6 +458,28 @@ public class Database {
     }
 
     /**
+     *  Returns a boolean representing if the room exists or not.
+     * @param chatroom
+     * @return boolean if the room with chatroom name exists
+     * @throws SQLException
+     */
+    public boolean isChatRoom(String chatroom) throws SQLException {
+        // create connection to database
+        PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) AS room_count FROM chat_room " +
+                "WHERE chat_name = ?");
+        stmt.setString(1, chatroom);
+        ResultSet rs = stmt.executeQuery();
+
+        rs.next();
+        // get the total count of rooms with name 'chatroom' (1 if it exists, 0 else)
+        int count = rs.getInt("room_count");
+        rs.close();
+
+        // check if sessionID is valid
+        return count > 0;
+    }
+
+    /**
      * Insert chat message into the database. It auto adds a timestamp into the database as well.
      *
      * @param chatName    The name of the user who sent the message
@@ -510,6 +532,17 @@ public class Database {
         }
 
         return chatMessages;
+    }
+
+    /**
+     * Creates the global chatroom
+     * @throws SQLException
+     */
+    public void createGlobalChatroom() throws SQLException{
+        if (!isChatRoom("Global")) {
+            System.out.println("Creating global chatroom...");
+            insertChatRoom("Global");
+        }
     }
 
 
