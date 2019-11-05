@@ -1,10 +1,10 @@
 package no.ntnu.imt3281.ludo.logic.messages;
 
-public class ChatJoin extends Message{
+public class ChatJoinResponse extends Message{
     boolean status;
     String response;
 
-    public ChatJoin(String action) {super(action);}
+    public ChatJoinResponse(String action) {super(action);}
 
     public void setResponse(String response) {
         this.response = response;

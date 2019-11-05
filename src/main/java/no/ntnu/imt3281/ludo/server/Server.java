@@ -273,16 +273,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(ret);
 					return retString;
 				}
-				case "UserHasConnected" : {
-					UserHasConnected message = new UserHasConnected("UserHasConnected");
-					message.setUsername(((UserHasConnected)msg).getUsername());
+				case "UserHasConnectedUserHasConnected" : {
+					UserHasConnectedResponse message = new UserHasConnectedResponse("UserHasConnectedResponse");
+					message.setUsername(((UserHasConnectedResponse)msg).getUsername());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
-				case "ChatJoin" : {
-					ChatJoin message = new ChatJoin("ChatJoin");
-					message.setStatus(((ChatJoin)msg).isStatus());
-					message.setResponse(((ChatJoin)msg).getResponse());
+				case "ChatJoinResponse" : {
+					ChatJoinResponse message = new ChatJoinResponse("ChatJoinResponse");
+					message.setStatus(((ChatJoinResponse)msg).isStatus());
+					message.setResponse(((ChatJoinResponse)msg).getResponse());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -395,9 +395,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		while(iterator.hasNext()){
 			Client c = iterator.next();
 
-			Message retMsg = new UserHasConnected("UserHasConnected");
+			Message retMsg = new UserHasConnectedResponse("UserHasConnectedResponse");
 			retMsg.setRecipientSessionId(c.getUuid());
-			((UserHasConnected) retMsg).setUsername(( (ClientLogin) action) .getUsername() );
+			((UserHasConnectedResponse) retMsg).setUsername(( (ClientLogin) action) .getUsername() );
 			//TODO: SET username and playerid later.
 			//retMsg.setPlayerId(action.getPlayerId());
 
@@ -445,23 +445,23 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 
 	private void UserJoinChat(UserJoinChat action) {
-		Message retMsg = new ChatJoin("ChatJoin");
+		Message retMsg = new ChatJoinResponse("ChatJoinResponse");
 		retMsg.setRecipientSessionId(useridToSessionId(action.getUserid()));
 
 		if (chatRoomExists(action.getChatroomname())) {
 			boolean added = addUserToChatroom(action.getChatroomname(), action.getUserid());
 
-			((ChatJoin)retMsg).setStatus(added);
+			((ChatJoinResponse)retMsg).setStatus(added);
 
 			if (added) {
-				((ChatJoin)retMsg).setResponse("Joined room successfully");
+				((ChatJoinResponse)retMsg).setResponse("Joined room successfully");
 			} else {
-				((ChatJoin)retMsg).setResponse("Attempt to join room was unsuccessful");
+				((ChatJoinResponse)retMsg).setResponse("Attempt to join room was unsuccessful");
 			}
 
 		} else {
-			((ChatJoin)retMsg).setStatus(false);
-			((ChatJoin)retMsg).setResponse("No room with name " + action.getChatroomname() + " exists");
+			((ChatJoinResponse)retMsg).setStatus(false);
+			((ChatJoinResponse)retMsg).setResponse("No room with name " + action.getChatroomname() + " exists");
 		}
 
 		synchronized (messagesToSend) {
