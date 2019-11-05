@@ -2,10 +2,7 @@ package no.ntnu.imt3281.ludo.server;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.ntnu.imt3281.ludo.logic.messages.ClientLogin;
-import no.ntnu.imt3281.ludo.logic.messages.ClientRegister;
-import no.ntnu.imt3281.ludo.logic.messages.Message;
-import no.ntnu.imt3281.ludo.logic.messages.UserJoinChat;
+import no.ntnu.imt3281.ludo.logic.messages.*;
 
 import java.io.IOException;
 
@@ -44,6 +41,11 @@ public class JsonMessageParser {
                 }
                 case "UserJoinChat" : {
                     msg = new UserJoinChat(action.get("action").asText(), action.get("chatroomname").asText(),action.get("userid").asText());
+                    return msg;
+                }
+
+                case "UserSentMessage": {
+                    msg = new UserSentMessage(action.get("action").asText(), action.get("userid").asText(), action.get("chatroomname").asText(), action.get("chatmessage").asText());
                     return msg;
                 }
             }

@@ -40,6 +40,10 @@ public class SocketTester {
 
                 joinChatRoom();
 
+                sendChatMessage();
+                sendChatMessage();
+                sendChatMessage();
+
                 /*String gotMessage = br.readLine();
                 System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes*/
 
@@ -105,6 +109,22 @@ public class SocketTester {
             bw.newLine();
             bw.flush();
             System.out.println("Sent message : " + JoinChatMessage);
+
+            String gotMessage = br.readLine();
+            System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendChatMessage(){
+        String ChatMessage = "{ \"action\": \"UserSentMessage\", \"userid\": \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\" ,\"chatroomname\": \"Global\" , \"chatmessage\" : \"heisann\" }";
+
+        try {
+            bw.write(ChatMessage);
+            bw.newLine();
+            bw.flush();
+            System.out.println("Sent message : " + ChatMessage);
 
             String gotMessage = br.readLine();
             System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes

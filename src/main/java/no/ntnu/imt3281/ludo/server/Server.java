@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -153,8 +154,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					while (iterator.hasNext()) {
 						Client c = iterator.next();
 						//TODO: Send back to user with ID or SessionID:
-						System.out.println("Recipientid: " + msg.getRecipientSessionId());
-						System.out.println("Clientid : " + c.getUuid());
 						if (msg.getRecipientSessionId().contentEquals(c.getUuid())) {
 							System.out.println("Sender : " + msg.getAction());
 							try {
@@ -232,6 +231,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserDoesLoginAuto": UserDoesLoginAuto((ClientLogin) action); break;
 			case "UserDoesRegister": UserDoesRegister((ClientRegister) action); break;
 			case "UserJoinChat": UserJoinChat((UserJoinChat) action); break;
+			case "UserSentMessage": UserSentMessage((UserSentMessage) action); break;
 		}
 
 	}
@@ -283,6 +283,21 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					ChatJoinResponse message = new ChatJoinResponse("ChatJoinResponse");
 					message.setStatus(((ChatJoinResponse)msg).isStatus());
 					message.setResponse(((ChatJoinResponse)msg).getResponse());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "SentMessageResponse": {
+					SentMessageResponse message = new SentMessageResponse("SentMessageResponse");
+					message.setUserid(((SentMessageResponse)msg).getUserid());
+					message.setChatroomname(((SentMessageResponse)msg).getChatroomname());
+					message.setChatmessage(((SentMessageResponse)msg).getChatmessage());
+					message.setTimestmap(((SentMessageResponse)msg).getTimestmap());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "ErrorMessageResponse" : {
+					ErrorMessageResponse message = new ErrorMessageResponse("ErrorMessageResponse");
+					message.setMessage(((ErrorMessageResponse)msg).getMessage());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -470,6 +485,51 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	/**
+	 * When a user wants to send a message to a chat room.
+	 * @param action
+	 */
+	private void UserSentMessage(UserSentMessage action) {
+		Message retMsg = new SentMessageResponse("SentMessageResponse");
+
+		boolean isConnected, roomExists;
+
+		isConnected = userIsInChatroom(action.getChatroomname(), action.getUserid());
+		roomExists = chatRoomExists(action.getChatroomname());
+
+		if (roomExists && isConnected){
+			try {
+				db.insertChatMessage(action.getChatroomname(), action.getUserid(), action.getChatMessage());
+
+				((SentMessageResponse)retMsg).setUserid(action.getUserid());
+				((SentMessageResponse)retMsg).setChatroomname(action.getChatroomname());
+				((SentMessageResponse)retMsg).setChatmessage(action.getChatMessage());
+				((SentMessageResponse)retMsg).setTimestmap(String.valueOf(Instant.now().getEpochSecond()));
+
+				sendMessageToChatRoom(retMsg);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		} else { //If the chatroom is non existent give the user a error message.
+			retMsg = new ErrorMessageResponse("ErrorMessageResponse");
+			if (!isConnected) {
+				((ErrorMessageResponse)retMsg).setMessage("You are not connected to this chat room");
+			}
+
+			if (!roomExists) {
+				((ErrorMessageResponse)retMsg).setMessage("No chatroom named " + action.getChatroomname() + " exists");
+			}
+
+			retMsg.setRecipientSessionId(useridToSessionId(action.getUserid()));
+
+			synchronized (messagesToSend) {
+				messagesToSend.add(retMsg);
+			}
+		}
+
+
+	}
+
 	private void UserDoesDiceThrow(Message action){
 	        /*int i = 0; //Loop variable
 
@@ -508,6 +568,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		Iterator<Client> c = clients.iterator();
 		while(c.hasNext()) {
 			Client client = c.next();
+			System.out.println("userIdToSessionId" + client.getUserId());
 			if (client.getUserId().contentEquals(userid)) {
 				return client.getUuid();
 			}
@@ -552,6 +613,37 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		return false;
 	}
 
+	private boolean userIsInChatroom(String chatRoomName, String userid) {
+		for(ChatRoom room : activeChatRooms) {
+			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())) {
+				if (room.connectedUsers.contains(userid)) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Send chat message to a chat room
+	 * @param action Message object
+	 */
+	private void sendMessageToChatRoom(Message action){
+
+		for (ChatRoom room : activeChatRooms) { //Loop over chat rooms
+			if (room.getName().contentEquals( ((SentMessageResponse) action).getChatroomname()) ){ // Find correct chat room
+				for(String UserId : room.getConnectedUsers()){ //Get all active users
+					action.setRecipientSessionId(useridToSessionId(UserId)); //Set recipient of message to userid
+					synchronized (messagesToSend) {
+						messagesToSend.add(action); //Send message.
+					}
+				}
+				return;
+			}
+		}
+	}
 	/**
 	 * Removes a user from a chatroom
 	 * @param chatRoomName
