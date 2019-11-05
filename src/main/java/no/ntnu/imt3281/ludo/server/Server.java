@@ -101,8 +101,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						Client c = iterator.next();
 						try {
 							String msg = c.read();
-
-							System.out.println(msg);
 							if (msg != null && (msg.contains("UserDoesLogin") || msg.contains("UserDoesRegister"))) {
 								synchronized (objectsToHandle) {
 									c.parseUsername(msg);
@@ -239,6 +237,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					LoginResponse message = new LoginResponse("LoginResponse");
 					message.setLoginStatus(( (LoginResponse) msg) .isLoginStatus());
 					message.setResponse(((LoginResponse) msg).getResponse());
+					message.setUserid(((LoginResponse) msg).getUserid());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -292,10 +291,18 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				retMsg.setResponse("OK");
 
 				String userid = db.getUserId(action.getUsername());
+				retMsg.setUserid(userid);
 				setUseridToClient(action.getRecipientSessionId(), userid);
-				System.out.println("userid : " + userid);
+				System.out.println("userid : " + retMsg.getUserid());
 
-				db.insertSessionToken(action.getRecipientSessionId(), userid);
+				int tokenCount = db.countSessionToken(userid);
+
+				if (tokenCount > 0) { //Terminate existing token before inserting the new one.
+					db.terminateSessionToken(userid);
+					db.insertSessionToken(action.getRecipientSessionId(), userid);
+				} else {
+					db.insertSessionToken(action.getRecipientSessionId(), userid);
+				}
 
 				//Announce to users that the client has connected.
 				AnnounceUserLoggedOn(action);
@@ -441,43 +448,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				return;
 			}
 		}
-	}
-
-	/**
-	 * Class that parses incoming messages and classifies them.
-	 */
-	public class JsonMessageParser {
-		ObjectMapper mapper = new ObjectMapper();
-
-		/**
-		 * Parses incoming json from a client and creates a object of the correct type and returns it.
-		 * @param json
-		 * @return Message object with correct information
-		 */
-		public Message parseJson(String json) {
-			Message msg = null;
-			try {
-				JsonNode action = mapper.readTree(json);
-
-				switch(action.get("action").asText()) {
-					case "UserDoesLoginManual":{
-						msg = new ClientLogin(action.get("action").asText(),action.get("username").asText(),action.get("password").asText());
-						msg.setRecipientSessionId(action.get("recipientSessionId").asText());
-						return msg;
-					}
-					case "UserDoesRegister":{
-						msg = new ClientRegister(action.get("action").asText(),action.get("username").asText(),action.get("password").asText());
-						msg.setRecipientSessionId(action.get("recipientSessionId").asText());
-						return msg;
-					}
-				}
-
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			return null;
-		}
-
 	}
 
 	/**

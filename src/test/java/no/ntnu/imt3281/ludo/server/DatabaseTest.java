@@ -405,6 +405,25 @@ public class DatabaseTest {
         }
     }
 
+    /**
+     * Test if we are able to count SessionTokens a user are associated to.
+     */
+    @Test
+    public void countSessionTokenTest(){
+        insertTwoAccounts();
+
+        int count = 0;
+        try {
+            count = testDatabase.countSessionToken(user1Id);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        assertTrue(count > 0);
+
+
+    }
+
     @Test
     public void terminateSessionTokenTest(){
         // insert two users (and their session tokens)

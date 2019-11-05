@@ -3,6 +3,7 @@ package no.ntnu.imt3281.ludo.logic.messages;
 public class LoginResponse extends Message {
     String response;
     boolean loginStatus;
+    String userid;
 
     public LoginResponse(String action){super(action);}
 
@@ -26,6 +27,14 @@ public class LoginResponse extends Message {
 
     public String getResponse() {
         return response;
+    }
+
+    public void setUserid(String userid) {
+        this.userid = userid;
+    }
+
+    public String getUserid() {
+        return userid;
     }
 }
 
