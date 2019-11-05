@@ -35,11 +35,13 @@ public class SocketTester {
                 br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
                 //sendRegister();
-                sendLogin();
+                //sendLogin();
                 sendAutoLogin();
 
-                String gotMessage = br.readLine();
-                System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+                joinChatRoom();
+
+                /*String gotMessage = br.readLine();
+                System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes*/
 
                 Thread.sleep(100);
                 connection.close();
@@ -94,6 +96,21 @@ public class SocketTester {
             e.printStackTrace();
         }
 
+    }
+
+    private void joinChatRoom(){
+        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\", \"chatroomname\" : \"Global\"}";
+        try {
+            bw.write(JoinChatMessage);
+            bw.newLine();
+            bw.flush();
+            System.out.println("Sent message : " + JoinChatMessage);
+
+            String gotMessage = br.readLine();
+            System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

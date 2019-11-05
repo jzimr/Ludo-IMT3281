@@ -22,7 +22,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	Database db = Database.getDatabase(); //Database singleton
 
 	ArrayList<Ludo> activeLudoGames = new ArrayList<>(); //ArrayList over active games.
-	ArrayList<String> activeChatRooms = new ArrayList<>(); //ArrayList over chat rooms.
+	ArrayList<ChatRoom> activeChatRooms = new ArrayList<>(); //ArrayList over chat rooms.
 
 	LinkedList<Client> clients = new LinkedList<>(); //LinkedList containing clients
 
@@ -52,13 +52,24 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		activeChatRooms = db.getAllChatRooms();
-		System.out.println("Chatrooms: " + activeChatRooms);
+
+		setUpChatRooms();
+		System.out.println("Chatrooms: " + activeChatRooms.toString());
 
 	}
 
 	public void stopServer(){
 		stopping = true;
+	}
+
+	/**
+	 * Creates chatroom objects with names from the db.
+	 */
+	private void setUpChatRooms(){
+		ArrayList<String> roomNames = db.getAllChatRooms();
+		for (String name : roomNames) {
+			activeChatRooms.add(new ChatRoom(name));
+		}
 	}
 
 	/**
@@ -178,6 +189,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				try {
 					Client client = disconnectedClients.take();
 					synchronized (clients) {
+						//Todo: Remove player from all chat rooms and games.
 						clients.remove(client);
 					}
 				} catch (InterruptedException e) {
@@ -219,6 +231,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserDoesLoginManual": UserDoesLoginManual((ClientLogin) action);break;
 			case "UserDoesLoginAuto": UserDoesLoginAuto((ClientLogin) action); break;
 			case "UserDoesRegister": UserDoesRegister((ClientRegister) action); break;
+			case "UserJoinChat": UserJoinChat((UserJoinChat) action); break;
 		}
 
 	}
@@ -266,6 +279,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
+				case "ChatJoin" : {
+					ChatJoin message = new ChatJoin("ChatJoin");
+					message.setStatus(((ChatJoin)msg).isStatus());
+					message.setResponse(((ChatJoin)msg).getResponse());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
 				default: {
 					return "{\"ERROR\":\"something went wrong\"}";
 				}
@@ -298,7 +318,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				String userid = db.getUserId(action.getUsername());
 				retMsg.setUserid(userid);
 				setUseridToClient(action.getRecipientSessionId(), userid);
-				System.out.println("userid : " + retMsg.getUserid());
 
 				int tokenCount = db.countSessionToken(userid);
 
@@ -342,7 +361,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			retMsg.setLoginStatus(status);
 			if(status) {
 				retMsg.setResponse("Login was successful");
-				retMsg.setUserid(db.getUserIdBySession(retMsg.getRecipientSessionId()));
+				String userid = db.getUserIdBySession(retMsg.getRecipientSessionId());
+
+				retMsg.setUserid(userid);
+				setUseridToClient(action.getRecipientSessionId(), userid);
+
 			} else {
 				retMsg.setResponse("Session token are invalid. Try again");
 			}
@@ -420,6 +443,33 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+
+	private void UserJoinChat(UserJoinChat action) {
+		Message retMsg = new ChatJoin("ChatJoin");
+		retMsg.setRecipientSessionId(useridToSessionId(action.getUserid()));
+
+		if (chatRoomExists(action.getChatroomname())) {
+			boolean added = addUserToChatroom(action.getChatroomname(), action.getUserid());
+
+			((ChatJoin)retMsg).setStatus(added);
+
+			if (added) {
+				((ChatJoin)retMsg).setResponse("Joined room successfully");
+			} else {
+				((ChatJoin)retMsg).setResponse("Attempt to join room was unsuccessful");
+			}
+
+		} else {
+			((ChatJoin)retMsg).setStatus(false);
+			((ChatJoin)retMsg).setResponse("No room with name " + action.getChatroomname() + " exists");
+		}
+
+		synchronized (messagesToSend) {
+			messagesToSend.add(retMsg);
+		}
+
+	}
+
 	private void UserDoesDiceThrow(Message action){
 	        /*int i = 0; //Loop variable
 
@@ -449,15 +499,86 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		return null;
 	}
 
+	/**
+	 * Converts userid to sessionid
+	 * @param userid
+	 * @return sessionid
+	 */
+	private String useridToSessionId(String userid){
+		Iterator<Client> c = clients.iterator();
+		while(c.hasNext()) {
+			Client client = c.next();
+			if (client.getUserId().contentEquals(userid)) {
+				return client.getUuid();
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Sets userid to client
+	 * @param sessionId
+	 * @param userid
+	 */
 	private void setUseridToClient(String sessionId , String userid){
 		Iterator<Client> c = clients.iterator();
 		while(c.hasNext()) {
 			Client client = c.next();
-			if (client.getUuid() == sessionId) {
+			if (client.getUuid().contentEquals(sessionId)) {
 				client.setUserId(userid);
 				return;
 			}
 		}
+	}
+
+	/**
+	 * Adds a user to the chatroom
+	 * @param chatRoomName
+	 * @param userid
+	 * @return
+	 */
+	private boolean addUserToChatroom(String chatRoomName, String userid){
+		for(ChatRoom room : activeChatRooms) {
+			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())) {
+				if (!room.connectedUsers.contains(userid)) {
+					room.connectedUsers.add(userid);
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Removes a user from a chatroom
+	 * @param chatRoomName
+	 * @param userid
+	 * @return
+	 */
+	private boolean removeUserFromChatroom(String chatRoomName, String userid) {
+		for(ChatRoom room : activeChatRooms) {
+			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())) {
+				if (room.connectedUsers.contains(userid)) {
+					room.connectedUsers.remove(userid);
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean chatRoomExists(String chatRoomName){
+		for(ChatRoom room: activeChatRooms) {
+			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

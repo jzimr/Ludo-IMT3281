@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.imt3281.ludo.logic.messages.ClientLogin;
 import no.ntnu.imt3281.ludo.logic.messages.ClientRegister;
 import no.ntnu.imt3281.ludo.logic.messages.Message;
+import no.ntnu.imt3281.ludo.logic.messages.UserJoinChat;
 
 import java.io.IOException;
 
@@ -23,6 +24,7 @@ public class JsonMessageParser {
         Message msg = null;
         try {
             JsonNode action = mapper.readTree(json);
+            System.out.println("PARSING THIS NOW: " + action.get("action").asText());
 
             switch(action.get("action").asText()) {
                 case "UserDoesLoginManual":{
@@ -38,6 +40,10 @@ public class JsonMessageParser {
                 case "UserDoesRegister":{
                     msg = new ClientRegister(action.get("action").asText(),action.get("username").asText(),action.get("password").asText());
                     msg.setRecipientSessionId(action.get("recipientSessionId").asText());
+                    return msg;
+                }
+                case "UserJoinChat" : {
+                    msg = new UserJoinChat(action.get("action").asText(), action.get("chatroomname").asText(),action.get("userid").asText());
                     return msg;
                 }
             }
