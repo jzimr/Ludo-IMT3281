@@ -2,8 +2,10 @@ package no.ntnu.imt3281.ludo.gui;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.client.SessionTokenManager;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.LoginResponseListener;
@@ -12,11 +14,6 @@ import no.ntnu.imt3281.ludo.logic.messages.ClientLogin;
 import no.ntnu.imt3281.ludo.logic.messages.ClientRegister;
 import no.ntnu.imt3281.ludo.logic.messages.LoginResponse;
 import no.ntnu.imt3281.ludo.logic.messages.RegisterResponse;
-
-import java.io.IOException;
-import java.nio.file.NoSuchFileException;
-import java.util.Arrays;
-import java.util.UUID;
 
 public class LoginController implements LoginResponseListener, RegisterResponseListener {
 
@@ -32,6 +29,11 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
     @FXML
     private Text errorMessage;
 
+    @FXML
+    public Text successMessage;
+
+    @FXML
+    private CheckBox rememberMeBox;
 
     private ClientSocket clientSocket;
 
@@ -40,6 +42,10 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
      */
     public void setClientSocket(ClientSocket clientSocket) {
         this.clientSocket = clientSocket;
+
+        // set listeners
+        clientSocket.addRegisterResponseListener(this);
+        clientSocket.addLoginResponseListener(this);
     }
 
     /**
@@ -49,8 +55,9 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
      */
     @FXML
     void userDoesManualLogin(ActionEvent event) {
-        // reset error message
+        // reset messages
         errorMessage.setText("");
+        successMessage.setText("");
 
         String serverAddress = serverAddressTextInput.getText();
         String username = usernameTextInput.getText();
@@ -62,9 +69,6 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
             return;
         }
 
-        // set listener
-        clientSocket.addLoginResponseListener(this);
-
         String ip = serverAddress.split(":")[0];
         String port = serverAddress.split(":")[1];
 
@@ -73,11 +77,16 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
             return;
         }
 
-        // send a unique session id + username + password to the server so it knows it's us
+        // send a unique session token + username + password to the server so it knows it's us
         ClientLogin login = new ClientLogin("UserDoesLoginManual", username, password);
-        // create a new session token and add it to the message we want to send to server
-        createNewSessionToken();
-        login.setRecipientSessionId(getSessionToken());
+        // create a new session token
+        String token = SessionTokenManager.generateSessionToken();
+        login.setRecipientSessionId(token);
+
+        // if user wants to auto-login next time (i.e. "Remember me" box is checked)
+        if(rememberMeBox.isSelected()){
+            SessionTokenManager.writeSessionToFile(serverAddress, token);
+        }
 
         // send the message to server
         clientSocket.sendMessageToServer(login);
@@ -90,8 +99,9 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
      */
     @FXML
     void userDoesRegister(ActionEvent event) {
-        // reset error message
+        // reset messages
         errorMessage.setText("");
+        successMessage.setText("");
 
         String serverAddress = serverAddressTextInput.getText();
         String username = usernameTextInput.getText();
@@ -103,9 +113,6 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
             return;
         }
 
-        // set listener
-        clientSocket.addRegisterResponseListener(this);
-
         String ip = serverAddress.split(":")[0];
         String port = serverAddress.split(":")[1];
 
@@ -114,17 +121,17 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
             return;
         }
 
-        // send a unique session id + username + password to the server so it knows it's us
+        // send a unique session token + username + password to the server so it knows it's us
         ClientRegister register = new ClientRegister("UserDoesRegister", username, password);
-        createNewSessionToken();
-        register.setRecipientSessionId(getSessionToken());
+        String token = SessionTokenManager.generateSessionToken();
+        register.setRecipientSessionId(token);
         clientSocket.sendMessageToServer(register);
     }
 
     @Override
     public void loginResponseEvent(LoginResponse response) {
         if (response.isLoginStatus()) {
-            System.out.println("Login success!!");
+            successMessage.setText("Login success");
         } else {
             errorMessage.setText(response.getResponse());
         }
@@ -133,49 +140,10 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
     @Override
     public void registerResponseEvent(RegisterResponse response) {
         if(response.isRegisterStatus()){
-            System.out.println("Register success!");
+            successMessage.setText("Register success");
         } else {
             errorMessage.setText(response.getResponse());
         }
-    }
-
-
-    /**
-     * Create a new session token for server-client authentication
-     */
-    void createNewSessionToken() {
-        try {
-            SessionTokenManager.writeSessionToken("session.data", UUID.randomUUID().toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-    }
-
-    /**
-     * Get the existing session token for server-client authentication
-     * @return the session token
-     */
-    String getSessionToken() {
-        String token;
-        // try to get the file
-        try {
-            token = SessionTokenManager.readSessionToken("session.data");
-            return token;
-        } catch (NoSuchFileException e) {
-            // if no file yet, create a new one
-            createNewSessionToken();
-            try{
-                // then try to get file again
-                token = SessionTokenManager.readSessionToken("session.data");
-                return token;
-            } catch (IOException e2) {
-                e2.printStackTrace();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     /**

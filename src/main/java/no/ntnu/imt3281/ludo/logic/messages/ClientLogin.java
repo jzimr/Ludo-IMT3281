@@ -4,6 +4,10 @@ public class ClientLogin extends Message {
     private String username;
     private String password;
 
+    public ClientLogin(String action){
+        super(action);
+    }
+
     public ClientLogin(String action, String username, String password){
         super(action);
         this.username = username;
