@@ -32,7 +32,6 @@ public class LudoController {
 
 		clientSocket = new ClientSocket();
 
-
 		try {
 			AnchorPane loginBoard = loader.load();
 			Tab tab = new Tab("Login");
@@ -44,11 +43,8 @@ public class LudoController {
 			e1.printStackTrace();
 		}
 
-		if(loginController == null)
-			System.out.println("fuck");
-
+		// at last, try to create connection to server
 		loginController.setClientSocket(clientSocket);
-
 	}
 
     @FXML

@@ -2,7 +2,11 @@ package no.ntnu.imt3281.ludo.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.LoginResponseListener;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.RegisterResponseListener;
+import no.ntnu.imt3281.ludo.logic.messages.LoginResponse;
 import no.ntnu.imt3281.ludo.logic.messages.Message;
+import no.ntnu.imt3281.ludo.logic.messages.RegisterResponse;
 
 import java.io.*;
 import java.net.Socket;
@@ -14,18 +18,19 @@ public class ClientSocket {
     protected BufferedWriter bw;
     protected BufferedReader br;
 
-    //ArrayBlockingQueue<Message> serverMessages = new ArrayBlockingQueue<>(100);
+    LoginResponseListener loginResponseListener = null;
+    RegisterResponseListener registerResponseListener = null;
 
     /**
      * Create a connection from client to server
      *
      * @param serverIP the IP address of the server
-     * @param port the port of the server, do -1 if default
+     * @param port     the port of the server, do -1 if default
      */
     public boolean establishConnectionToServer(String serverIP, int port) {
         // try to connect
         try {
-            if(port == -1){
+            if (port == -1) {
                 port = DEFAULT_PORT;
             }
             connection = new Socket(serverIP, port);
@@ -117,43 +122,49 @@ public class ClientSocket {
 
     /**
      * Gets messages (json) from the listener and deserializes them into the correct objects of type "Message"
+     *
      * @param jsonMessage json message received from server
      */
     private void handleMessagesFromServer(String jsonMessage) {
         ObjectMapper objectMapper = new ObjectMapper();
-        Message message = null;
 
         try {
             JsonNode jsonNode = objectMapper.readTree(jsonMessage);
             String action = jsonNode.get("action").asText();
 
-            switch(action){
-                // todo LoginResponse
-                // todo RegisterRResponse
-            }
-            /*
             switch (action) {
-                case "UserDoesLoginManual":
-                    message = new ClientLogin(jsonNode.get("action").asText(), jsonNode.get("username").asText(), jsonNode.get("password").asText());
+            }
+            switch (action) {
+                case "LoginResponse":
+                    LoginResponse message1 = new LoginResponse(action, jsonNode.get("response").asText(), jsonNode.get("loginStatus").asBoolean());
+                    loginResponseListener.loginResponseEvent(message1);
+                    break;
+                case "RegisterResponse":
+                    RegisterResponse message2 = new RegisterResponse(action, jsonNode.get("response").asText(), jsonNode.get("registerStatus").asBoolean());
+                    registerResponseListener.registerResponseEvent(message2);
+                    break;
                 default:
                     System.out.println("Json not recognized: " + jsonMessage);
+                    break;
             }
-             */
-
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void handleLoginResponse(){
+    /**
+     * Here we register all listeners for all the server messages we get, so we can delegate
+     * them on to the GUI part of the application
+     */
 
+    /**
+     * @param listener
+     */
+    public void addLoginResponseListener(LoginResponseListener listener) {
+        loginResponseListener = listener;
     }
 
-    private void handleRegisterResponse(){
-
+    public void addRegisterResponseListener(RegisterResponseListener listener) {
+        registerResponseListener = listener;
     }
-
-
-
-
 }
