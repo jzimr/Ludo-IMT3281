@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
+import no.ntnu.imt3281.ludo.client.ClientSocket;
 
 public class RegisterController {
 
@@ -25,6 +26,20 @@ public class RegisterController {
 
     @FXML
     private Button cancelButton;
+
+    private ClientSocket clientSocket;
+
+    /**
+     * Method to pass client socket from LudoController to this
+     */
+    public void setClientSocket(ClientSocket clientSocket){
+        this.clientSocket = clientSocket;
+    }
+
+    @FXML
+    public void initialize(){
+
+    }
 
     /**
      * When user presses "Cancel" button

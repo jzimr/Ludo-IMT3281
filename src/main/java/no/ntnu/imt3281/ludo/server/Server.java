@@ -236,7 +236,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				case "LoginResponse" :{
 					LoginResponse message = new LoginResponse("LoginResponse");
 					message.setLoginStatus(( (LoginResponse) msg) .isLoginStatus());
-					message.setReponse(((LoginResponse) msg).getReponse());
+					message.setResponse(((LoginResponse) msg).getResponse());
 					message.setUserid(((LoginResponse) msg).getUserid());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
@@ -244,7 +244,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				case "RegisterResponse": {
 					RegisterResponse message = new RegisterResponse("RegisterResponse");
 					message.setRegisterStatus(( (RegisterResponse) msg) .isRegisterStatus());
-					message.setReponse(((RegisterResponse) msg).getReponse());
+					message.setResponse(((RegisterResponse) msg).getResponse());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -288,7 +288,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			retMsg.setLoginStatus(status);
 
 			if(retMsg.isLoginStatus()){ //If login was successful we set the userid on the client.
-				retMsg.setReponse("OK");
+				retMsg.setResponse("OK");
 
 				String userid = db.getUserId(action.getUsername());
 				retMsg.setUserid(userid);
@@ -308,11 +308,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				AnnounceUserLoggedOn(action);
 
 			} else {
-				retMsg.setReponse("Username and/or password are incorrect");
+				retMsg.setResponse("Username and/or password are incorrect");
 			}
 
 		} catch (SQLException e) {
-			retMsg.setReponse("Internal Server Error");
+			retMsg.setResponse("Internal Server Error");
 			retMsg.setLoginStatus(false);
 			e.printStackTrace();
 		}
@@ -398,15 +398,15 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			if (!usernameExists) {
 				db.insertAccount(action.getUsername(), action.getPassword());
 				((RegisterResponse)retMsg).setRegisterStatus(true);
-				((RegisterResponse)retMsg).setReponse("Registration successful");
+				((RegisterResponse)retMsg).setResponse("Registration successful");
 			} else {
 				((RegisterResponse)retMsg).setRegisterStatus(false);
-				((RegisterResponse)retMsg).setReponse("User with username " + action.getUsername() + " already exists");
+				((RegisterResponse)retMsg).setResponse("User with username " + action.getUsername() + " already exists");
 			}
 
 		} catch (SQLException e) {
 			((RegisterResponse)retMsg).setRegisterStatus(false);
-			((RegisterResponse)retMsg).setReponse("Internal server error");
+			((RegisterResponse)retMsg).setResponse("Internal server error");
 			e.printStackTrace();
 		}
 		synchronized (messagesToSend) {

@@ -7,6 +7,9 @@ import javafx.scene.control.Tab;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
+
 /**
  * 
  * This is the main class for the client. 
@@ -32,15 +35,5 @@ public class Client extends Application {
 
 	public static void main(String[] args) {
 		launch(args);
-
-		// for testing
-		//ClientSocket lol = new ClientSocket();
-		//lol.establishConnectionToServer("0.0.0.0", -1);
-		//lol.sendMessageToServer(new ClientLogin("someAction", "someUser", "somePass"));
-
-		//Message asd = new ClientLogin("someAction", "someUser", "somePass");
-		//((ClientLogin) asd).getPassword();
-
-
 	}
 }

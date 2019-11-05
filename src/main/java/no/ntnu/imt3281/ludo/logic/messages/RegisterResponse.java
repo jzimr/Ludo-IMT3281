@@ -2,10 +2,16 @@ package no.ntnu.imt3281.ludo.logic.messages;
 
 public class RegisterResponse extends Message {
 
-    String reponse;
+    String response;
     boolean registerStatus;
 
     public RegisterResponse(String action){super(action);}
+
+    public RegisterResponse(String action, String response, boolean registerStatus){
+        super(action);
+        this.response = response;
+        this.registerStatus = registerStatus;
+    }
 
     public void setRegisterStatus(boolean registerStatus) {
         this.registerStatus = registerStatus;
@@ -15,12 +21,12 @@ public class RegisterResponse extends Message {
         return registerStatus;
     }
 
-    public void setReponse(String reponse) {
-        this.reponse = reponse;
+    public void setResponse(String response) {
+        this.response = response;
     }
 
-    public String getReponse() {
-        return reponse;
+    public String getResponse() {
+        return response;
     }
 
 }
