@@ -336,15 +336,15 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			boolean status = db.checkIfLoginValid(action.getRecipientSessionId());
 			retMsg.setLoginStatus(status);
 			if(status) {
-				retMsg.setReponse("Login was successful");
+				retMsg.setResponse("Login was successful");
 				retMsg.setUserid(db.getUserIdBySession(retMsg.getRecipientSessionId()));
 			} else {
-				retMsg.setReponse("Session token are invalid. Try again");
+				retMsg.setResponse("Session token are invalid. Try again");
 			}
 
 		} catch (SQLException e) {
 			retMsg.setLoginStatus(false);
-			retMsg.setReponse("Internal server error");
+			retMsg.setResponse("Internal server error");
 			e.printStackTrace();
 		}
 
