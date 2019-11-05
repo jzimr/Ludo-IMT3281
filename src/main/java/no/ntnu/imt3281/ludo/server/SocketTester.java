@@ -20,7 +20,7 @@ public class SocketTester {
     private BufferedReader br;
 
     private String LoginMessage = "{\"action\" : \"UserDoesLoginManual\" ,\"username\": \"test\" ,\"recipientSessionId\":\""+ uuid.toString() +"\" ,\"password\": \"test\"}";
-    String RegisterMessage = "{\"action\" : \"UserDoesRegister\",\"username\": \"test\", \"uuid\":\"" + uuid.toString() + "\" ,\"password\": \"test\"}";
+    String RegisterMessage = "{\"action\" : \"UserDoesRegister\",\"username\": \"test\", \"recipientSessionId\":\"" + uuid.toString() + "\" ,\"password\": \"test\"}";
 
     private String message = "{\"action\" : \"UserDoesDiceThrow\", \"playerId\": 1, \"ludoId\" : 2}";
 
@@ -36,15 +36,11 @@ public class SocketTester {
                 bw = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
                 br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
-                bw.write(LoginMessage);
-                bw.newLine();
-                bw.flush();
-                System.out.println("Sent message : " + LoginMessage);
+                //sendRegister();
+
+                sendLogin();
 
                 String gotMessage = br.readLine();
-                System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
-
-                gotMessage = br.readLine();
                 System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
 
                 Thread.sleep(100);
@@ -53,5 +49,33 @@ public class SocketTester {
                 e.printStackTrace();
             }
         }
+
+        private void sendRegister(){
+            try {
+                bw.write(RegisterMessage);
+                bw.newLine();
+                bw.flush();
+                System.out.println("Sent message : " + RegisterMessage);
+
+                String gotMessage = br.readLine();
+                System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    private void sendLogin(){
+        try {
+            bw.write(LoginMessage);
+            bw.newLine();
+            bw.flush();
+            System.out.println("Sent message : " + LoginMessage);
+
+            String gotMessage = br.readLine();
+            System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

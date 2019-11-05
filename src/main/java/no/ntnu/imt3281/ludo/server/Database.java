@@ -220,6 +220,29 @@ public class Database {
     }
 
     /**
+     * Count sessiontokens associated to a user
+     *
+     * @param userId    the ID of the user.
+     * @throws SQLException if error occured in database
+     * @return count of tokens associated with a user_id
+     */
+    public int countSessionToken(String userId) throws SQLException {
+        // create connection to database
+        PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) AS session_count FROM session_info " +
+                "WHERE user_id = ?");
+        stmt.setString(1, userId);
+        ResultSet rs = stmt.executeQuery();
+
+        rs.next();
+        // get the total count of session_info names (1 if it exists, 0 else)
+        int count = rs.getInt("session_count");
+        rs.close();
+
+        // check if sessionID is valid
+        return count;
+    }
+
+    /**
      * Remove a session token from a particular user
      *
      * @param userId the ID of the user to remove token from
