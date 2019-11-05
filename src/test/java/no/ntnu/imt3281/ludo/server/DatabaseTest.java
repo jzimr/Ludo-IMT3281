@@ -421,6 +421,16 @@ public class DatabaseTest {
 
         assertTrue(count > 0);
 
+    }
+
+    /**
+     * Test if we are able to retrieve userid from session token
+     */
+    @Test
+    public void getUserIdByTokenTest(){
+        insertTwoAccounts();
+        String userId = testDatabase.getUserIdBySession(user1Session);
+        assertEquals(userId, user1Id);
 
     }
 

@@ -332,17 +332,21 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		LoginResponse retMsg = new LoginResponse("LoginResponse");
 		retMsg.setRecipientSessionId(action.getRecipientSessionId());
 
-					/*
 		try {
-			//TODO: This does currently not work. Avoid the usage.
-			boolean status = db.checkIfLoginValid(String.valueOf("0"),action.getUsername(), action.getPassword());
-			retMsg.setLoginOrRegisterStatus(status);
+			boolean status = db.checkIfLoginValid(action.getRecipientSessionId());
+			retMsg.setLoginStatus(status);
+			if(status) {
+				retMsg.setReponse("Login was successful");
+				retMsg.setUserid(db.getUserIdBySession(retMsg.getRecipientSessionId()));
+			} else {
+				retMsg.setReponse("Session token are invalid. Try again");
+			}
 
 		} catch (SQLException e) {
-			retMsg.setLoginOrRegisterStatus(false);
+			retMsg.setLoginStatus(false);
+			retMsg.setReponse("Internal server error");
 			e.printStackTrace();
 		}
-		*/
 
 		synchronized (messagesToSend) {
 			messagesToSend.add(retMsg);
@@ -357,6 +361,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 * When a new user logs into to the game server we announce their presence to all other clients.
 	 * @param action
 	 */
+	// TODO: This is not currently correct.
 	private void AnnounceUserLoggedOn(Message action){
 		Iterator<Client> iterator = clients.iterator();
 		while(iterator.hasNext()){

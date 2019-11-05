@@ -30,6 +30,11 @@ public class JsonMessageParser {
                     msg.setRecipientSessionId(action.get("recipientSessionId").asText());
                     return msg;
                 }
+                case "UserDoesLoginAuto":{
+                    msg = new ClientLogin(action.get("action").asText(),"","");
+                    msg.setRecipientSessionId(action.get("recipientSessionId").asText());
+                    return msg;
+                }
                 case "UserDoesRegister":{
                     msg = new ClientRegister(action.get("action").asText(),action.get("username").asText(),action.get("password").asText());
                     msg.setRecipientSessionId(action.get("recipientSessionId").asText());

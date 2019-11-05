@@ -281,6 +281,31 @@ public class Database {
     }
 
     /**
+     * Return the userID via the Session Token
+     *
+     * @param sessionToken
+     * @return Userid of the user
+     */
+    public String getUserIdBySession(String sessionToken) {
+        String userId = "";
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT user_id FROM session_info " +
+                    "WHERE session_id = ?");
+            stmt.setString(1, sessionToken);
+            ResultSet rs = stmt.executeQuery();
+
+            rs.next();
+            userId = rs.getString("user_id");
+            rs.close();
+        } catch (SQLException ex) {
+            System.out.println("Error occured when trying to get user: " + ex.getMessage());
+            return "";
+        }
+
+        return userId;
+    }
+
+    /**
      * Update the password of the account for a given user
      *
      * @param userId       the unique ID of the user
