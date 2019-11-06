@@ -10,12 +10,11 @@ import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.client.SessionTokenManager;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.LoginResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.RegisterResponseListener;
-import no.ntnu.imt3281.ludo.logic.messages.ClientLogin;
-import no.ntnu.imt3281.ludo.logic.messages.ClientRegister;
-import no.ntnu.imt3281.ludo.logic.messages.LoginResponse;
-import no.ntnu.imt3281.ludo.logic.messages.RegisterResponse;
+import no.ntnu.imt3281.ludo.logic.messages.*;
 
-public class LoginController implements LoginResponseListener, RegisterResponseListener {
+import java.sql.Connection;
+
+public class LoginController implements RegisterResponseListener {
 
     @FXML
     private TextField serverAddressTextInput;
@@ -45,7 +44,6 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
 
         // set listeners
         clientSocket.addRegisterResponseListener(this);
-        clientSocket.addLoginResponseListener(this);
     }
 
     /**
@@ -128,12 +126,11 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
         clientSocket.sendMessageToServer(register);
     }
 
-    @Override
-    public void loginResponseEvent(LoginResponse response) {
-        if (response.isLoginStatus()) {
+    public void setLoginResponseMessage(String message, boolean isSuccess){
+        if(isSuccess){
             successMessage.setText("Login success");
         } else {
-            errorMessage.setText(response.getResponse());
+            errorMessage.setText(message);
         }
     }
 
@@ -155,10 +152,10 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
      */
     boolean connectToServer(String ip, String port) {
         // try to connect to the server
-        boolean success;
+        ClientSocket.ConnectionCode responseCode;
 
         try {
-            success = clientSocket.establishConnectionToServer(ip, Integer.parseInt(port));
+            responseCode = clientSocket.establishConnectionToServer(ip, Integer.parseInt(port));
         } catch (NumberFormatException e) {
             e.printStackTrace();
             // wrong port probably, notify client
@@ -166,14 +163,18 @@ public class LoginController implements LoginResponseListener, RegisterResponseL
             return false;
         }
 
-        // no connection to server
-        if (!success) {
-            errorMessage.setText("Could not establish connection to server");
-            return false;
+        // Send specific messages to user in case of success
+        switch(responseCode){
+            case CONNECTION_OTHER_ERROR:
+                errorMessage.setText("Some error happened, could not connect.");
+                return false;
+            case CONNECTION_REFUSED:
+                errorMessage.setText("Could not establish connection to server");
+                return false;
+            case CONNECTION_SUCCESS:
+                return true;
+            default:
+                return false;
         }
-
-        // all gucci
-        return true;
     }
-
 }

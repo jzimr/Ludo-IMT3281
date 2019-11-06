@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="no.ntnu.imt3281.ludo.gui.ChatController">
+    <children>
+          <VBox>
+         <children>
+            <TextArea fx:id="chatLogText" editable="false" prefHeight="480.0" prefWidth="200.0">
+               <VBox.margin>
+                  <Insets bottom="10.0" />
+               </VBox.margin>
+            </TextArea>
+            <HBox>
+               <children>
+                  <TextField fx:id="chatTextInput" prefHeight="27.0" prefWidth="708.0">
+                     <HBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" />
+                     </HBox.margin>
+                  </TextField>
+                  <Button fx:id="messageButton" mnemonicParsing="false" onAction="#sendMessageButton" prefHeight="27.0" prefWidth="67.0" text="Send">
+                     <HBox.margin>
+                        <Insets right="5.0" />
+                     </HBox.margin>
+                  </Button>
+               </children>
+            </HBox>
+         </children>
+          </VBox>
+    </children>
+
+</AnchorPane>
