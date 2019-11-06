@@ -6,6 +6,12 @@ public class ChatJoinResponse extends Message{
 
     public ChatJoinResponse(String action) {super(action);}
 
+    public ChatJoinResponse(String action, boolean status, String response){
+        super(action);
+        this.status = status;
+        this.response = response;
+    }
+
     public void setResponse(String response) {
         this.response = response;
     }

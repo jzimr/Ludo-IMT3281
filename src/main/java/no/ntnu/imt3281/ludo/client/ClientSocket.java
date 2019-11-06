@@ -2,24 +2,38 @@ package no.ntnu.imt3281.ludo.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.ChatJoinResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.LoginResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.RegisterResponseListener;
+import no.ntnu.imt3281.ludo.logic.messages.ChatJoinResponse;
 import no.ntnu.imt3281.ludo.logic.messages.LoginResponse;
 import no.ntnu.imt3281.ludo.logic.messages.Message;
 import no.ntnu.imt3281.ludo.logic.messages.RegisterResponse;
 
 import java.io.*;
+import java.net.ConnectException;
 import java.net.Socket;
 
 public class ClientSocket {
     private static final int DEFAULT_PORT = 4567;
     private Socket connection = null;
     private boolean connected = false;
+    private String userId = null;
     protected BufferedWriter bw;
     protected BufferedReader br;
 
+    /**
+     * Types of results we can get when user tries to connect to a server
+     */
+    public enum ConnectionCode {
+        CONNECTION_SUCCESS,
+        CONNECTION_REFUSED,
+        CONNECTION_OTHER_ERROR
+    }
+
     LoginResponseListener loginResponseListener = null;
     RegisterResponseListener registerResponseListener = null;
+    ChatJoinResponseListener chatJoinResponseListener = null;
 
     /**
      * Create a connection from client to server
@@ -27,7 +41,7 @@ public class ClientSocket {
      * @param serverIP the IP address of the server
      * @param port     the port of the server, do -1 if default
      */
-    public boolean establishConnectionToServer(String serverIP, int port) {
+    public ConnectionCode establishConnectionToServer(String serverIP, int port) {
         // try to connect
         try {
             if (port == -1) {
@@ -40,13 +54,14 @@ public class ClientSocket {
             listenToServer();
 
             connected = true;
-            return true;
-
-            // todo test connection by sending message?
+            return ConnectionCode.CONNECTION_SUCCESS;
+        } catch (ConnectException e) {
+            System.out.println("Could not create connection to server");
+            return ConnectionCode.CONNECTION_REFUSED;
         } catch (IOException e) {
             e.printStackTrace();
             // todo throw message to user
-            return false;
+            return ConnectionCode.CONNECTION_OTHER_ERROR;
         }
     }
 
@@ -54,17 +69,14 @@ public class ClientSocket {
      * Close the connection to the server (if connected)
      */
     public boolean closeConnectionToServer() {
-        if (connected) {
-            try {
-                connection.close();
-                connected = false;
-                return true;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return false;
-            }
+        try {
+            connection.close();
+            connected = false;
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
-        return true;
     }
 
     /**
@@ -73,6 +85,10 @@ public class ClientSocket {
      * @param message the message type to send to server
      */
     public void sendMessageToServer(Message message) {
+        // todo change
+        if (!connected)
+            return;
+
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonMessage = objectMapper.writeValueAsString(message);  // json message to send
@@ -133,16 +149,21 @@ public class ClientSocket {
             String action = jsonNode.get("action").asText();
 
             switch (action) {
-            }
-            switch (action) {
                 case "LoginResponse":
-                    LoginResponse message1 = new LoginResponse(action, jsonNode.get("response").asText(), jsonNode.get("loginStatus").asBoolean());
-                    loginResponseListener.loginResponseEvent(message1);
+                    LoginResponse message1 = new LoginResponse(action, jsonNode.get("response").asText(), jsonNode.get("loginStatus").asBoolean(), jsonNode.get("userid").asText());
+                    userId = message1.getUserid();                          // get the userId from server on login so we can send messages back to server when needed
+                    if(userId == null) closeConnectionToServer();           // if we could not get userId from server, something went wrong, so we close connection
+                    loginResponseListener.loginResponseEvent(message1);     // send the event to the desired listener
                     break;
                 case "RegisterResponse":
                     RegisterResponse message2 = new RegisterResponse(action, jsonNode.get("response").asText(), jsonNode.get("registerStatus").asBoolean());
                     registerResponseListener.registerResponseEvent(message2);
                     break;
+                case "ChatJoinResponse":
+                    ChatJoinResponse message3 = new ChatJoinResponse(action, jsonNode.get("status").asBoolean(), jsonNode.get("response").asText());
+                    chatJoinResponseListener.chatJoinResponseEvent(message3);
+                case "Ping":    // we don't want to do anything here.
+                    return;
                 default:
                     System.out.println("Json not recognized: " + jsonMessage);
                     break;
@@ -150,6 +171,15 @@ public class ClientSocket {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Get the ID of the account which the client has logged on with.
+     *
+     * @return the String of user ID
+     */
+    public String getUserId() {
+        return userId;
     }
 
     /**
@@ -166,5 +196,9 @@ public class ClientSocket {
 
     public void addRegisterResponseListener(RegisterResponseListener listener) {
         registerResponseListener = listener;
+    }
+
+    public void addChatJoinResponseListener(ChatJoinResponseListener listener) {
+        chatJoinResponseListener = listener;
     }
 }

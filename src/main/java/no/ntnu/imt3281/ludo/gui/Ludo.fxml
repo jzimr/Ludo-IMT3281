@@ -27,7 +27,7 @@
                 </Menu>
                   <Menu mnemonicParsing="false" text="Chat">
                     <items>
-                      <MenuItem mnemonicParsing="false" text="Join room" />
+                      <MenuItem fx:id="joinRoom" mnemonicParsing="false" onAction="#joinChatRoom" text="Join room" />
                         <MenuItem mnemonicParsing="false" text="List rooms" />
                     </items>
                   </Menu>

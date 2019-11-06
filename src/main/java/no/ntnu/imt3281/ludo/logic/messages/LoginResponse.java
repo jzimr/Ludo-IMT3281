@@ -7,10 +7,11 @@ public class LoginResponse extends Message {
 
     public LoginResponse(String action){super(action);}
 
-    public LoginResponse(String action, String response, boolean loginStatus){
+    public LoginResponse(String action, String response, boolean loginStatus, String userid){
         super(action);
         this.response = response;
         this.loginStatus = loginStatus;
+        this.userid = userid;
     }
 
     public void setLoginStatus(boolean loginStatus) {
