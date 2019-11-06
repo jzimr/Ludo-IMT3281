@@ -44,6 +44,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		startListener();
 		startHandlingActions();
 		startSenderThread();
+		sendPingMessage();
 		startRemoveDisconnectedClientsThread();
 
 		System.out.println("Ludo server is now listening at 0.0.0.0:"+SERVER_PORT);
@@ -189,6 +190,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					Client client = disconnectedClients.take();
 					synchronized (clients) {
 						//Todo: Remove player from all chat rooms and games.
+						removeClientsFromModules(client.getUserId());
+						System.out.println("Removed client " + client.getUserId());
 						clients.remove(client);
 					}
 				} catch (InterruptedException e) {
@@ -198,6 +201,52 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		});
 		removeDisconnectedClientsThread.setDaemon(true);
 		removeDisconnectedClientsThread.start();
+	}
+
+	/**
+	 * This is used to check if a client is still connected to the server.
+	 */
+	private void sendPingMessage(){
+		Thread sendPingMessage = new Thread(() -> {
+			while(!stopping) {
+				LinkedList<Client> copyList = (LinkedList<Client>) clients.clone();
+				Iterator<Client> clientIterator = copyList.iterator();
+				while(clientIterator.hasNext()){
+					Client c = clientIterator.next();
+					try {
+						c.send("{\"action\": \"Ping\"}");
+					} catch (IOException e) {
+						synchronized (clients) {
+							disconnectedClients.add(c);
+						}
+					}
+				}
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		sendPingMessage.setDaemon(true);
+		sendPingMessage.start();
+	}
+
+	/**
+	 * This function removes a client from all chatrooms + games.
+	 * @param userId
+	 */
+	private void removeClientsFromModules(String userId){
+		//TODO: Remove from game
+		//TODO: Send message that the user left to chat channels.
+
+		//Remove user from chat rooms.
+		for(ChatRoom room : activeChatRooms){
+			if(room.getConnectedUsers().contains(userId)){
+				removeUserFromChatroom(room.getName(), userId);
+			}
+		}
+
 	}
 
 	/**

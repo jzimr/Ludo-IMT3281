@@ -40,11 +40,14 @@ public class SocketTester {
 
                 joinChatRoom();
 
-                sendChatMessage();
-                sendChatMessage();
+                //sendChatMessage();
+                //sendChatMessage();
                 sendChatMessage();
 
-                /*String gotMessage = br.readLine();
+                String gotMessage = br.readLine();
+                System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+
+                gotMessage = br.readLine();
                 System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes*/
 
                 Thread.sleep(100);
