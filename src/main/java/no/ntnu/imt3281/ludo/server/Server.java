@@ -164,7 +164,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					Iterator<Client> iterator = clients.iterator();
 					while (iterator.hasNext()) {
 						Client c = iterator.next();
-						//TODO: Send back to user with ID or SessionID:
+						System.out.println("msgrecip " + msg.getRecipientSessionId());
 						if (msg.getRecipientSessionId().contentEquals(c.getUuid())) {
 							System.out.println("Sender : " + msg.getAction());
 							try {
@@ -332,9 +332,15 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(ret);
 					return retString;
 				}
-				case "UserHasConnectedUserHasConnected" : {
+				case "UserHasConnectedResponse" : {
 					UserHasConnectedResponse message = new UserHasConnectedResponse("UserHasConnectedResponse");
-					message.setUsername(((UserHasConnectedResponse)msg).getUsername());
+					message.setUserid(((UserHasConnectedResponse)msg).getUserid());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "ChatJoinNewUserResponse" : {
+					ChatJoinNewUserResponse message = new ChatJoinNewUserResponse("ChatJoinNewUserResponse");
+					message.setUserid(((ChatJoinNewUserResponse)msg).getUserid());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -463,7 +469,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 * When a new user logs into to the game server we announce their presence to all other clients.
 	 * @param action
 	 */
-	// TODO: This is not currently correct.
 	private void AnnounceUserLoggedOn(Message action){
 		Iterator<Client> iterator = clients.iterator();
 		while(iterator.hasNext()){
@@ -471,9 +476,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 			Message retMsg = new UserHasConnectedResponse("UserHasConnectedResponse");
 			retMsg.setRecipientSessionId(c.getUuid());
-			((UserHasConnectedResponse) retMsg).setUsername(( (ClientLogin) action) .getUsername() );
-			//TODO: SET username and playerid later.
-			//retMsg.setPlayerId(action.getPlayerId());
+			((UserHasConnectedResponse) retMsg).setUserid(( sessionIdToUserId(action.getRecipientSessionId())));
 
 			//No need to announce to the originator of the message.
 			if (c.getUuid() != retMsg.getRecipientSessionId()){
@@ -529,6 +532,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 			if (added) {
 				((ChatJoinResponse)retMsg).setResponse("Joined room successfully");
+
+				//Announce the users presence to others in the chat room.
+				announceToUsersInChatRoom(retMsg, action.getChatroomname());
+
 			} else {
 				((ChatJoinResponse)retMsg).setResponse("Attempt to join room was unsuccessful");
 			}
@@ -545,6 +552,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 					((ChatJoinResponse)retMsg).setStatus(true);
 					((ChatJoinResponse)retMsg).setResponse("Room created and joined successfully");
+
+					//Announce the users presence to others in the chat room.
+					announceToUsersInChatRoom(action, action.getChatroomname());
+
 				} else {
 					((ChatJoinResponse)retMsg).setStatus(false);
 					((ChatJoinResponse)retMsg).setResponse("Creating room failed. Try again");
@@ -621,6 +632,26 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			*/
 	}
 
+
+	private void announceToUsersInChatRoom(Message action, String chatroomname){
+		for (ChatRoom room : activeChatRooms) { //Loop over chat rooms
+			if (room.getName().contentEquals(chatroomname)){ // Find correct chat room
+				for(String UserId : room.getConnectedUsers()){ //Get all active users
+					if (!UserId.contentEquals(sessionIdToUserId(action.getRecipientSessionId()))) {
+						Message chatJoinNewUserResponse = new ChatJoinNewUserResponse("ChatJoinNewUserResponse");
+						((ChatJoinNewUserResponse)chatJoinNewUserResponse).setUserid(UserId);
+						chatJoinNewUserResponse.setRecipientSessionId(useridToSessionId(((ChatJoinNewUserResponse) chatJoinNewUserResponse).getUserid()));
+
+						synchronized (messagesToSend) {
+							messagesToSend.add(chatJoinNewUserResponse); //Send message.
+						}
+					}
+				}
+				return;
+			}
+		}
+	}
+
 	/**
 	 * Converts session UUID to userid
 	 * @param sessionId
@@ -630,7 +661,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		Iterator<Client> c = clients.iterator();
 		while(c.hasNext()) {
 			Client client = c.next();
-			if (client.getUuid() == sessionId) {
+			if (client.getUuid().contentEquals(sessionId)) {
 				return client.getUserId();
 			}
 		}

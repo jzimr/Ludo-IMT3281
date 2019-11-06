@@ -43,7 +43,6 @@ public class JsonMessageParser {
                     msg = new UserJoinChat(action.get("action").asText(), action.get("chatroomname").asText(),action.get("userid").asText());
                     return msg;
                 }
-
                 case "UserSentMessage": {
                     msg = new UserSentMessage(action.get("action").asText(), action.get("userid").asText(), action.get("chatroomname").asText(), action.get("chatmessage").asText());
                     return msg;
