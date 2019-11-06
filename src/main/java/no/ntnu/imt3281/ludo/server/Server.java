@@ -164,9 +164,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					Iterator<Client> iterator = clients.iterator();
 					while (iterator.hasNext()) {
 						Client c = iterator.next();
-						System.out.println("msgrecip " + msg.getRecipientSessionId());
 						if (msg.getRecipientSessionId().contentEquals(c.getUuid())) {
-							System.out.println("Sender : " + msg.getAction());
 							try {
 								String converted = convertToCorrectJson(msg);
 								System.out.println(converted);
@@ -291,6 +289,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserDoesRegister": UserDoesRegister((ClientRegister) action); break;
 			case "UserJoinChat": UserJoinChat((UserJoinChat) action); break;
 			case "UserSentMessage": UserSentMessage((UserSentMessage) action); break;
+			case "UserLeftChatRoom": UserLeftChatRoom((UserLeftChatRoom) action); break;
 		}
 
 	}
@@ -357,6 +356,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setChatroomname(((SentMessageResponse)msg).getChatroomname());
 					message.setChatmessage(((SentMessageResponse)msg).getChatmessage());
 					message.setTimestmap(((SentMessageResponse)msg).getTimestmap());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "UserLeftChatRoomResponse": {
+					UserLeftChatRoomResponse message = new UserLeftChatRoomResponse("UserLeftChatRoomResponse");
+					message.setUserid(((UserLeftChatRoomResponse)msg).getUserid());
+					message.setChatroomname(((UserLeftChatRoomResponse)msg).getChatroomname());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -575,6 +581,39 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	private void UserLeftChatRoom(UserLeftChatRoom action){
+		Message retMsg;
+		String recipientId = useridToSessionId(action.getUserid());
+		System.out.println(recipientId);
+
+		if (userIsInChatroom(action.getChatroomname(),action.getUserid())) {
+			boolean removed = removeUserFromChatroom(action.getChatroomname(), action.getUserid());
+
+			if (removed) {
+				retMsg = new UserLeftChatRoomResponse("UserLeftChatRoomResponse");
+				retMsg.setRecipientSessionId(recipientId);
+				((UserLeftChatRoomResponse)retMsg).setChatroomname(action.getChatroomname());
+				((UserLeftChatRoomResponse)retMsg).setUserid(action.getUserid());
+
+				announceRemovalToUsersInChatRoom(action, action.getChatroomname());
+			} else {
+				retMsg = new ErrorMessageResponse("ErrorMessageResponse");
+				retMsg.setRecipientSessionId(recipientId);
+				((ErrorMessageResponse)retMsg).setMessage("Could not remove you from the chat room");
+			}
+
+		} else {
+			retMsg = new ErrorMessageResponse("ErrorMessageResponse");
+			retMsg.setRecipientSessionId(recipientId);
+			((ErrorMessageResponse)retMsg).setMessage("You are not in the requested chat room");
+		}
+
+		synchronized (messagesToSend) {
+			messagesToSend.add(retMsg);
+		}
+
+	}
+
 	/**
 	 * When a user wants to send a message to a chat room.
 	 * @param action
@@ -632,26 +671,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			*/
 	}
 
-
-	private void announceToUsersInChatRoom(Message action, String chatroomname){
-		for (ChatRoom room : activeChatRooms) { //Loop over chat rooms
-			if (room.getName().contentEquals(chatroomname)){ // Find correct chat room
-				for(String UserId : room.getConnectedUsers()){ //Get all active users
-					if (!UserId.contentEquals(sessionIdToUserId(action.getRecipientSessionId()))) {
-						Message chatJoinNewUserResponse = new ChatJoinNewUserResponse("ChatJoinNewUserResponse");
-						((ChatJoinNewUserResponse)chatJoinNewUserResponse).setUserid(UserId);
-						chatJoinNewUserResponse.setRecipientSessionId(useridToSessionId(((ChatJoinNewUserResponse) chatJoinNewUserResponse).getUserid()));
-
-						synchronized (messagesToSend) {
-							messagesToSend.add(chatJoinNewUserResponse); //Send message.
-						}
-					}
-				}
-				return;
-			}
-		}
-	}
-
 	/**
 	 * Converts session UUID to userid
 	 * @param sessionId
@@ -678,7 +697,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		Iterator<Client> c = clients.iterator();
 		while(c.hasNext()) {
 			Client client = c.next();
-			System.out.println("userIdToSessionId" + client.getUserId());
 			if (client.getUserId().contentEquals(userid)) {
 				return client.getUuid();
 			}
@@ -754,6 +772,31 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			}
 		}
 	}
+
+	/**
+	 * Announces that a user has entered their chat room
+	 * @param action
+	 * @param chatroomname
+	 */
+	private void announceToUsersInChatRoom(Message action, String chatroomname){
+		for (ChatRoom room : activeChatRooms) { //Loop over chat rooms
+			if (room.getName().contentEquals(chatroomname)){ // Find correct chat room
+				for(String UserId : room.getConnectedUsers()){ //Get all active users
+					if (!UserId.contentEquals(sessionIdToUserId(action.getRecipientSessionId()))) {
+						Message chatJoinNewUserResponse = new ChatJoinNewUserResponse("ChatJoinNewUserResponse");
+						((ChatJoinNewUserResponse)chatJoinNewUserResponse).setUserid(UserId);
+						chatJoinNewUserResponse.setRecipientSessionId(useridToSessionId(((ChatJoinNewUserResponse) chatJoinNewUserResponse).getUserid()));
+
+						synchronized (messagesToSend) {
+							messagesToSend.add(chatJoinNewUserResponse); //Send message.
+						}
+					}
+				}
+				return;
+			}
+		}
+	}
+
 	/**
 	 * Removes a user from a chatroom
 	 * @param chatRoomName
@@ -772,6 +815,24 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			}
 		}
 		return false;
+	}
+
+	private void announceRemovalToUsersInChatRoom(Message action, String chatroomname){
+		for (ChatRoom room : activeChatRooms) { //Loop over chat rooms
+			if (room.getName().contentEquals(chatroomname)){ // Find correct chat room
+				for(String UserId : room.getConnectedUsers()){ //Get all active users
+						Message userLeftChatRoomResponse = new UserLeftChatRoomResponse("UserLeftChatRoomResponse");
+						((UserLeftChatRoomResponse)userLeftChatRoomResponse).setUserid(UserId);
+						((UserLeftChatRoomResponse)userLeftChatRoomResponse).setChatroomname(chatroomname);
+						userLeftChatRoomResponse.setRecipientSessionId(useridToSessionId(((ChatJoinNewUserResponse) userLeftChatRoomResponse).getUserid()));
+
+						synchronized (messagesToSend) {
+							messagesToSend.add(userLeftChatRoomResponse); //Send message.
+						}
+					}
+				return;
+			}
+		}
 	}
 
 	private boolean chatRoomExists(String chatRoomName){
