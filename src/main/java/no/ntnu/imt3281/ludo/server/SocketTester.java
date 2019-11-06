@@ -35,14 +35,14 @@ public class SocketTester {
                 br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
                 //sendRegister();
-                //sendLogin();
-                sendAutoLogin();
+                sendLogin();
+                //sendAutoLogin();
 
-                joinChatRoom();
+                //joinChatRoom();
 
                 //sendChatMessage();
                 //sendChatMessage();
-                sendChatMessage();
+                //sendChatMessage();
 
                 String gotMessage = br.readLine();
                 System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
@@ -74,7 +74,9 @@ public class SocketTester {
         }
 
     private void sendLogin(){
-        String LoginMessage = "{\"action\" : \"UserDoesLoginManual\" ,\"username\": \"test\" ,\"recipientSessionId\":\"458b2331-14f4-419f-99b1-ad492e8906fb\" ,\"password\": \"test\"}";
+        //String LoginMessage = "{\"action\" : \"UserDoesLoginManual\" ,\"username\": \"test\" ,\"recipientSessionId\":\"458b2331-14f4-419f-99b1-ad492e8906fb\" ,\"password\": \"test\"}";
+        String LoginMessage = "{\"recipientuuid\":null ,\"action\" : \"U1serDoesLoginManual\" ,\"username\": \"test\" ,\"recipientSessionId\":\"458b2331-14f4-419f-99b1-ad492e8906fb\" ,\"password\": \"test\"}";
+
         try {
             bw.write(LoginMessage);
             bw.newLine();

@@ -123,11 +123,21 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 								synchronized (objectsToHandle) {
 									c.parseUsername(msg);
 									System.out.println("Connected user : " + c.getUuid() + " " + msg);
-									objectsToHandle.add(parser.parseJson(msg)); //Add the object to queue for handling
+									Message toBeQueued = parser.parseJson(msg);
+									if (toBeQueued != null) { //Discard if it is null
+										objectsToHandle.add(parser.parseJson(msg)); //Add the object to queue for handling
+									} else {
+										System.out.println("DISCARDED MESSAGE : " + msg);
+									}
 								}
 							} else if (msg != null ) {
 								synchronized (objectsToHandle) {
-									objectsToHandle.add(parser.parseJson(msg)); //Add the object to queue for handling
+									Message toBeQueued = parser.parseJson(msg);
+									if (toBeQueued != null) {
+										objectsToHandle.add(parser.parseJson(msg)); //Add the object to queue for handling
+									} else {
+										System.out.println("DISCARDED MESSAGE : " + msg);
+									}
 								}
 
 							}
