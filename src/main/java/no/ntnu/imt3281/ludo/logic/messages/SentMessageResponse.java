@@ -5,9 +5,17 @@ public class SentMessageResponse extends Message {
     String userid;
     String chatroomname;
     String chatmessage;
-    String timestmap;
+    String timestamp;
 
     public SentMessageResponse(String action){super(action);}
+
+    public SentMessageResponse(String action, String userid, String chatroomname, String chatmessage, String timestamp){
+        super(action);
+        this.userid = userid;
+        this.chatroomname = chatroomname;
+        this.chatmessage = chatmessage;
+        this.timestamp = timestamp;
+    }
 
     public void setUserid(String userid) {
         this.userid = userid;
@@ -33,11 +41,11 @@ public class SentMessageResponse extends Message {
         return chatmessage;
     }
 
-    public void setTimestmap(String timestmap) {
-        this.timestmap = timestmap;
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 
-    public String getTimestmap() {
-        return timestmap;
+    public String getTimestamp() {
+        return timestamp;
     }
 }

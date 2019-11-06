@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.ChatJoinResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.LoginResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.RegisterResponseListener;
-import no.ntnu.imt3281.ludo.logic.messages.ChatJoinResponse;
-import no.ntnu.imt3281.ludo.logic.messages.LoginResponse;
-import no.ntnu.imt3281.ludo.logic.messages.Message;
-import no.ntnu.imt3281.ludo.logic.messages.RegisterResponse;
+import no.ntnu.imt3281.ludo.logic.messages.*;
 
 import java.io.*;
 import java.net.ConnectException;
@@ -162,6 +159,8 @@ public class ClientSocket {
                 case "ChatJoinResponse":
                     ChatJoinResponse message3 = new ChatJoinResponse(action, jsonNode.get("status").asBoolean(), jsonNode.get("response").asText());
                     chatJoinResponseListener.chatJoinResponseEvent(message3);
+                case "SentMessageResponse":
+                    //SentMessageResponse message4 = new SentMessageResponse(action, jsonNode.get("userid"), )
                 case "Ping":    // we don't want to do anything here.
                     return;
                 default:

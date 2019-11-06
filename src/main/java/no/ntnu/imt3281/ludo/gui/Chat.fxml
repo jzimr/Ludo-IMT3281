@@ -10,16 +10,16 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="no.ntnu.imt3281.ludo.gui.ChatController">
     <children>
-          <VBox>
+          <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <TextArea fx:id="chatLogText" editable="false" prefHeight="480.0" prefWidth="200.0">
+            <TextArea fx:id="chatLogText" editable="false" prefHeight="480.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
                <VBox.margin>
                   <Insets bottom="10.0" />
                </VBox.margin>
             </TextArea>
             <HBox>
                <children>
-                  <TextField fx:id="chatTextInput" prefHeight="27.0" prefWidth="708.0">
+                  <TextField fx:id="chatTextInput" prefHeight="27.0" prefWidth="708.0" HBox.hgrow="ALWAYS">
                      <HBox.margin>
                         <Insets bottom="5.0" left="5.0" right="5.0" />
                      </HBox.margin>

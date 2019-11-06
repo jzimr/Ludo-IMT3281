@@ -355,7 +355,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setUserid(((SentMessageResponse)msg).getUserid());
 					message.setChatroomname(((SentMessageResponse)msg).getChatroomname());
 					message.setChatmessage(((SentMessageResponse)msg).getChatmessage());
-					message.setTimestmap(((SentMessageResponse)msg).getTimestmap());
+					message.setTimestamp(((SentMessageResponse)msg).getTimestamp());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -633,7 +633,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				((SentMessageResponse)retMsg).setUserid(action.getUserid());
 				((SentMessageResponse)retMsg).setChatroomname(action.getChatroomname());
 				((SentMessageResponse)retMsg).setChatmessage(action.getChatMessage());
-				((SentMessageResponse)retMsg).setTimestmap(String.valueOf(Instant.now().getEpochSecond()));
+				((SentMessageResponse)retMsg).setTimestamp(String.valueOf(Instant.now().getEpochSecond()));
 
 				sendMessageToChatRoom(retMsg);
 			} catch (SQLException e) {

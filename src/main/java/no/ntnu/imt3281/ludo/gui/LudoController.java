@@ -2,6 +2,7 @@ package no.ntnu.imt3281.ludo.gui;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 
 import javafx.application.Platform;
@@ -18,12 +19,10 @@ import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.client.SessionTokenManager;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.ChatJoinResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.LoginResponseListener;
-import no.ntnu.imt3281.ludo.logic.messages.ChatJoinResponse;
-import no.ntnu.imt3281.ludo.logic.messages.ClientLogin;
-import no.ntnu.imt3281.ludo.logic.messages.LoginResponse;
-import no.ntnu.imt3281.ludo.logic.messages.UserJoinChat;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.SentMessageResponseListener;
+import no.ntnu.imt3281.ludo.logic.messages.*;
 
-public class LudoController implements ChatJoinResponseListener, LoginResponseListener {
+public class LudoController implements ChatJoinResponseListener, LoginResponseListener, SentMessageResponseListener {
 
     @FXML
     private MenuItem random;
@@ -37,12 +36,10 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     private ClientSocket clientSocket;
 
-    private Stage joinChatRoomPopup = null;
-
     // controllers
     private LoginController loginController = null;
     private JoinChatRoomController joinChatRoomController = null;
-    ArrayList<ChatController> chatControllers = new ArrayList<>();
+    HashMap<String, ChatController> chatControllers = new HashMap<>();
     // todo gameboardcontrollers
 
 
@@ -104,8 +101,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 			stage.setTitle("Join Chat Room");
 			stage.setScene(new Scene(root));
             stage.show();
-            // we need to save stage so we can close it later
-            joinChatRoomPopup = stage;
 
             joinChatRoomController = loader.getController();
             joinChatRoomController.setClientSocket(clientSocket);
@@ -130,8 +125,9 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         if(chatName != "Global"){
             chatTab.setOnClosed(controller.onTabClose);
         }
-        // add to this list so we can correctly delegate messages to the correct channels when we get them
-        chatControllers.add(controller);
+        // add to this hashmap so we can correctly delegate messages to the correct channels when we get them in this
+        // event listener (SentMessageResponseListener)
+        chatControllers.put(chatName, controller);
     }
 
     /**
@@ -271,5 +267,10 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                 tabbedPane.getTabs().remove(loginTab);
             }
         });
+    }
+
+    @Override
+    public void SentMessageResponseEvent(SentMessageResponse response) {
+
     }
 }
