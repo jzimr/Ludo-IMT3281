@@ -523,9 +523,29 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				((ChatJoinResponse)retMsg).setResponse("Attempt to join room was unsuccessful");
 			}
 
-		} else {
-			((ChatJoinResponse)retMsg).setStatus(false);
-			((ChatJoinResponse)retMsg).setResponse("No room with name " + action.getChatroomname() + " exists");
+		} else { //Create chatroom and join it.
+
+			try {
+				db.insertChatRoom(action.getChatroomname());
+				boolean created = db.isChatRoom(action.getChatroomname());
+				if (created) {
+					ChatRoom room = new ChatRoom(action.getChatroomname());
+					room.getConnectedUsers().add(action.getUserid());
+					activeChatRooms.add(room);
+
+					((ChatJoinResponse)retMsg).setStatus(true);
+					((ChatJoinResponse)retMsg).setResponse("Room created and joined successfully");
+				} else {
+					((ChatJoinResponse)retMsg).setStatus(false);
+					((ChatJoinResponse)retMsg).setResponse("Creating room failed. Try again");
+				}
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+				((ChatJoinResponse)retMsg).setStatus(false);
+				((ChatJoinResponse)retMsg).setResponse("Internal server error");
+			}
+
 		}
 
 		synchronized (messagesToSend) {

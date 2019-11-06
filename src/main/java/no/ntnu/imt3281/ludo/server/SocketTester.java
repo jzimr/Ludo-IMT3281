@@ -106,7 +106,7 @@ public class SocketTester {
     }
 
     private void joinChatRoom(){
-        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\", \"chatroomname\" : \"Global\"}";
+        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\", \"chatroomname\" : \"Global Test\"}";
         try {
             bw.write(JoinChatMessage);
             bw.newLine();
@@ -121,7 +121,7 @@ public class SocketTester {
     }
 
     private void sendChatMessage(){
-        String ChatMessage = "{ \"action\": \"UserSentMessage\", \"userid\": \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\" ,\"chatroomname\": \"Global\" , \"chatmessage\" : \"heisann\" }";
+        String ChatMessage = "{ \"action\": \"UserSentMessage\", \"userid\": \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\" ,\"chatroomname\": \"Global Test\" , \"chatmessage\" : \"heisann\" }";
 
         try {
             bw.write(ChatMessage);
