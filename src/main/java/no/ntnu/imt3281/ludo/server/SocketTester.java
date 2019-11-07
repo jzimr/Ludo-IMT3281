@@ -44,7 +44,7 @@ public class SocketTester {
 
                 removeFromChatRoom();
 
-                sendChatMessage();
+                //sendChatMessage();
                 //sendChatMessage();
 
                 String gotMessage = br.readLine();
@@ -111,7 +111,7 @@ public class SocketTester {
     }
 
     private void joinChatRoom(){
-        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\", \"chatroomname\" : \"Test 3\"}";
+        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\", \"chatroomname\" : \"Test 4\"}";
         try {
             bw.write(JoinChatMessage);
             bw.newLine();
@@ -130,7 +130,7 @@ public class SocketTester {
     }
 
     private void sendChatMessage(){
-        String ChatMessage = "{ \"action\": \"UserSentMessage\", \"userid\": \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\" ,\"chatroomname\": \"Test 2\" , \"chatmessage\" : \"heisann\" }";
+        String ChatMessage = "{ \"action\": \"UserSentMessage\", \"userid\": \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\" ,\"chatroomname\": \"Test 4\" , \"chatmessage\" : \"heisann\" }";
 
         try {
             bw.write(ChatMessage);
@@ -140,13 +140,19 @@ public class SocketTester {
 
             String gotMessage = br.readLine();
             System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+
+            Thread.sleep(500);
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+
+
     }
 
     private void removeFromChatRoom(){
-        String ChatMessage = "{\"action\":\"UserLeftChatRoom\",\"userid\":\"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\" ,\"chatroomname\":\"Test 2\"}";
+        String ChatMessage = "{\"action\":\"UserLeftChatRoom\",\"userid\":\"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\" ,\"chatroomname\":\"Test 4\"}";
 
         try {
             bw.write(ChatMessage);

@@ -600,7 +600,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 				((UserLeftChatRoomResponse)retMsg).setDisplayname(info.getDisplayName());
 
-				announceRemovalToUsersInChatRoom(action, action.getChatroomname());
+				announceRemovalToUsersInChatRoom(info, action, action.getChatroomname());
 			} else {
 				retMsg = new ErrorMessageResponse("ErrorMessageResponse");
 				retMsg.setRecipientSessionId(recipientId);
@@ -841,8 +841,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 * @param action
 	 * @param chatroomname
 	 */
-	private void announceRemovalToUsersInChatRoom(Message action, String chatroomname){
-		UserInfo info = db.getProfile(sessionIdToUserId(action.getRecipientSessionId()));
+	private void announceRemovalToUsersInChatRoom(UserInfo info,Message action, String chatroomname){
 
 		for (ChatRoom room : activeChatRooms) { //Loop over chat rooms
 			if (room.getName().contentEquals(chatroomname)){ // Find correct chat room
