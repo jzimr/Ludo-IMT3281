@@ -348,6 +348,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					ChatJoinResponse message = new ChatJoinResponse("ChatJoinResponse");
 					message.setStatus(((ChatJoinResponse)msg).isStatus());
 					message.setResponse(((ChatJoinResponse)msg).getResponse());
+					message.setChatroomname(((ChatJoinResponse)msg).getChatroomname());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -538,6 +539,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			boolean added = addUserToChatroom(action.getChatroomname(), action.getUserid());
 
 			((ChatJoinResponse)retMsg).setStatus(added);
+			((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
 
 			if (added) {
 				((ChatJoinResponse)retMsg).setResponse("Joined room successfully");
@@ -561,6 +563,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 					((ChatJoinResponse)retMsg).setStatus(true);
 					((ChatJoinResponse)retMsg).setResponse("Room created and joined successfully");
+					((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
 
 					//Announce the users presence to others in the chat room.
 					announceToUsersInChatRoom(retMsg, action.getChatroomname());
@@ -568,12 +571,14 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				} else {
 					((ChatJoinResponse)retMsg).setStatus(false);
 					((ChatJoinResponse)retMsg).setResponse("Creating room failed. Try again");
+					((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
 				}
 
 			} catch (SQLException e) {
 				e.printStackTrace();
 				((ChatJoinResponse)retMsg).setStatus(false);
 				((ChatJoinResponse)retMsg).setResponse("Internal server error");
+				((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
 			}
 
 		}
