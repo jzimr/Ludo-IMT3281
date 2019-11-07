@@ -99,7 +99,7 @@ public class ChatController {
         }
 
         String timeSent = String.format("%02d:%02d:%02d", time.getHour(), time.getMinute(), time.getSecond());
-        String userSent = response.getUserid();
+        String userSent = response.getdisplayname();
         String messageSent = response.getChatmessage();
 
         Platform.runLater(() -> {

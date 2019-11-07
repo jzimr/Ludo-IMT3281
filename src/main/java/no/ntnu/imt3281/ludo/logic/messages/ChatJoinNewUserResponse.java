@@ -2,15 +2,15 @@ package no.ntnu.imt3281.ludo.logic.messages;
 
 public class ChatJoinNewUserResponse extends Message {
 
-    String userid;
+    String displayname;
 
     public ChatJoinNewUserResponse(String action) {super(action);}
 
-    public void setUserid(String userid) {
-        this.userid = userid;
+    public void setDisplayname(String displayname) {
+        this.displayname = displayname;
     }
 
-    public String getUserid() {
-        return userid;
+    public String getDisplayname() {
+        return displayname;
     }
 }

@@ -170,7 +170,8 @@ public class ClientSocket {
                     chatJoinResponseListener.chatJoinResponseEvent(message3);
                     break;
                 case "SentMessageResponse":
-                    SentMessageResponse message4 = new SentMessageResponse(action, jsonNode.get("userid").asText(),
+                    System.out.println("displayname " + jsonNode.get("displayname").asText());
+                    SentMessageResponse message4 = new SentMessageResponse(action, jsonNode.get("displayname").asText(),
                             jsonNode.get("chatroomname").asText(), jsonNode.get("chatmessage").asText(),
                             jsonNode.get("timestamp").asText());
                     sentMessageResponseListener.SentMessageResponseEvent(message4);

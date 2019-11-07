@@ -339,7 +339,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				}
 				case "ChatJoinNewUserResponse" : {
 					ChatJoinNewUserResponse message = new ChatJoinNewUserResponse("ChatJoinNewUserResponse");
-					message.setUserid(((ChatJoinNewUserResponse)msg).getUserid());
+					message.setDisplayname(((ChatJoinNewUserResponse)msg).getDisplayname());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -352,7 +352,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				}
 				case "SentMessageResponse": {
 					SentMessageResponse message = new SentMessageResponse("SentMessageResponse");
-					message.setUserid(((SentMessageResponse)msg).getUserid());
+					message.setdisplayname(((SentMessageResponse)msg).getdisplayname());
+					System.out.println("heiho " + message.getdisplayname());
 					message.setChatroomname(((SentMessageResponse)msg).getChatroomname());
 					message.setChatmessage(((SentMessageResponse)msg).getChatmessage());
 					message.setTimestamp(((SentMessageResponse)msg).getTimestamp());
@@ -361,7 +362,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				}
 				case "UserLeftChatRoomResponse": {
 					UserLeftChatRoomResponse message = new UserLeftChatRoomResponse("UserLeftChatRoomResponse");
-					message.setUserid(((UserLeftChatRoomResponse)msg).getUserid());
+					message.setDisplayname(((UserLeftChatRoomResponse)msg).getDisplayname());
 					message.setChatroomname(((UserLeftChatRoomResponse)msg).getChatroomname());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
@@ -594,7 +595,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				retMsg = new UserLeftChatRoomResponse("UserLeftChatRoomResponse");
 				retMsg.setRecipientSessionId(recipientId);
 				((UserLeftChatRoomResponse)retMsg).setChatroomname(action.getChatroomname());
-				((UserLeftChatRoomResponse)retMsg).setUserid(action.getUserid());
+
+				UserInfo info = db.getProfile(action.getUserid());
+
+				((UserLeftChatRoomResponse)retMsg).setDisplayname(info.getDisplayName());
 
 				announceRemovalToUsersInChatRoom(action, action.getChatroomname());
 			} else {
@@ -630,8 +634,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		if (roomExists && isConnected){
 			try {
 				db.insertChatMessage(action.getChatroomname(), action.getUserid(), action.getChatmessage());
-
-				((SentMessageResponse)retMsg).setUserid(action.getUserid());
+				UserInfo info = db.getProfile(action.getUserid());
+				((SentMessageResponse)retMsg).setdisplayname(info.getDisplayName());
+				System.out.println("heiho" + ((SentMessageResponse) retMsg).getdisplayname());
 				((SentMessageResponse)retMsg).setChatroomname(action.getChatroomname());
 				((SentMessageResponse)retMsg).setChatmessage(action.getChatmessage());
 				((SentMessageResponse)retMsg).setTimestamp(String.valueOf(Instant.now().getEpochSecond()));
@@ -780,13 +785,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 * @param chatroomname
 	 */
 	private void announceToUsersInChatRoom(Message action, String chatroomname){
+
+		UserInfo info = db.getProfile(sessionIdToUserId(action.getRecipientSessionId()));
+
 		for (ChatRoom room : activeChatRooms) { //Loop over chat rooms
 			if (room.getName().contentEquals(chatroomname)){ // Find correct chat room
 				for(String UserId : room.getConnectedUsers()){ //Get all active users
 					if (!UserId.contentEquals(sessionIdToUserId(action.getRecipientSessionId()))) {
 						Message chatJoinNewUserResponse = new ChatJoinNewUserResponse("ChatJoinNewUserResponse");
-						((ChatJoinNewUserResponse)chatJoinNewUserResponse).setUserid(UserId);
-						chatJoinNewUserResponse.setRecipientSessionId(useridToSessionId(((ChatJoinNewUserResponse) chatJoinNewUserResponse).getUserid()));
+						((ChatJoinNewUserResponse)chatJoinNewUserResponse).setDisplayname(info.getDisplayName());
+						chatJoinNewUserResponse.setRecipientSessionId(useridToSessionId(UserId));
 
 						synchronized (messagesToSend) {
 							messagesToSend.add(chatJoinNewUserResponse); //Send message.
@@ -819,13 +827,15 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 
 	private void announceRemovalToUsersInChatRoom(Message action, String chatroomname){
+		UserInfo info = db.getProfile(sessionIdToUserId(action.getRecipientSessionId()));
+
 		for (ChatRoom room : activeChatRooms) { //Loop over chat rooms
 			if (room.getName().contentEquals(chatroomname)){ // Find correct chat room
 				for(String UserId : room.getConnectedUsers()){ //Get all active users
 						Message userLeftChatRoomResponse = new UserLeftChatRoomResponse("UserLeftChatRoomResponse");
-						((UserLeftChatRoomResponse)userLeftChatRoomResponse).setUserid(UserId);
+						((UserLeftChatRoomResponse)userLeftChatRoomResponse).setDisplayname(info.getDisplayName());
 						((UserLeftChatRoomResponse)userLeftChatRoomResponse).setChatroomname(chatroomname);
-						userLeftChatRoomResponse.setRecipientSessionId(useridToSessionId(((ChatJoinNewUserResponse) userLeftChatRoomResponse).getUserid()));
+						userLeftChatRoomResponse.setRecipientSessionId(useridToSessionId(UserId));
 
 						synchronized (messagesToSend) {
 							messagesToSend.add(userLeftChatRoomResponse); //Send message.

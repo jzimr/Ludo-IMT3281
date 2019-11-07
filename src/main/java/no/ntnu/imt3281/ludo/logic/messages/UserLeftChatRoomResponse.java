@@ -3,7 +3,7 @@ package no.ntnu.imt3281.ludo.logic.messages;
 public class UserLeftChatRoomResponse extends Message {
 
     String chatroomname;
-    String userid;
+    String displayname;
 
 
     public UserLeftChatRoomResponse(String action){super(action);}
@@ -17,11 +17,11 @@ public class UserLeftChatRoomResponse extends Message {
         return chatroomname;
     }
 
-    public String getUserid() {
-        return userid;
+    public String getDisplayname() {
+        return displayname;
     }
 
-    public void setUserid(String userid) {
-        this.userid = userid;
+    public void setDisplayname(String displayname) {
+        this.displayname = displayname;
     }
 }
