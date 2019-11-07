@@ -340,6 +340,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				case "ChatJoinNewUserResponse" : {
 					ChatJoinNewUserResponse message = new ChatJoinNewUserResponse("ChatJoinNewUserResponse");
 					message.setDisplayname(((ChatJoinNewUserResponse)msg).getDisplayname());
+					message.setChatroomname(((ChatJoinNewUserResponse)msg).getChatroomname());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -794,6 +795,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					if (!UserId.contentEquals(sessionIdToUserId(action.getRecipientSessionId()))) {
 						Message chatJoinNewUserResponse = new ChatJoinNewUserResponse("ChatJoinNewUserResponse");
 						((ChatJoinNewUserResponse)chatJoinNewUserResponse).setDisplayname(info.getDisplayName());
+						((ChatJoinNewUserResponse)chatJoinNewUserResponse).setChatroomname(room.getName());
 						chatJoinNewUserResponse.setRecipientSessionId(useridToSessionId(UserId));
 
 						synchronized (messagesToSend) {
