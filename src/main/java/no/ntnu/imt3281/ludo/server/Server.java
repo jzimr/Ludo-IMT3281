@@ -530,6 +530,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	private void UserJoinChat(UserJoinChat action) {
 		Message retMsg = new ChatJoinResponse("ChatJoinResponse");
 		retMsg.setRecipientSessionId(useridToSessionId(action.getUserid()));
+		System.out.println("userJoiNChat: " + useridToSessionId(action.getUserid()));
 
 		if (chatRoomExists(action.getChatroomname())) {
 			boolean added = addUserToChatroom(action.getChatroomname(), action.getUserid());
@@ -560,7 +561,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					((ChatJoinResponse)retMsg).setResponse("Room created and joined successfully");
 
 					//Announce the users presence to others in the chat room.
-					announceToUsersInChatRoom(action, action.getChatroomname());
+					announceToUsersInChatRoom(retMsg, action.getChatroomname());
 
 				} else {
 					((ChatJoinResponse)retMsg).setStatus(false);

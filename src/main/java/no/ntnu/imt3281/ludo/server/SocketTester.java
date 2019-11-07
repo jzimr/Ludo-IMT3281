@@ -111,7 +111,7 @@ public class SocketTester {
     }
 
     private void joinChatRoom(){
-        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\", \"chatroomname\" : \"Test 2\"}";
+        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\", \"chatroomname\" : \"Test 3\"}";
         try {
             bw.write(JoinChatMessage);
             bw.newLine();
