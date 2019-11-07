@@ -628,11 +628,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 		if (roomExists && isConnected){
 			try {
-				db.insertChatMessage(action.getChatroomname(), action.getUserid(), action.getChatMessage());
+				db.insertChatMessage(action.getChatroomname(), action.getUserid(), action.getChatmessage());
 
 				((SentMessageResponse)retMsg).setUserid(action.getUserid());
 				((SentMessageResponse)retMsg).setChatroomname(action.getChatroomname());
-				((SentMessageResponse)retMsg).setChatmessage(action.getChatMessage());
+				((SentMessageResponse)retMsg).setChatmessage(action.getChatmessage());
 				((SentMessageResponse)retMsg).setTimestamp(String.valueOf(Instant.now().getEpochSecond()));
 
 				sendMessageToChatRoom(retMsg);

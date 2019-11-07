@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.ChatJoinResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.LoginResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.RegisterResponseListener;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.SentMessageResponseListener;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
 import java.io.*;
@@ -31,6 +32,7 @@ public class ClientSocket {
     LoginResponseListener loginResponseListener = null;
     RegisterResponseListener registerResponseListener = null;
     ChatJoinResponseListener chatJoinResponseListener = null;
+    SentMessageResponseListener sentMessageResponseListener = null;
 
     /**
      * Create a connection from client to server
@@ -112,7 +114,6 @@ public class ClientSocket {
                         try {
                             final String inMessage = br.readLine();
                             // todo trenger denne en queue?
-                            System.out.println("Got message from server: " + inMessage);
                             handleMessagesFromServer(inMessage);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -145,24 +146,35 @@ public class ClientSocket {
             JsonNode jsonNode = objectMapper.readTree(jsonMessage);
             String action = jsonNode.get("action").asText();
 
+            if(!action.equals("Ping"))
+                System.out.println("Got message from server: " + jsonMessage);
+
             switch (action) {
+                case "Ping":    // we don't want to do anything here.
+                    return;
                 case "LoginResponse":
-                    LoginResponse message1 = new LoginResponse(action, jsonNode.get("response").asText(), jsonNode.get("loginStatus").asBoolean(), jsonNode.get("userid").asText());
+                    LoginResponse message1 = new LoginResponse(action, jsonNode.get("response").asText(),
+                            jsonNode.get("loginStatus").asBoolean(), jsonNode.get("userid").asText());
                     userId = message1.getUserid();                          // get the userId from server on login so we can send messages back to server when needed
                     if(userId == null) closeConnectionToServer();           // if we could not get userId from server, something went wrong, so we close connection
                     loginResponseListener.loginResponseEvent(message1);     // send the event to the desired listener
                     break;
                 case "RegisterResponse":
-                    RegisterResponse message2 = new RegisterResponse(action, jsonNode.get("response").asText(), jsonNode.get("registerStatus").asBoolean());
+                    RegisterResponse message2 = new RegisterResponse(action, jsonNode.get("response").asText(),
+                            jsonNode.get("registerStatus").asBoolean());
                     registerResponseListener.registerResponseEvent(message2);
                     break;
                 case "ChatJoinResponse":
-                    ChatJoinResponse message3 = new ChatJoinResponse(action, jsonNode.get("status").asBoolean(), jsonNode.get("response").asText());
+                    ChatJoinResponse message3 = new ChatJoinResponse(action, jsonNode.get("status").asBoolean(),
+                            jsonNode.get("response").asText());
                     chatJoinResponseListener.chatJoinResponseEvent(message3);
+                    break;
                 case "SentMessageResponse":
-                    //SentMessageResponse message4 = new SentMessageResponse(action, jsonNode.get("userid"), )
-                case "Ping":    // we don't want to do anything here.
-                    return;
+                    SentMessageResponse message4 = new SentMessageResponse(action, jsonNode.get("userid").asText(),
+                            jsonNode.get("chatroomname").asText(), jsonNode.get("chatmessage").asText(),
+                            jsonNode.get("timestamp").asText());
+                    sentMessageResponseListener.SentMessageResponseEvent(message4);
+                    break;
                 default:
                     System.out.println("Json not recognized: " + jsonMessage);
                     break;
@@ -199,5 +211,9 @@ public class ClientSocket {
 
     public void addChatJoinResponseListener(ChatJoinResponseListener listener) {
         chatJoinResponseListener = listener;
+    }
+
+    public void addSentMessageResponseListener(SentMessageResponseListener listener){
+        sentMessageResponseListener = listener;
     }
 }

@@ -82,6 +82,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         // set listeners
         clientSocket.addLoginResponseListener(this);
         clientSocket.addChatJoinResponseListener(this);
+        clientSocket.addSentMessageResponseListener(this);
     }
 
 	/**
@@ -121,6 +122,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         if (chatTab == null) return;
 
         ChatController controller = loader.getController();
+        controller.setup(clientSocket, chatName);
         // set listener for when user closes chat tab (except global chat)
         if(chatName != "Global"){
             chatTab.setOnClosed(controller.onTabClose);
@@ -240,7 +242,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         if(response.isStatus()){
             // todo change name to real chat name
             // todo change tab colour instead of having a prefix for chat
-            addNewChatTab("<Chat> Global");
+            addNewChatTab("Global");
         }
     }
 
@@ -256,6 +258,11 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
             loginController.setLoginResponseMessage(response.getResponse(), response.isLoginStatus());
         }
 
+        // if user did not manage to log in
+        if(!response.isLoginStatus()){
+            return;
+        }
+
         // we automatically add the client to the global chat room
         clientSocket.sendMessageToServer(new UserJoinChat("UserJoinChat", "Global", clientSocket.getUserId()));
 
@@ -269,8 +276,24 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         });
     }
 
+    /**
+     * When another user (or us) has received the message sent into the chat
+     * <p>
+     *     In this listener we just delegate the response into the correct chat rooms and handle it
+     *     there individually
+     * </p>
+     * @param response an object containing all the necessary info about a chat message sent
+     */
     @Override
     public void SentMessageResponseEvent(SentMessageResponse response) {
+        ChatController chatController = chatControllers.get(response.getChatroomname());
 
+        // send the message object to the particular chat
+        if(chatController != null){
+            chatController.newIncomingMessage(response);
+        } else {
+            // for debugging todo: remove when finished
+            System.out.println("User received message for a chat he is not part of");
+        }
     }
 }

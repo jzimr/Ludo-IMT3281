@@ -4,13 +4,13 @@ public class UserSentMessage extends Message {
 
     String userid;
     String chatroomname;
-    String chatMessage;
+    String chatmessage;
 
     public UserSentMessage(String action, String userid, String chatroomname, String chatmessage) {
         super(action);
         this.userid = userid;
         this.chatroomname = chatroomname;
-        this.chatMessage = chatmessage;
+        this.chatmessage = chatmessage;
     }
 
     public void setChatroomname(String chatroomname) {
@@ -29,11 +29,11 @@ public class UserSentMessage extends Message {
         return userid;
     }
 
-    public void setChatMessage(String chatMessage) {
-        this.chatMessage = chatMessage;
+    public void setChatmessage(String chatmessage) {
+        this.chatmessage = chatmessage;
     }
 
-    public String getChatMessage() {
-        return chatMessage;
+    public String getChatmessage() {
+        return chatmessage;
     }
 }
