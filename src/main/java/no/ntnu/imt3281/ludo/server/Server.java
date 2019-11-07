@@ -817,6 +817,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())) {
 				if (room.connectedUsers.contains(userid)) {
 					room.connectedUsers.remove(userid);
+
+					if (room.getConnectedUsers().size() == 0) { //Delete it
+						activeChatRooms.remove(room);
+						try {
+							db.removeChatRoom(room.getName()); //Remove from DB.
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+
 					return true;
 				} else {
 					return false;
@@ -826,6 +836,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		return false;
 	}
 
+	/**
+	 * Announce the removal of a user in a chat room to other users in the same chat room
+	 * @param action
+	 * @param chatroomname
+	 */
 	private void announceRemovalToUsersInChatRoom(Message action, String chatroomname){
 		UserInfo info = db.getProfile(sessionIdToUserId(action.getRecipientSessionId()));
 
