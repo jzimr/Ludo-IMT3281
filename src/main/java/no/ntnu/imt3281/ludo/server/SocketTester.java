@@ -42,22 +42,24 @@ public class SocketTester {
 
                 listChatRooms();
 
-                //sendChatMessage();
+                sendChatMessage();
 
                 //removeFromChatRoom();
 
                 //sendChatMessage();
                 //sendChatMessage();
+                while(true){
+                    String gotMessage = br.readLine();
+                    System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
 
-                String gotMessage = br.readLine();
-                System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+                }
 
-                gotMessage = br.readLine();
+                /*gotMessage = br.readLine();
                 System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes*/
 
-                Thread.sleep(100);
-                connection.close();
-            } catch (IOException | InterruptedException e) {
+                //Thread.sleep(100);
+                //connection.close();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -113,7 +115,7 @@ public class SocketTester {
     }
 
     private void joinChatRoom(){
-        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"2ecc4deb-e320-4fac-9834-2ee0a84edeca\", \"chatroomname\" : \"Test 4\"}";
+        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"2ecc4deb-e320-4fac-9834-2ee0a84edeca\", \"chatroomname\" : \"Global\"}";
         try {
             bw.write(JoinChatMessage);
             bw.newLine();
@@ -132,7 +134,7 @@ public class SocketTester {
     }
 
     private void sendChatMessage(){
-        String ChatMessage = "{ \"action\": \"UserSentMessage\", \"userid\": \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\" ,\"chatroomname\": \"Test 4\" , \"chatmessage\" : \"heisann\" }";
+        String ChatMessage = "{ \"action\": \"UserSentMessage\", \"userid\": \"2ecc4deb-e320-4fac-9834-2ee0a84edeca\" ,\"chatroomname\": \"Global\" , \"chatmessage\" : \"heisann\" }";
 
         try {
             bw.write(ChatMessage);
@@ -154,7 +156,7 @@ public class SocketTester {
     }
 
     private void removeFromChatRoom(){
-        String ChatMessage = "{\"action\":\"UserLeftChatRoom\",\"userid\":\"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\" ,\"chatroomname\":\"Test 4\"}";
+        String ChatMessage = "{\"action\":\"UserLeftChatRoom\",\"userid\":\"2ecc4deb-e320-4fac-9834-2ee0a84edeca\" ,\"chatroomname\":\"Global\"}";
 
         try {
             bw.write(ChatMessage);

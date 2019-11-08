@@ -167,6 +167,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						Client c = iterator.next();
 						if (msg.getRecipientSessionId().contentEquals(c.getUuid())) {
 							try {
+								System.out.println("lolsub: "+msg.getRecipientSessionId());
 								String converted = convertToCorrectJson(msg);
 								System.out.println(converted);
 								c.send(converted);
@@ -364,7 +365,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				case "SentMessageResponse": {
 					SentMessageResponse message = new SentMessageResponse("SentMessageResponse");
 					message.setdisplayname(((SentMessageResponse)msg).getdisplayname());
-					System.out.println("heiho " + message.getdisplayname());
 					message.setChatroomname(((SentMessageResponse)msg).getChatroomname());
 					message.setChatmessage(((SentMessageResponse)msg).getChatmessage());
 					message.setTimestamp(((SentMessageResponse)msg).getTimestamp());
@@ -526,7 +526,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			((UserHasConnectedResponse) retMsg).setUserid(( sessionIdToUserId(action.getRecipientSessionId())));
 
 			//No need to announce to the originator of the message.
-			if (c.getUuid() != retMsg.getRecipientSessionId()){
+			if (!c.getUuid().contentEquals(retMsg.getRecipientSessionId())){
 				synchronized (messagesToSend) {
 					messagesToSend.add(retMsg);
 				}
@@ -680,12 +680,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				db.insertChatMessage(action.getChatroomname(), action.getUserid(), action.getChatmessage());
 				UserInfo info = db.getProfile(action.getUserid());
 				((SentMessageResponse)retMsg).setdisplayname(info.getDisplayName());
-				System.out.println("heiho" + ((SentMessageResponse) retMsg).getdisplayname());
 				((SentMessageResponse)retMsg).setChatroomname(action.getChatroomname());
 				((SentMessageResponse)retMsg).setChatmessage(action.getChatmessage());
 				((SentMessageResponse)retMsg).setTimestamp(String.valueOf(Instant.now().getEpochSecond()));
 
-				sendMessageToChatRoom(retMsg);
+				sendMessageToChatRoom(retMsg, ((SentMessageResponse) retMsg).getChatroomname());
+
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -808,19 +808,26 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 * Send chat message to a chat room
 	 * @param action Message object
 	 */
-	private void sendMessageToChatRoom(Message action){
+	private void sendMessageToChatRoom(Message action, String chatroom){
 
 		for (ChatRoom room : activeChatRooms) { //Loop over chat rooms
-			if (room.getName().contentEquals( ((SentMessageResponse) action).getChatroomname()) ){ // Find correct chat room
+			if (room.getName().contentEquals(chatroom)){ // Find correct chat room
 				for(String UserId : room.getConnectedUsers()){ //Get all active users
-					action.setRecipientSessionId(useridToSessionId(UserId)); //Set recipient of message to userid
+					Message sentMessageResponse = new SentMessageResponse("SentMessageResponse");
+					((SentMessageResponse)sentMessageResponse).setChatmessage(((SentMessageResponse)action).getChatmessage());
+					((SentMessageResponse)sentMessageResponse).setChatroomname(chatroom);
+					((SentMessageResponse)sentMessageResponse).setdisplayname(((SentMessageResponse)action).getdisplayname());
+					((SentMessageResponse)sentMessageResponse).setTimestamp(((SentMessageResponse)action).getTimestamp());
+					sentMessageResponse.setRecipientSessionId(useridToSessionId(UserId));
+
 					synchronized (messagesToSend) {
-						messagesToSend.add(action); //Send message.
+						messagesToSend.add(sentMessageResponse); //Send message.
 					}
 				}
 				return;
 			}
 		}
+
 	}
 
 	/**

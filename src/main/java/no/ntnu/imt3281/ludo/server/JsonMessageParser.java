@@ -41,14 +41,17 @@ public class JsonMessageParser {
                 }
                 case "UserJoinChat" : {
                     msg = new UserJoinChat(action.get("action").asText(), action.get("chatroomname").asText(),action.get("userid").asText());
+                    msg.setRecipientSessionId(sessionid);
                     return msg;
                 }
                 case "UserSentMessage": {
                     msg = new UserSentMessage(action.get("action").asText(), action.get("userid").asText(), action.get("chatroomname").asText(), action.get("chatmessage").asText());
+                    //msg.setRecipientSessionId(sessionid);
                     return msg;
                 }
                 case "UserLeftChatRoom":{
                     msg = new UserLeftChatRoom(action.get("action").asText(), action.get("userid").asText(), action.get("chatroomname").asText());
+                    msg.setRecipientSessionId(sessionid);
                     return msg;
                 }
                 case "UserListChatrooms":{
