@@ -17,7 +17,7 @@ public class JsonMessageParser {
      * @param json
      * @return Message object with correct information
      */
-    public Message parseJson(String json) {
+    public Message parseJson(String json, String sessionid) {
         Message msg = null;
         try {
             JsonNode action = mapper.readTree(json);
@@ -49,6 +49,11 @@ public class JsonMessageParser {
                 }
                 case "UserLeftChatRoom":{
                     msg = new UserLeftChatRoom(action.get("action").asText(), action.get("userid").asText(), action.get("chatroomname").asText());
+                    return msg;
+                }
+                case "UserListChatrooms":{
+                    msg = new UserListChatrooms(action.get("action").asText());
+                    msg.setRecipientSessionId(sessionid);
                     return msg;
                 }
             }

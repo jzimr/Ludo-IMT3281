@@ -40,9 +40,11 @@ public class SocketTester {
 
                 joinChatRoom();
 
-                sendChatMessage();
+                listChatRooms();
 
-                removeFromChatRoom();
+                //sendChatMessage();
+
+                //removeFromChatRoom();
 
                 //sendChatMessage();
                 //sendChatMessage();
@@ -111,7 +113,7 @@ public class SocketTester {
     }
 
     private void joinChatRoom(){
-        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"00dbc8d4-a470-4d8d-a45b-1ff0494a9a0e\", \"chatroomname\" : \"Test 4\"}";
+        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"2ecc4deb-e320-4fac-9834-2ee0a84edeca\", \"chatroomname\" : \"Test 4\"}";
         try {
             bw.write(JoinChatMessage);
             bw.newLine();
@@ -165,6 +167,23 @@ public class SocketTester {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void listChatRooms(){
+        String ChatMessage = "{\"action\":\"UserListChatrooms\"}";
+
+        try {
+            bw.write(ChatMessage);
+            bw.newLine();
+            bw.flush();
+            System.out.println("Sent message : " + ChatMessage);
+
+            String gotMessage = br.readLine();
+            System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 }

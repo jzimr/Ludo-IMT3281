@@ -9,6 +9,7 @@ import no.ntnu.imt3281.ludo.logic.messages.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Array;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.*;
@@ -123,18 +124,18 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 								synchronized (objectsToHandle) {
 									c.parseUsername(msg);
 									System.out.println("Connected user : " + c.getUuid() + " " + msg);
-									Message toBeQueued = parser.parseJson(msg);
+									Message toBeQueued = parser.parseJson(msg,c.getUuid());
 									if (toBeQueued != null) { //Discard if it is null
-										objectsToHandle.add(parser.parseJson(msg)); //Add the object to queue for handling
+										objectsToHandle.add(parser.parseJson(msg,c.getUuid())); //Add the object to queue for handling
 									} else {
 										System.out.println("DISCARDED MESSAGE : " + msg);
 									}
 								}
 							} else if (msg != null ) {
 								synchronized (objectsToHandle) {
-									Message toBeQueued = parser.parseJson(msg);
+									Message toBeQueued = parser.parseJson(msg,c.getUuid());
 									if (toBeQueued != null) {
-										objectsToHandle.add(parser.parseJson(msg)); //Add the object to queue for handling
+										objectsToHandle.add(parser.parseJson(msg,c.getUuid())); //Add the object to queue for handling
 									} else {
 										System.out.println("DISCARDED MESSAGE : " + msg);
 									}
@@ -297,6 +298,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserJoinChat": UserJoinChat((UserJoinChat) action); break;
 			case "UserSentMessage": UserSentMessage((UserSentMessage) action); break;
 			case "UserLeftChatRoom": UserLeftChatRoom((UserLeftChatRoom) action); break;
+			case "UserListChatrooms": UserListChatrooms((UserListChatrooms) action); break;
 		}
 
 	}
@@ -379,6 +381,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				case "ErrorMessageResponse" : {
 					ErrorMessageResponse message = new ErrorMessageResponse("ErrorMessageResponse");
 					message.setMessage(((ErrorMessageResponse)msg).getMessage());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "ChatRoomsListResponse" : {
+					ChatRoomsListResponse message = new ChatRoomsListResponse("ChatRoomsListResponse");
+					message.setChatRoom(((ChatRoomsListResponse)msg).getChatRoom());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -479,6 +487,29 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		if (retMsg.isLoginStatus()){
 			AnnounceUserLoggedOn(action);
 		}
+	}
+
+	private void UserListChatrooms(UserListChatrooms action) {
+		ChatRoomsListResponse retMsg = new ChatRoomsListResponse("ChatRoomsListResponse");
+		retMsg.setRecipientSessionId(action.getRecipientSessionId());
+
+		ArrayList<String> roomNames = new ArrayList<String>();
+		for(ChatRoom room : activeChatRooms) {
+			roomNames.add(room.getName());
+		}
+
+		String[] arr = new String[roomNames.size()];
+		for(int i = 0; i < roomNames.size(); i++) {
+			arr[i] = roomNames.get(i);
+		}
+
+		retMsg.setChatRoom(arr);
+		System.out.println(arr.toString());
+
+		synchronized (messagesToSend) {
+			messagesToSend.add(retMsg);
+		}
+
 	}
 
 	/**
