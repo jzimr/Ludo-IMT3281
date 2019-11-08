@@ -246,14 +246,21 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	private void removeClientsFromModules(String userId){
 		//TODO: Remove from game
+
 		//TODO: Send message that the user left to chat channels.
 
 		//Remove user from chat rooms.
-		for(ChatRoom room : activeChatRooms){
-			if(room.getConnectedUsers().contains(userId)){
-				removeUserFromChatroom(room.getName(), userId);
+		ArrayList<ChatRoom> rooms = (ArrayList<ChatRoom>) activeChatRooms.clone();
+			for(ChatRoom room : rooms){
+				if(room.getConnectedUsers().contains(userId)){
+					UserInfo info = db.getProfile(userId);
+					announceRemovalToUsersInChatRoom(info, room.getName());
+					removeUserFromChatroom(room.getName(), userId);
+					System.out.println("We removed a boy");
+				}
+
 			}
-		}
+
 
 	}
 
@@ -606,7 +613,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 				((UserLeftChatRoomResponse)retMsg).setDisplayname(info.getDisplayName());
 
-				announceRemovalToUsersInChatRoom(info, action, action.getChatroomname());
+				announceRemovalToUsersInChatRoom(info, action.getChatroomname());
 			} else {
 				retMsg = new ErrorMessageResponse("ErrorMessageResponse");
 				retMsg.setRecipientSessionId(recipientId);
@@ -845,10 +852,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * Announce the removal of a user in a chat room to other users in the same chat room
-	 * @param action
+	 * @param info
 	 * @param chatroomname
 	 */
-	private void announceRemovalToUsersInChatRoom(UserInfo info,Message action, String chatroomname){
+	private void announceRemovalToUsersInChatRoom(UserInfo info, String chatroomname){
 
 		for (ChatRoom room : activeChatRooms) { //Loop over chat rooms
 			if (room.getName().contentEquals(chatroomname)){ // Find correct chat room
