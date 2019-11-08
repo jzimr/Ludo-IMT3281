@@ -5,6 +5,11 @@ public class ChatRoomsListResponse extends Message {
 
     public ChatRoomsListResponse(String action){super(action);}
 
+    public ChatRoomsListResponse(String action, String[] chatRooms){
+        super(action);
+        this.ChatRoom = chatRooms;
+    }
+
     public void setChatRoom(String[] chatRoom) {
         ChatRoom = chatRoom;
     }

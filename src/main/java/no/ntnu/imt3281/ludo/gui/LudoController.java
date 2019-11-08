@@ -1,7 +1,6 @@
 package no.ntnu.imt3281.ludo.gui;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 
@@ -38,8 +37,9 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     // controllers
     private LoginController loginController = null;
+    private ChatRoomsListController chatRoomsListController = null;
     private JoinChatRoomController joinChatRoomController = null;
-    HashMap<String, ChatController> chatControllers = new HashMap<>();
+    HashMap<String, ChatRoomController> chatControllers = new HashMap<>();
     // todo gameboardcontrollers
 
 
@@ -115,17 +115,22 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
      * Creates a new chat tab for our client
      */
     private void addNewChatTab(String chatName) {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("Chat.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("ChatRoom.fxml"));
         loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
 
         Tab chatTab = addNewTab(loader, chatName);
         if (chatTab == null) return;
+        chatTab.setStyle("-fx-text-base-color: red");
 
-        ChatController controller = loader.getController();
+        ChatRoomController controller = loader.getController();
         controller.setup(clientSocket, chatName);
         // set listener for when user closes chat tab (except global chat)
-        if(chatName != "Global"){
+        if(!chatName.equals("Global")){
             chatTab.setOnClosed(controller.onTabClose);
+            chatTab.setClosable(true);
+        } else {
+            // user can't close global chat tab
+            chatTab.setClosable(false);
         }
         // add to this hashmap so we can correctly delegate messages to the correct channels when we get them in this
         // event listener (SentMessageResponseListener)
@@ -207,6 +212,24 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     }
 
     /**
+     * List all available chatrooms the user can join
+     * @param e
+     */
+    @FXML
+    public void listChatRooms(ActionEvent e) {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("ChatRoomsList.fxml"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+
+        Tab chatRoomsTab = addNewTab(loader, "Chat Rooms");
+
+        chatRoomsListController = loader.getController();
+        chatRoomsListController.setup(clientSocket);
+
+        // notify server that we want to get the list of available chatrooms
+        clientSocket.sendMessageToServer(new UserListChatrooms("UserListChatrooms"));
+    }
+
+    /**
      * Helper function to focus on a specific tab
      * @param tab the tab we want to focus on
      */
@@ -231,10 +254,10 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         if(joinChatRoomController != null){
             // if user could not join chat room, display an error message to user
             if(!response.isStatus()){
-                joinChatRoomController.setResponseMessage(response.getResponse() + " (For room '" + /* todo room */ "')", true);
+                joinChatRoomController.setResponseMessage(response.getResponse(), true);
                 return;
             } else {
-                joinChatRoomController.setResponseMessage(response.getResponse()+ " (For room '" + /* todo room */ "')", false);
+                joinChatRoomController.setResponseMessage(response.getResponse(), false);
             }
         }
 
@@ -242,7 +265,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         if(response.isStatus()){
             // todo change name to real chat name
             // todo change tab colour instead of having a prefix for chat
-            addNewChatTab("Global");
+            addNewChatTab(response.getChatroomname());
         }
     }
 
@@ -285,12 +308,12 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
      * @param response an object containing all the necessary info about a chat message sent
      */
     @Override
-    public void SentMessageResponseEvent(SentMessageResponse response) {
-        ChatController chatController = chatControllers.get(response.getChatroomname());
+    public void sentMessageResponseEvent(SentMessageResponse response) {
+        ChatRoomController chatRoomController = chatControllers.get(response.getChatroomname());
 
         // send the message object to the particular chat
-        if(chatController != null){
-            chatController.newIncomingMessage(response);
+        if(chatRoomController != null){
+            chatRoomController.newIncomingMessage(response);
         } else {
             // for debugging todo: remove when finished
             System.out.println("User received message for a chat he is not part of");

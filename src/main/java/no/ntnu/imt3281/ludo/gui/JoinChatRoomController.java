@@ -1,5 +1,6 @@
 package no.ntnu.imt3281.ludo.gui;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -55,12 +56,13 @@ public class JoinChatRoomController {
      */
     public void setResponseMessage(String message, boolean isError){
         // set colour on text depending if success or error message
-        if(isError){
-            responseMessage.setStyle("-fx-text-fill: red ;");
-        } else {
-            responseMessage.setStyle("-fx-text-fill: #00ff14 ;");
-        }
-
-        responseMessage.setText(message);
+        Platform.runLater(() -> {
+            if(isError){
+                responseMessage.setStyle("-fx-fill: red");
+            } else {
+                responseMessage.setStyle("-fx-fill: green");
+            }
+            responseMessage.setText(message);
+        });
     }
 }

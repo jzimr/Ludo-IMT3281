@@ -2,10 +2,8 @@ package no.ntnu.imt3281.ludo.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.ntnu.imt3281.ludo.gui.ServerListeners.ChatJoinResponseListener;
-import no.ntnu.imt3281.ludo.gui.ServerListeners.LoginResponseListener;
-import no.ntnu.imt3281.ludo.gui.ServerListeners.RegisterResponseListener;
-import no.ntnu.imt3281.ludo.gui.ServerListeners.SentMessageResponseListener;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.*;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
 import java.io.*;
@@ -33,6 +31,7 @@ public class ClientSocket {
     RegisterResponseListener registerResponseListener = null;
     ChatJoinResponseListener chatJoinResponseListener = null;
     SentMessageResponseListener sentMessageResponseListener = null;
+    ChatRoomsListResponseListener chatRoomsListResponseListener = null;
 
     /**
      * Create a connection from client to server
@@ -166,15 +165,25 @@ public class ClientSocket {
                     break;
                 case "ChatJoinResponse":
                     ChatJoinResponse message3 = new ChatJoinResponse(action, jsonNode.get("status").asBoolean(),
-                            jsonNode.get("response").asText());
+                            jsonNode.get("response").asText(), jsonNode.get("chatroomname").asText());
                     chatJoinResponseListener.chatJoinResponseEvent(message3);
                     break;
                 case "SentMessageResponse":
-                    System.out.println("displayname " + jsonNode.get("displayname").asText());
                     SentMessageResponse message4 = new SentMessageResponse(action, jsonNode.get("displayname").asText(),
                             jsonNode.get("chatroomname").asText(), jsonNode.get("chatmessage").asText(),
                             jsonNode.get("timestamp").asText());
-                    sentMessageResponseListener.SentMessageResponseEvent(message4);
+                    sentMessageResponseListener.sentMessageResponseEvent(message4);
+                    break;
+                case "ChatRoomsListResponse":
+                    // we get the String[] list from the jackson node
+                    ArrayNode chatRoomsNode = (ArrayNode)jsonNode.get("chatRoom");
+                    String[] chatRooms = new String[chatRoomsNode.size()];
+                    for(int i = 0; i < chatRoomsNode.size(); i++){
+                        chatRooms[i] = chatRoomsNode.get(i).asText();
+                    }
+
+                    ChatRoomsListResponse message5 = new ChatRoomsListResponse(action, chatRooms);
+                    chatRoomsListResponseListener.chatRoomsListResponseEvent(message5);
                     break;
                 default:
                     System.out.println("Json not recognized: " + jsonMessage);
@@ -216,5 +225,9 @@ public class ClientSocket {
 
     public void addSentMessageResponseListener(SentMessageResponseListener listener){
         sentMessageResponseListener = listener;
+    }
+
+    public void addChatRoomsListResponseListener(ChatRoomsListResponseListener listener){
+        chatRoomsListResponseListener = listener;
     }
 }
