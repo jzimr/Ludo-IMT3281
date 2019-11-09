@@ -21,7 +21,7 @@ import no.ntnu.imt3281.ludo.gui.ServerListeners.LoginResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.SentMessageResponseListener;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
-public class LudoController implements ChatJoinResponseListener, LoginResponseListener, SentMessageResponseListener {
+public class LudoController implements ChatJoinResponseListener, LoginResponseListener {
 
     @FXML
     private MenuItem random;
@@ -37,11 +37,8 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     // controllers
     private LoginController loginController = null;
-    private ChatRoomsListController chatRoomsListController = null;
+    //private ChatRoomsListController chatRoomsListController = null;
     private JoinChatRoomController joinChatRoomController = null;
-    HashMap<String, ChatRoomController> chatControllers = new HashMap<>();
-    // todo gameboardcontrollers
-
 
     @FXML
     public void initialize() {
@@ -82,7 +79,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         // set listeners
         clientSocket.addLoginResponseListener(this);
         clientSocket.addChatJoinResponseListener(this);
-        clientSocket.addSentMessageResponseListener(this);
     }
 
 	/**
@@ -134,7 +130,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         }
         // add to this hashmap so we can correctly delegate messages to the correct channels when we get them in this
         // event listener (SentMessageResponseListener)
-        chatControllers.put(chatName, controller);
     }
 
     /**
@@ -222,7 +217,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
         Tab chatRoomsTab = addNewTab(loader, "Chat Rooms");
 
-        chatRoomsListController = loader.getController();
+        ChatRoomsListController chatRoomsListController = loader.getController();
         chatRoomsListController.setup(clientSocket);
 
         // notify server that we want to get the list of available chatrooms
@@ -297,26 +292,5 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                 tabbedPane.getTabs().remove(loginTab);
             }
         });
-    }
-
-    /**
-     * When another user (or us) has received the message sent into the chat
-     * <p>
-     *     In this listener we just delegate the response into the correct chat rooms and handle it
-     *     there individually
-     * </p>
-     * @param response an object containing all the necessary info about a chat message sent
-     */
-    @Override
-    public void sentMessageResponseEvent(SentMessageResponse response) {
-        ChatRoomController chatRoomController = chatControllers.get(response.getChatroomname());
-
-        // send the message object to the particular chat
-        if(chatRoomController != null){
-            chatRoomController.newIncomingMessage(response);
-        } else {
-            // for debugging todo: remove when finished
-            System.out.println("User received message for a chat he is not part of");
-        }
     }
 }

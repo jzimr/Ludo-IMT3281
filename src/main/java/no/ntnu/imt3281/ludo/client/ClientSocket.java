@@ -9,6 +9,7 @@ import no.ntnu.imt3281.ludo.logic.messages.*;
 import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class ClientSocket {
     private static final int DEFAULT_PORT = 4567;
@@ -30,7 +31,7 @@ public class ClientSocket {
     LoginResponseListener loginResponseListener = null;
     RegisterResponseListener registerResponseListener = null;
     ChatJoinResponseListener chatJoinResponseListener = null;
-    SentMessageResponseListener sentMessageResponseListener = null;
+    ArrayBlockingQueue<SentMessageResponseListener> sentMessageResponseListeners = new ArrayBlockingQueue<>(100);    // max of 100 chats at once
     ChatRoomsListResponseListener chatRoomsListResponseListener = null;
 
     /**
@@ -172,7 +173,12 @@ public class ClientSocket {
                     SentMessageResponse message4 = new SentMessageResponse(action, jsonNode.get("displayname").asText(),
                             jsonNode.get("chatroomname").asText(), jsonNode.get("chatmessage").asText(),
                             jsonNode.get("timestamp").asText());
-                    sentMessageResponseListener.sentMessageResponseEvent(message4);
+                    sentMessageResponseListeners.forEach(listener -> {
+                        if(listener != null && listener.equals(message4.getChatroomname())){
+                            listener.sentMessageResponseEvent(message4);
+
+                        }
+                    });
                     break;
                 case "ChatRoomsListResponse":
                     // we get the String[] list from the jackson node
@@ -224,7 +230,11 @@ public class ClientSocket {
     }
 
     public void addSentMessageResponseListener(SentMessageResponseListener listener){
-        sentMessageResponseListener = listener;
+        sentMessageResponseListeners.add(listener);
+    }
+
+    public void removeSentMessageResponseListener(SentMessageResponseListener listener){
+        sentMessageResponseListeners.remove(listener);
     }
 
     public void addChatRoomsListResponseListener(ChatRoomsListResponseListener listener){

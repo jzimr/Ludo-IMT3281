@@ -11,6 +11,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.SentMessageResponseListener;
 import no.ntnu.imt3281.ludo.logic.messages.SentMessageResponse;
 import no.ntnu.imt3281.ludo.logic.messages.UserLeftChatRoom;
 import no.ntnu.imt3281.ludo.logic.messages.UserSentMessage;
@@ -18,7 +19,7 @@ import no.ntnu.imt3281.ludo.logic.messages.UserSentMessage;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
-public class ChatRoomController {
+public class ChatRoomController implements SentMessageResponseListener {
     @FXML
     private TextArea chatLogText;
 
@@ -38,6 +39,9 @@ public class ChatRoomController {
     public void setup(ClientSocket clientSocket, String chatRoomName) {
         this.clientSocket = clientSocket;
         this.chatRoomName = chatRoomName;
+
+        // add listeners
+        clientSocket.addSentMessageResponseListener(this);
     }
 
     /**
@@ -80,12 +84,18 @@ public class ChatRoomController {
         chatTextInput.clear();
     }
 
+    @Override
+    public boolean equals(String chatName) {
+        return this.chatRoomName.equals(chatName);
+    }
+
     /**
      * When the client or another user is sending a message in this particular chat (receiving this from server)
      *
      * @param response an object containing all the necessary info about a chat message sent
      */
-    public void newIncomingMessage(SentMessageResponse response) {
+    @Override
+    public void sentMessageResponseEvent(SentMessageResponse response) {
         // convert time to local time
         LocalDateTime time;
         try {
@@ -115,6 +125,8 @@ public class ChatRoomController {
         public void handle(Event arg0) {
             // disconnect user from chat room
             clientSocket.sendMessageToServer(new UserLeftChatRoom("UserLeftChatRoom", clientSocket.getUserId(), chatRoomName));
+            // remove this listener from clientsocket
+            clientSocket.removeSentMessageResponseListener(ChatRoomController.this);
         }
     };
 }
