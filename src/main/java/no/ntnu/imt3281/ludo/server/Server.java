@@ -406,6 +406,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
+				case "SendGameInvitationResponse": {
+					SendGameInvitationsResponse message = new SendGameInvitationsResponse("SendGameInvitationResponse");
+					message.setHostdisplayname(((SendGameInvitationsResponse)msg).getHostdisplayname());
+					message.setGameid(((SendGameInvitationsResponse)msg).getGameid());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
 
 				default: {
 					return "{\"ERROR\":\"something went wrong\"}";
@@ -996,6 +1003,19 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 
 		//Send out invitations here:
+		for (int i = 0; i < action.getToinvitedisplaynames().length; i++) {
+			SendGameInvitationsResponse invite = new SendGameInvitationsResponse("SendGameInvitationResponse");
+			String userid = db.getUserId(action.getToinvitedisplaynames()[i]);
+			if (!userid.isEmpty()){
+				invite.setGameid(newGame.getGameid());
+				invite.setHostdisplayname(info.getDisplayName());
+				invite.setRecipientSessionId(useridToSessionId(userid));
+				synchronized (messagesToSend){
+					messagesToSend.add(invite);
+				}
+			}
+		}
+
 
 	}
 

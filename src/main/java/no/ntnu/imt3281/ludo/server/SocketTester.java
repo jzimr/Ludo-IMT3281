@@ -210,7 +210,7 @@ public class SocketTester {
     }
 
     private void createGameRequest(){
-        String ChatMessage = "{\"action\":\"UserWantsToCreateGame\", \"hostid\": \"2ecc4deb-e320-4fac-9834-2ee0a84edeca\", \"toinvitedisplaynames\": [\"hei\",\"Hei2\"]}";
+        String ChatMessage = "{\"action\":\"UserWantsToCreateGame\", \"hostid\": \"2ecc4deb-e320-4fac-9834-2ee0a84edeca\", \"toinvitedisplaynames\": [\"test\"]}";
 
         try {
             bw.write(ChatMessage);

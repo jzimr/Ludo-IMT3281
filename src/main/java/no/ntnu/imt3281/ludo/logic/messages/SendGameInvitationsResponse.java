@@ -3,8 +3,7 @@ package no.ntnu.imt3281.ludo.logic.messages;
 public class SendGameInvitationsResponse extends Message {
 
     String gameid;
-    boolean joinstatus;
-    String response;
+    String hostdisplayname;
 
     public SendGameInvitationsResponse(String action){super(action);}
 
@@ -16,19 +15,11 @@ public class SendGameInvitationsResponse extends Message {
         return gameid;
     }
 
-    public void setJoinstatus(boolean joinstatus) {
-        this.joinstatus = joinstatus;
+    public void setHostdisplayname(String hostdisplayname) {
+        this.hostdisplayname = hostdisplayname;
     }
 
-    public boolean isJoinstatus() {
-        return joinstatus;
-    }
-
-    public void setResponse(String response) {
-        this.response = response;
-    }
-
-    public String getResponse() {
-        return response;
+    public String getHostdisplayname() {
+        return hostdisplayname;
     }
 }
