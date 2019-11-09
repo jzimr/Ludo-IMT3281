@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class Ludo {
+    private int gameId;
+
     final static int RED = 0;
     final static int BLUE = 1;
     final static int YELLOW = 2;
@@ -84,6 +86,22 @@ public class Ludo {
         if (gameState == null) {
             gameState = GAME_STATE_INITIATED;
         }
+    }
+
+    /**
+     * Sets the gameid
+     * @param gameId
+     */
+    public void setGameId(int gameId) {
+        this.gameId = gameId;
+    }
+
+    /**
+     * Gets the gameid
+     * @return
+     */
+    public int getGameId() {
+        return gameId;
     }
 
     /**

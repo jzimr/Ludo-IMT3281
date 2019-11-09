@@ -42,7 +42,9 @@ public class SocketTester {
 
                 listChatRooms();
 
-                sendChatMessage();
+                listUserList();
+
+                //sendChatMessage();
 
                 //removeFromChatRoom();
 
@@ -173,6 +175,23 @@ public class SocketTester {
 
     private void listChatRooms(){
         String ChatMessage = "{\"action\":\"UserListChatrooms\"}";
+
+        try {
+            bw.write(ChatMessage);
+            bw.newLine();
+            bw.flush();
+            System.out.println("Sent message : " + ChatMessage);
+
+            String gotMessage = br.readLine();
+            System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void listUserList(){
+        String ChatMessage = "{\"action\":\"UserWantsUsersList\", \"userid\": \"2ecc4deb-e320-4fac-9834-2ee0a84edeca\", \"searchquery\":\"tes\"}";
 
         try {
             bw.write(ChatMessage);

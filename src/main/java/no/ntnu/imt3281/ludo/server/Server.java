@@ -300,6 +300,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserSentMessage": UserSentMessage((UserSentMessage) action); break;
 			case "UserLeftChatRoom": UserLeftChatRoom((UserLeftChatRoom) action); break;
 			case "UserListChatrooms": UserListChatrooms((UserListChatrooms) action); break;
+            case "UserWantsUsersList": UserWantsUsersList((UserWantsUsersList) action); break;
 		}
 
 	}
@@ -390,6 +391,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
+                case "UsersListResponse" : {
+                    UsersListResponse message = new UsersListResponse("UsersListResponse");
+                    message.setDisplaynames(((UsersListResponse)msg).getDisplaynames());
+                    String retString = mapper.writeValueAsString(message);
+                    return retString;
+                }
+
 				default: {
 					return "{\"ERROR\":\"something went wrong\"}";
 				}
@@ -920,6 +928,41 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 		return false;
 	}
+
+    /**
+     * Finds all names matching the search query.
+     * @param action
+     */
+	private void UserWantsUsersList(UserWantsUsersList action){
+
+	    Message retMsg = new UsersListResponse("UsersListResponse");
+	    retMsg.setRecipientSessionId(action.getRecipientSessionId());
+
+	    ArrayList<String> usersMatchQuery = new ArrayList<>();
+
+        for (ChatRoom room : activeChatRooms) {
+            for (String userid : room.getConnectedUsers()){
+                UserInfo info = db.getProfile(userid);
+                if (info.getDisplayName().contains(action.getSearchquery())) {
+                    if (!usersMatchQuery.contains(info.getDisplayName())){
+                        usersMatchQuery.add(info.getDisplayName());
+                    }
+                }
+            }
+        }
+
+        String[] retArr = new String[usersMatchQuery.size()];
+        for (int i = 0; i < usersMatchQuery.size(); i++) {
+            retArr[i] = usersMatchQuery.get(i);
+        }
+
+        ((UsersListResponse)retMsg).setDisplaynames(retArr);
+
+        synchronized (messagesToSend) {
+            messagesToSend.add(retMsg);
+        }
+
+    }
 
 	/**
 	 * Implemented interface DiceListener

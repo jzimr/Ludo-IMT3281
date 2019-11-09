@@ -59,6 +59,11 @@ public class JsonMessageParser {
                     msg.setRecipientSessionId(sessionid);
                     return msg;
                 }
+                case "UserWantsUsersList":{
+                    msg = new UserWantsUsersList(action.get("action").asText(), action.get("userid").asText(), action.get("searchquery").asText());
+                    msg.setRecipientSessionId(sessionid);
+                    return msg;
+                }
             }
 
         } catch (IOException e) {
