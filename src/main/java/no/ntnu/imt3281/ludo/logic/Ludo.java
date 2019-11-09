@@ -8,7 +8,8 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class Ludo {
-    private int gameId;
+    private String gameid;
+    private String hostid;
 
     final static int RED = 0;
     final static int BLUE = 1;
@@ -89,19 +90,35 @@ public class Ludo {
     }
 
     /**
-     * Sets the gameid
-     * @param gameId
+     * Sets game id
+     * @param gameid
      */
-    public void setGameId(int gameId) {
-        this.gameId = gameId;
+    public void setGameid(String gameid) {
+        this.gameid = gameid;
     }
 
     /**
-     * Gets the gameid
+     * gets the game id
      * @return
      */
-    public int getGameId() {
-        return gameId;
+    public String getGameid() {
+        return gameid;
+    }
+
+    /**
+     * Sets the host id
+     * @param hostid
+     */
+    public void setHostid(String hostid) {
+        this.hostid = hostid;
+    }
+
+    /**
+     * gets the host id
+     * @return
+     */
+    public String getHostid() {
+        return hostid;
     }
 
     /**

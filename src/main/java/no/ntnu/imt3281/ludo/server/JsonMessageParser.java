@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 /**
  * Class that parses incoming messages and classifies them.
@@ -62,6 +64,16 @@ public class JsonMessageParser {
                 case "UserWantsUsersList":{
                     msg = new UserWantsUsersList(action.get("action").asText(), action.get("userid").asText(), action.get("searchquery").asText());
                     msg.setRecipientSessionId(sessionid);
+                    return msg;
+                }
+                case "UserWantsToCreateGame": {
+                    ArrayList<String> toInv = mapper.convertValue(action.get("toinvitedisplaynames"), ArrayList.class);
+                    String[] arr = new String[toInv.size()];
+                    for(int i = 0; i < toInv.size(); i++) {
+                        arr[i] = toInv.get(i);
+                    }
+                    System.out.println("UserWantsToCreateGame size " + toInv.size());
+                    msg = new UserWantsToCreateGame(action.get("action").asText(), action.get("hostid").asText(),arr);
                     return msg;
                 }
             }

@@ -301,6 +301,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserLeftChatRoom": UserLeftChatRoom((UserLeftChatRoom) action); break;
 			case "UserListChatrooms": UserListChatrooms((UserListChatrooms) action); break;
             case "UserWantsUsersList": UserWantsUsersList((UserWantsUsersList) action); break;
+			case "UserWantsToCreateGame": UserWantsToCreateGame((UserWantsToCreateGame) action); break;
 		}
 
 	}
@@ -397,6 +398,14 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
                     String retString = mapper.writeValueAsString(message);
                     return retString;
                 }
+				case "CreateGameResponse": {
+					CreateGameResponse message = new CreateGameResponse("CreateGameResponse");
+					message.setGameid(((CreateGameResponse)msg).getGameid());
+					message.setJoinstatus(((CreateGameResponse)msg).isJoinstatus());
+					message.setResponse(((CreateGameResponse)msg).getResponse());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
 
 				default: {
 					return "{\"ERROR\":\"something went wrong\"}";
@@ -963,6 +972,32 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
         }
 
     }
+
+    private void UserWantsToCreateGame(UserWantsToCreateGame action){
+		Message retMsg = new CreateGameResponse("CreateGameResponse");
+		retMsg.setRecipientSessionId(useridToSessionId(action.getHostid()));
+
+		Ludo newGame = new Ludo();
+		newGame.setHostid(action.getHostid());
+		newGame.setGameid(UUID.randomUUID().toString());
+
+		UserInfo info = db.getProfile(action.getHostid());
+		newGame.addPlayer(info.getDisplayName());
+		activeLudoGames.add(new Ludo());
+
+		((CreateGameResponse)retMsg).setJoinstatus(true);
+		((CreateGameResponse)retMsg).setResponse("Joined game successfully");
+		((CreateGameResponse)retMsg).setGameid(newGame.getGameid());
+
+		System.out.println("Active ludo games " + activeLudoGames.size());
+
+		synchronized (messagesToSend) {
+			messagesToSend.add(retMsg);
+		}
+
+		//Send out invitations here:
+
+	}
 
 	/**
 	 * Implemented interface DiceListener

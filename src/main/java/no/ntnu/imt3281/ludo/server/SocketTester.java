@@ -44,6 +44,8 @@ public class SocketTester {
 
                 listUserList();
 
+                createGameRequest();
+
                 //sendChatMessage();
 
                 //removeFromChatRoom();
@@ -205,6 +207,22 @@ public class SocketTester {
             e.printStackTrace();
         }
 
+    }
+
+    private void createGameRequest(){
+        String ChatMessage = "{\"action\":\"UserWantsToCreateGame\", \"hostid\": \"2ecc4deb-e320-4fac-9834-2ee0a84edeca\", \"toinvitedisplaynames\": [\"hei\",\"Hei2\"]}";
+
+        try {
+            bw.write(ChatMessage);
+            bw.newLine();
+            bw.flush();
+            System.out.println("Sent message : " + ChatMessage);
+
+            String gotMessage = br.readLine();
+            System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
