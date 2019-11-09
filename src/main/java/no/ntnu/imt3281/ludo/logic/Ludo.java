@@ -165,6 +165,13 @@ public class Ludo {
         return -1;
     }
 
+    /**
+     * Returns all players in the game
+     * @return string[] of all players
+     */
+    public String[] getPlayers(){
+        return players;
+    }
 
     /**
      * Add a new player to this game

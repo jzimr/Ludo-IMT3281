@@ -21,7 +21,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	final private int SERVER_PORT = 4567; //Server Port
-	Database db = Database.getDatabase(); //Database singleton
+	Database db; //Database
 
 	ArrayList<Ludo> activeLudoGames = new ArrayList<>(); //ArrayList over active games.
 	ArrayList<ChatRoom> activeChatRooms = new ArrayList<>(); //ArrayList over chat rooms.
@@ -37,15 +37,20 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	ArrayBlockingQueue<Client> disconnectedClients = new ArrayBlockingQueue<>(1000); //Queue for clients that is to be disconnected.
 
 	public static void main(String[] args) {
-		new Server(); //Create a new server instance.
+		new Server(false); //Create a new server instance.
 	}
 
-	public Server(){
+	public Server(boolean testing){
 		startServerThread();
 		startListener();
 		startHandlingActions();
 		startSenderThread();
-		sendPingMessage();
+		if (!testing){
+			sendPingMessage();
+			db = Database.getDatabase();
+		} else {
+			db = Database.constructTestDatabase("jdbc:derby:./ludoTestDB");
+		}
 		startRemoveDisconnectedClientsThread();
 
 		System.out.println("Ludo server is now listening at 0.0.0.0:"+SERVER_PORT);
@@ -165,7 +170,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					Iterator<Client> iterator = clients.iterator();
 					while (iterator.hasNext()) {
 						Client c = iterator.next();
-						if (msg.getRecipientSessionId().contentEquals(c.getUuid())) {
+						System.out.println("msg rescip " + msg.getRecipientSessionId());
+						if (c.getUuid() != null && msg.getRecipientSessionId().contentEquals(c.getUuid())) {
 							try {
 								System.out.println("lolsub: "+msg.getRecipientSessionId());
 								String converted = convertToCorrectJson(msg);
@@ -302,6 +308,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserListChatrooms": UserListChatrooms((UserListChatrooms) action); break;
             case "UserWantsUsersList": UserWantsUsersList((UserWantsUsersList) action); break;
 			case "UserWantsToCreateGame": UserWantsToCreateGame((UserWantsToCreateGame) action); break;
+			case "UserDoesGameInvitationAnswer": UserDoesGameInvitationAnswer((UserDoesGameInvitationAnswer) action); break;
 		}
 
 	}
@@ -410,6 +417,21 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					SendGameInvitationsResponse message = new SendGameInvitationsResponse("SendGameInvitationResponse");
 					message.setHostdisplayname(((SendGameInvitationsResponse)msg).getHostdisplayname());
 					message.setGameid(((SendGameInvitationsResponse)msg).getGameid());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "UserJoinedGameResponse": {
+					UserJoinedGameResponse message = new UserJoinedGameResponse("UserJoinedGameResponse");
+					message.setPlayersinlobby(((UserJoinedGameResponse)msg).getPlayersinlobby());
+					message.setUserid(((UserJoinedGameResponse)msg).getUserid());
+					message.setGameid(((UserJoinedGameResponse)msg).getGameid());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "UserDeclinedGameInvitationResponse":{
+					UserDeclinedGameInvitationResponse message = new UserDeclinedGameInvitationResponse("UserDeclinedGameInvitationResponse");
+					message.setUserid(((UserDeclinedGameInvitationResponse)msg).getUserid());
+					message.setGameid(((UserDeclinedGameInvitationResponse)msg).getGameid());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -990,7 +1012,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 		UserInfo info = db.getProfile(action.getHostid());
 		newGame.addPlayer(info.getDisplayName());
-		activeLudoGames.add(new Ludo());
+		activeLudoGames.add(newGame);
 
 		((CreateGameResponse)retMsg).setJoinstatus(true);
 		((CreateGameResponse)retMsg).setResponse("Joined game successfully");
@@ -1015,9 +1037,58 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				}
 			}
 		}
+	}
 
+	private void UserDoesGameInvitationAnswer(UserDoesGameInvitationAnswer action) {
+		Message retMsg;
+		System.out.println(action);
+		if (action.isAccepted()) { //User accepted. Add them to the game
+			retMsg = new UserJoinedGameResponse("UserJoinedGameResponse");
+			((UserJoinedGameResponse)retMsg).setGameid(action.getGameid());
+			((UserJoinedGameResponse)retMsg).setUserid(action.getUserid());
+			for(Ludo game : activeLudoGames) {
+				System.out.println(game.getGameid() + " " + action.getGameid());
+				if (game.getGameid().contentEquals(action.getGameid())) {
+					UserInfo info = db.getProfile(action.getUserid());
+					game.addPlayer(info.getDisplayName());
+					((UserJoinedGameResponse)retMsg).setPlayersinlobby(game.getPlayers());
+				}
+			}
+
+			for(Ludo game : activeLudoGames) {
+				if (game.getGameid().contentEquals(action.getGameid())) {
+					for (String name : game.getPlayers()) {
+						if (name != null){
+							retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+							synchronized (messagesToSend){
+								messagesToSend.add(retMsg);
+							}
+						}
+					}
+				}
+			}
+
+		} else { //User declined. Send message to inviter. Which is host of game (?)
+			String hostId = null;
+			for(Ludo game : activeLudoGames) {
+				if (game.getGameid().contentEquals(action.getGameid())) {
+					hostId = game.getHostid();
+				}
+			}
+
+			retMsg = new UserDeclinedGameInvitationResponse("UserDeclinedGameInvitationResponse");
+			retMsg.setRecipientSessionId(useridToSessionId(hostId));
+			((UserDeclinedGameInvitationResponse)retMsg).setGameid(action.getGameid());
+			((UserDeclinedGameInvitationResponse)retMsg).setUserid(action.getUserid());
+
+			synchronized (messagesToSend){
+				messagesToSend.add(retMsg);
+			}
+
+		}
 
 	}
+
 
 	/**
 	 * Implemented interface DiceListener

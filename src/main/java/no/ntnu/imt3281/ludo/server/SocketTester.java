@@ -1,5 +1,8 @@
 package no.ntnu.imt3281.ludo.server;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.net.*;
 import java.io.*;
 import java.util.UUID;
@@ -19,6 +22,7 @@ public class SocketTester {
     private BufferedWriter bw;
     private BufferedReader br;
 
+    private String gameid;
 
     private String message = "{\"action\" : \"UserDoesDiceThrow\", \"playerId\": 1, \"ludoId\" : 2}";
 
@@ -38,13 +42,14 @@ public class SocketTester {
                 sendLogin();
                 //sendAutoLogin();
 
-                joinChatRoom();
+                //joinChatRoom();
 
-                listChatRooms();
+                //listChatRooms();
 
-                listUserList();
+                //listUserList();
 
                 createGameRequest();
+                acceptGameInvite();
 
                 //sendChatMessage();
 
@@ -69,7 +74,7 @@ public class SocketTester {
         }
 
         private void sendRegister(){
-            String RegisterMessage = "{\"action\" : \"UserDoesRegister\",\"username\": \"test\", \"recipientSessionId\":\"458b2331-14f4-419f-99b1-ad492e8906fb\" ,\"password\": \"test\"}";
+            String RegisterMessage = "{\"action\" : \"UserDoesRegister\",\"username\": \"test5\", \"recipientSessionId\":\"458b2331-14f4-419f-99b1-ad492e8906fc\" ,\"password\": \"test5\"}";
 
             try {
                 bw.write(RegisterMessage);
@@ -211,6 +216,26 @@ public class SocketTester {
 
     private void createGameRequest(){
         String ChatMessage = "{\"action\":\"UserWantsToCreateGame\", \"hostid\": \"2ecc4deb-e320-4fac-9834-2ee0a84edeca\", \"toinvitedisplaynames\": [\"test\"]}";
+
+        try {
+            bw.write(ChatMessage);
+            bw.newLine();
+            bw.flush();
+            System.out.println("Sent message : " + ChatMessage);
+
+            String gotMessage = br.readLine();
+            System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode gameid_json = mapper.readTree(gotMessage);
+            gameid = gameid_json.get("gameid").asText();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void acceptGameInvite(){
+        String ChatMessage = "{\"action\":\"UserDoesGameInvitationAnswer\", \"accepted\": true, \"userid\":\"2ecc4deb-e320-4fac-9834-2ee0a84edeca\", \"gameid\":\""+gameid+"\"}";
 
         try {
             bw.write(ChatMessage);

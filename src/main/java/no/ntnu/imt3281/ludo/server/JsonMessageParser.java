@@ -76,6 +76,11 @@ public class JsonMessageParser {
                     msg = new UserWantsToCreateGame(action.get("action").asText(), action.get("hostid").asText(),arr);
                     return msg;
                 }
+                case "UserDoesGameInvitationAnswer":{
+                    msg = new UserDoesGameInvitationAnswer(action.get("action").asText(), action.get("accepted").asBoolean(),action.get("userid").asText(),action.get("gameid").asText());
+                    msg.setRecipientSessionId(sessionid);
+                    return msg;
+                }
             }
 
         } catch (IOException e) {

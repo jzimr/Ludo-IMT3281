@@ -7,7 +7,12 @@ public class UserDoesGameInvitationAnswer extends Message {
     String userid;
     String gameid;
 
-    public UserDoesGameInvitationAnswer(String action){super(action);}
+    public UserDoesGameInvitationAnswer(String action, boolean accepted, String userid, String gameid){
+        super(action);
+        this.accepted = accepted;
+        this.userid = userid;
+        this.gameid = gameid;
+    }
 
 
     public void setAccepted(boolean accepted) {

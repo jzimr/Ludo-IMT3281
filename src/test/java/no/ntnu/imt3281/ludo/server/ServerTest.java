@@ -42,6 +42,8 @@ public class ServerTest {
     private static String client_1_userid;
     private static String client_2_userid;
 
+    private static String gameid;
+
     @BeforeClass
     public static void setupServerAndClient() throws IOException {
         System.out.println("Wiping DB... Staring server... Starting connections...");
@@ -135,6 +137,7 @@ public class ServerTest {
     public void AclientJoinChatRoom() throws IOException{
 
         String JoinChatMessage_client_1 = "{\"action\" : \"UserJoinChat\", \"userid\" : \"" + client_1_userid + "\", \"chatroomname\" : \"Global\"}";
+        String JoinChatMessage_client_1_new = "{\"action\" : \"UserJoinChat\", \"userid\" : \"" + client_1_userid + "\", \"chatroomname\" : \"Global New\"}";
         String JoinChatMessage_client_2 = "{\"action\" : \"UserJoinChat\", \"userid\" : \"" + client_2_userid + "\", \"chatroomname\" : \"Global\"}";
 
         bw_client_1.write(JoinChatMessage_client_1);
@@ -155,6 +158,17 @@ public class ServerTest {
 
         gotMessage = br_client_1.readLine();
         assertTrue(gotMessage.contentEquals("{\"action\":\"ChatJoinNewUserResponse\",\"displayname\":\"test2\",\"chatroomname\":\"Global\"}"));
+
+        //Make user join a new chatroom which does not exist.
+        bw_client_1.write(JoinChatMessage_client_1_new);
+        bw_client_1.newLine();
+        bw_client_1.flush();
+
+        gotMessage = br_client_1.readLine();
+        System.out.println("Got Message: " + gotMessage); //Mainly for debugging purposes
+        assertTrue(gotMessage.contentEquals("{\"action\":\"ChatJoinResponse\",\"status\":true,\"response\":\"Room created and joined successfully\",\"chatroomname\":\"Global New\"}"));
+
+
 
     }
 
@@ -188,6 +202,77 @@ public class ServerTest {
         assertTrue(gotMessage.contains("{\"action\":\"SentMessageResponse\",\"displayname\":\"test2\",\"chatroomname\":\"Global\",\"chatmessage\":\"Hei ja\",\"timestamp\":\""));
 
     }
+
+    @Test
+    public void CclientsJoinLobby() throws IOException{
+        String CreateGame_client_1 = "{\"action\":\"UserWantsToCreateGame\", \"hostid\": \""+client_1_userid+"\", \"toinvitedisplaynames\": [\"test2\"]}";
+
+        bw_client_1.write(CreateGame_client_1);
+        bw_client_1.newLine();
+        bw_client_1.flush();
+
+        String gotMessage = br_client_1.readLine();
+        System.out.println("Got Message Client1 : " + gotMessage); //Mainly for debugging purposes
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode gameid_client1 = mapper.readTree(gotMessage);
+        gameid = gameid_client1.get("gameid").asText();
+
+        //System.out.println("Gameid " +gameid + " " + AcceptGame_client_2 );
+        String AcceptGame_client_2 = "{\"action\":\"UserDoesGameInvitationAnswer\", \"accepted\": true, \"userid\":\""+client_2_userid+"\", \"gameid\":\""+gameid+"\"}";
+        gotMessage = br_client_2.readLine();
+        System.out.println("Got Message Client 2: " + gotMessage); //Mainly for debugging purposes
+
+        bw_client_2.write(AcceptGame_client_2);
+        bw_client_2.newLine();
+        bw_client_2.flush();
+        System.out.println("sent " + gameid);
+
+        gotMessage = br_client_1.readLine();
+        System.out.println("Got Message Client1 : " + gotMessage); //Mainly for debugging purposes
+        assertTrue(gotMessage.contains("\"playersinlobby\":[\"test\",\"test2\",null,null]}"));
+
+        gotMessage = br_client_2.readLine();
+        System.out.println("Got Message Client 2: " + gotMessage); //Mainly for debugging purposes
+        assertTrue(gotMessage.contains("\"playersinlobby\":[\"test\",\"test2\",null,null]}"));
+
+        gotMessage = br_client_2.readLine();
+        System.out.println("Got Message Client 2: " + gotMessage); //Mainly for debugging purposes
+
+    }
+
+    @Test
+    public void DclientsDeclinesInvite() throws IOException{
+        String CreateGame_client_1 = "{\"action\":\"UserWantsToCreateGame\", \"hostid\": \""+client_1_userid+"\", \"toinvitedisplaynames\": [\"test2\"]}";
+
+        bw_client_1.write(CreateGame_client_1);
+        bw_client_1.newLine();
+        bw_client_1.flush();
+
+        String gotMessage = br_client_1.readLine();
+        System.out.println("Got Message Client1 : " + gotMessage); //Mainly for debugging purposes
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode gameid_client1 = mapper.readTree(gotMessage);
+        gameid = gameid_client1.get("gameid").asText();
+
+        //System.out.println("Gameid " +gameid + " " + AcceptGame_client_2 );
+        String AcceptGame_client_2 = "{\"action\":\"UserDoesGameInvitationAnswer\", \"accepted\": false, \"userid\":\""+client_2_userid+"\", \"gameid\":\""+gameid+"\"}";
+        gotMessage = br_client_2.readLine();
+        System.out.println("Got Message Client 2: " + gotMessage); //Mainly for debugging purposes
+
+        bw_client_2.write(AcceptGame_client_2);
+        bw_client_2.newLine();
+        bw_client_2.flush();
+        System.out.println("sent " + gameid);
+
+        gotMessage = br_client_1.readLine();
+        System.out.println("Got Message Client1 : " + gotMessage); //Mainly for debugging purposes
+        assertTrue(gotMessage.contains("{\"action\":\"UserDeclinedGameInvitationResponse\",\"accepted\":false"));
+
+    }
+
+    //Lobby system.
 
 
 }
