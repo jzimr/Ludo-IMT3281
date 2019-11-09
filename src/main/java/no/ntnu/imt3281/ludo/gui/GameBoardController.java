@@ -7,6 +7,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import no.ntnu.imt3281.ludo.client.ClientSocket;
 
 public class GameBoardController {
 
@@ -102,6 +103,18 @@ public class GameBoardController {
 
     @FXML
     private Button sendTextButton;
+
+    private ClientSocket clientSocket;
+
+    /**
+     * Setup necessary stuff for this object
+     *
+     * @param clientSocket for client-server communcation
+     */
+    public void setup(ClientSocket clientSocket) {
+        this.clientSocket = clientSocket;
+    }
+
 
 
 
