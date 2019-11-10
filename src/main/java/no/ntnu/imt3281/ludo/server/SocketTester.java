@@ -46,10 +46,10 @@ public class SocketTester {
 
                 //listChatRooms();
 
-                //listUserList();
+                listUserList();
 
-                createGameRequest();
-                acceptGameInvite();
+                //createGameRequest();
+                //acceptGameInvite();
 
                 //sendChatMessage();
 

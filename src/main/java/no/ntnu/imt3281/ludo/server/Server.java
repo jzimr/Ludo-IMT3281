@@ -975,13 +975,14 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	    Message retMsg = new UsersListResponse("UsersListResponse");
 	    retMsg.setRecipientSessionId(action.getRecipientSessionId());
+	    UserInfo info_self = db.getProfile(sessionIdToUserId(retMsg.getRecipientSessionId()));
 
 	    ArrayList<String> usersMatchQuery = new ArrayList<>();
 
         for (ChatRoom room : activeChatRooms) {
             for (String userid : room.getConnectedUsers()){
                 UserInfo info = db.getProfile(userid);
-                if (info.getDisplayName().contains(action.getSearchquery())) {
+                if (info.getDisplayName().contains(action.getSearchquery()) && info.getDisplayName() != info_self.getDisplayName()) {
                     if (!usersMatchQuery.contains(info.getDisplayName())){
                         usersMatchQuery.add(info.getDisplayName());
                     }
