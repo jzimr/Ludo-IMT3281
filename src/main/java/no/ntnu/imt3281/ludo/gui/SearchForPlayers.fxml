@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane prefHeight="722.0" prefWidth="1017.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="no.ntnu.imt3281.ludo.gui.SearchForPlayersController">
+   <children>
+      <VBox alignment="CENTER" prefHeight="722.0" prefWidth="1017.0">
+         <children>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <TextField fx:id="searchTextField" alignment="CENTER" promptText="Search for People to Invite" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets bottom="40.0" left="100.0" right="30.0" top="40.0" />
+                     </HBox.margin>
+                     <font>
+                        <Font size="16.0" />
+                     </font>
+                  </TextField>
+                  <Button fx:id="searchButton" mnemonicParsing="false" onAction="#searchPlayersButton" prefHeight="50.0" prefWidth="100.0" text="Search" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets bottom="40.0" right="100.0" top="40.0" />
+                     </HBox.margin>
+                  </Button>
+               </children>
+            </HBox>
+            <ListView fx:id="playersListView" prefWidth="200.0" VBox.vgrow="ALWAYS">
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </ListView>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Text fx:id="playersInvitedText" fill="#0f9721" strokeType="OUTSIDE" strokeWidth="0.0" text="Players Invited: 0/3" textAlignment="CENTER">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets right="60.0" />
+                     </HBox.margin>
+                  </Text>
+                  <Button fx:id="startButton" alignment="CENTER" contentDisplay="CENTER" disable="true" mnemonicParsing="false" onAction="#startGameButton" prefHeight="50.0" prefWidth="100.0" text="Start Lobby" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

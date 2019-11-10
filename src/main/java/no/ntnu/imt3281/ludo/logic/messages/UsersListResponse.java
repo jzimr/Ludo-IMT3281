@@ -6,6 +6,10 @@ public class UsersListResponse extends Message {
 
     public UsersListResponse(String action) {super(action);}
 
+    public UsersListResponse(String action, String[] displaynames) {
+        super(action);
+        this.displaynames = displaynames;
+    }
 
     public void setDisplaynames(String[] displaynames) {
         this.displaynames = displaynames;

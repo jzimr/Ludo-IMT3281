@@ -3,6 +3,7 @@ package no.ntnu.imt3281.ludo.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import no.ntnu.imt3281.ludo.gui.ChatRoomsListController;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.*;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
@@ -33,6 +34,7 @@ public class ClientSocket {
     ChatJoinResponseListener chatJoinResponseListener = null;
     ArrayBlockingQueue<SentMessageResponseListener> sentMessageResponseListeners = new ArrayBlockingQueue<>(100);    // max of 100 chats at once
     ChatRoomsListResponseListener chatRoomsListResponseListener = null;
+    ArrayBlockingQueue<UsersListResponseListener> usersListResponseListeners = new ArrayBlockingQueue<>(100);
 
     /**
      * Create a connection from client to server
@@ -173,10 +175,11 @@ public class ClientSocket {
                     SentMessageResponse message4 = new SentMessageResponse(action, jsonNode.get("displayname").asText(),
                             jsonNode.get("chatroomname").asText(), jsonNode.get("chatmessage").asText(),
                             jsonNode.get("timestamp").asText());
+
+                    // send the message to each listener registered
                     sentMessageResponseListeners.forEach(listener -> {
                         if(listener != null && listener.equals(message4.getChatroomname())){
                             listener.sentMessageResponseEvent(message4);
-
                         }
                     });
                     break;
@@ -191,6 +194,23 @@ public class ClientSocket {
                     ChatRoomsListResponse message5 = new ChatRoomsListResponse(action, chatRooms);
                     chatRoomsListResponseListener.chatRoomsListResponseEvent(message5);
                     break;
+                case "UsersListResponse":
+                    // we get the String[] list from the jackson node
+                    ArrayNode userListNode = (ArrayNode)jsonNode.get("displaynames");
+                    String[] userList = new String[userListNode.size()];
+                    for(int i = 0; i < userListNode.size(); i++){
+                        userList[i] = userListNode.get(i).asText();
+                    }
+
+                    // send the message to each listener registered
+                    UsersListResponse message6 = new UsersListResponse(action, userList);
+                    usersListResponseListeners.forEach(listener -> {
+                        if(listener != null){
+                            listener.usersListResponseEvent(message6);
+                        }
+                    });
+                    break;
+
                 default:
                     System.out.println("Json not recognized: " + jsonMessage);
                     break;
@@ -239,5 +259,13 @@ public class ClientSocket {
 
     public void addChatRoomsListResponseListener(ChatRoomsListResponseListener listener){
         chatRoomsListResponseListener = listener;
+    }
+
+    public void addUsersListResponseListener(UsersListResponseListener listener){
+        usersListResponseListeners.add(listener);
+    }
+
+    public void removeAddUsersListResponseListener(UsersListResponseListener listener){
+        usersListResponseListeners.remove(listener);
     }
 }

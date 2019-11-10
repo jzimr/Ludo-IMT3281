@@ -29,6 +29,8 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     private MenuItem connect;
     @FXML
 	private MenuItem joinRoom;
+    @FXML
+    private MenuItem challengeButton;
 
     @FXML
     private TabPane tabbedPane;
@@ -150,7 +152,9 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                 @Override
                 public void run() {
                     tabbedPane.getTabs().add(tab);
-                    focusOnTab(tab);        // automatically focus on new tab when created
+                    // automatically focus on new tab when created
+                    SingleSelectionModel<Tab> selectionModel = tabbedPane.getSelectionModel();
+                    selectionModel.select(tab);
                 }
             });
             return tab;
@@ -206,6 +210,20 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         }
     }
 
+    @FXML
+    void challengePlayers(ActionEvent event) {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("SearchForPlayers.fxml"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+
+        Tab searchForPlayersTab = addNewTab(loader, "SearchForPlayers");
+
+        SearchForPlayersController controller = loader.getController();
+        controller.setup(clientSocket);
+
+        // to remove listener from server when we close tab
+        searchForPlayersTab.setOnClosed(controller.onTabClose);
+    }
+
     /**
      * List all available chatrooms the user can join
      * @param e
@@ -222,15 +240,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
         // notify server that we want to get the list of available chatrooms
         clientSocket.sendMessageToServer(new UserListChatrooms("UserListChatrooms"));
-    }
-
-    /**
-     * Helper function to focus on a specific tab
-     * @param tab the tab we want to focus on
-     */
-    public void focusOnTab(Tab tab){
-        SingleSelectionModel<Tab> selectionModel = tabbedPane.getSelectionModel();
-        selectionModel.select(tab);
     }
 
 

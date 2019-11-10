@@ -8,6 +8,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
+import no.ntnu.imt3281.ludo.logic.Ludo;
 
 public class GameBoardController {
 
@@ -105,14 +106,16 @@ public class GameBoardController {
     private Button sendTextButton;
 
     private ClientSocket clientSocket;
+    private Ludo ludoGame;
 
     /**
      * Setup necessary stuff for this object
      *
      * @param clientSocket for client-server communcation
      */
-    public void setup(ClientSocket clientSocket) {
+    public void setup(ClientSocket clientSocket, Ludo ludoGame) {
         this.clientSocket = clientSocket;
+        this.ludoGame = ludoGame;
     }
 
 

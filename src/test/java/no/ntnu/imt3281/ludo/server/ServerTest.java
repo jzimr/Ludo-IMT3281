@@ -59,7 +59,7 @@ public class ServerTest {
             assertFalse(true);
         }
 
-        server = new Server(true);
+        server = new Server(/*true*/);
 
         //establish socket connection to server
         try {

@@ -1,9 +1,5 @@
 package no.ntnu.imt3281.ludo.gui;
 
-import javafx.scene.control.Cell;
-
-import java.util.HashMap;
-
 public class LudoBoardGridMapping {
     /**
      * Class for holding the position in cell coordinates
