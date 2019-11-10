@@ -982,7 +982,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
         for (ChatRoom room : activeChatRooms) {
             for (String userid : room.getConnectedUsers()){
                 UserInfo info = db.getProfile(userid);
-                if (info.getDisplayName().contains(action.getSearchquery()) && info.getDisplayName() != info_self.getDisplayName()) {
+                if (info.getDisplayName().contains(action.getSearchquery()) && !info.getDisplayName().contentEquals(info_self.getDisplayName())) {
                     if (!usersMatchQuery.contains(info.getDisplayName())){
                         usersMatchQuery.add(info.getDisplayName());
                     }
