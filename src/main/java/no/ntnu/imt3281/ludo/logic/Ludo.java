@@ -169,8 +169,8 @@ public class Ludo {
      * Returns all players in the game
      * @return string[] of all players
      */
-    public String[] getPlayers(){
-        return players;
+    public String[] getPlayers() {
+        return Arrays.stream(players).filter(player -> player != null).toArray(String[]::new);
     }
 
     /**

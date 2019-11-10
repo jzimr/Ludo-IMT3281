@@ -7,6 +7,12 @@ public class SendGameInvitationsResponse extends Message {
 
     public SendGameInvitationsResponse(String action){super(action);}
 
+    public SendGameInvitationsResponse(String action, String gameid, String hostdisplayname){
+        super(action);
+        this.gameid = gameid;
+        this.hostdisplayname = hostdisplayname;
+    }
+
     public void setGameid(String gameid) {
         this.gameid = gameid;
     }

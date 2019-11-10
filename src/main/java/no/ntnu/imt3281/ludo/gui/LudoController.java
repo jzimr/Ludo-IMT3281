@@ -16,19 +16,19 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.client.SessionTokenManager;
-import no.ntnu.imt3281.ludo.gui.ServerListeners.ChatJoinResponseListener;
-import no.ntnu.imt3281.ludo.gui.ServerListeners.LoginResponseListener;
-import no.ntnu.imt3281.ludo.gui.ServerListeners.SentMessageResponseListener;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.*;
+import no.ntnu.imt3281.ludo.logic.Ludo;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
-public class LudoController implements ChatJoinResponseListener, LoginResponseListener {
+public class LudoController implements ChatJoinResponseListener, LoginResponseListener, CreateGameResponseListener,
+        SendGameInvitationsResponseListener, UserJoinedGameResponseListener {
 
     @FXML
     private MenuItem random;
     @FXML
     private MenuItem connect;
     @FXML
-	private MenuItem joinRoom;
+    private MenuItem joinRoom;
     @FXML
     private MenuItem challengeButton;
 
@@ -39,8 +39,10 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     // controllers
     private LoginController loginController = null;
-    //private ChatRoomsListController chatRoomsListController = null;
     private JoinChatRoomController joinChatRoomController = null;
+    private SearchForPlayersController searchForPlayersController = null;
+    private HashMap<String, GameBoardController> gameBoardControllers = new HashMap<>();  // k = ludoId
+
 
     @FXML
     public void initialize() {
@@ -81,32 +83,36 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         // set listeners
         clientSocket.addLoginResponseListener(this);
         clientSocket.addChatJoinResponseListener(this);
+        clientSocket.addCreateGameResponseListener(this);
+        clientSocket.addSendGameInvitationsResponseListener(this);
+        clientSocket.addUserJoinedGameResponseListener(this);
     }
 
-	/**
-	 * When user wants to join a new chatroom
-	 * @param e
-	 */
-	@FXML
-	public void joinChatRoom(ActionEvent e){
-	    // Here we just launch a new window where the user can write in his values
-		FXMLLoader loader = new FXMLLoader(getClass().getResource("JoinChatRoom.fxml"));
-		loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+    /**
+     * When user wants to join a new chatroom
+     *
+     * @param e
+     */
+    @FXML
+    public void joinChatRoom(ActionEvent e) {
+        // Here we just launch a new window where the user can write in his values
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("JoinChatRoom.fxml"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
 
-		try{
-			Parent root = (Parent) loader.load();
-			Stage stage = new Stage();
+        try {
+            Parent root = (Parent) loader.load();
+            Stage stage = new Stage();
             stage.initModality(Modality.APPLICATION_MODAL);
-			stage.setTitle("Join Chat Room");
-			stage.setScene(new Scene(root));
+            stage.setTitle("Join Chat Room");
+            stage.setScene(new Scene(root));
             stage.show();
 
             joinChatRoomController = loader.getController();
             joinChatRoomController.setClientSocket(clientSocket);
-        } catch(IOException ex){
-			ex.printStackTrace();
-		}
-	}
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
 
 
     /**
@@ -123,15 +129,27 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         ChatRoomController controller = loader.getController();
         controller.setup(clientSocket, chatName);
         // set listener for when user closes chat tab (except global chat)
-        if(!chatName.equals("Global")){
+        if (!chatName.equals("Global")) {
             chatTab.setOnClosed(controller.onTabClose);
             chatTab.setClosable(true);
         } else {
             // user can't close global chat tab
             chatTab.setClosable(false);
         }
-        // add to this hashmap so we can correctly delegate messages to the correct channels when we get them in this
-        // event listener (SentMessageResponseListener)
+    }
+
+    private void addNewGameTab(String gameName, String gameId, String[] players) {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("GameBoard.fxml"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+
+        Tab gameTab = addNewTab(loader, gameName);
+
+        GameBoardController controller = loader.getController();
+        controller.setup(clientSocket, gameId);
+        controller.setPlayers(players);
+
+        // add to hashmap
+        gameBoardControllers.put(gameId, controller);
     }
 
     /**
@@ -212,20 +230,23 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     @FXML
     void challengePlayers(ActionEvent event) {
+        // if this tab already exists remove it first
+        if (searchForPlayersController != null) {
+            tabbedPane.getTabs().remove(tabbedPane.getTabs().stream().filter(tab -> tab.getText() == "SearchForPlayers").findFirst().get());
+        }
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("SearchForPlayers.fxml"));
         loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
 
         Tab searchForPlayersTab = addNewTab(loader, "SearchForPlayers");
 
-        SearchForPlayersController controller = loader.getController();
-        controller.setup(clientSocket);
-
-        // to remove listener from server when we close tab
-        searchForPlayersTab.setOnClosed(controller.onTabClose);
+        searchForPlayersController = loader.getController();
+        searchForPlayersController.setup(clientSocket);
     }
 
     /**
      * List all available chatrooms the user can join
+     *
      * @param e
      */
     @FXML
@@ -249,15 +270,16 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     /**
      * When we got response from server when user wants to join a chat room
+     *
      * @param response the Message object we got from server
      */
     @Override
     public void chatJoinResponseEvent(ChatJoinResponse response) {
 
         // send message as long as the user has the popup window still open
-        if(joinChatRoomController != null){
+        if (joinChatRoomController != null) {
             // if user could not join chat room, display an error message to user
-            if(!response.isStatus()){
+            if (!response.isStatus()) {
                 joinChatRoomController.setResponseMessage(response.getResponse(), true);
                 return;
             } else {
@@ -266,7 +288,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         }
 
         // if success, we add the chat tab to the user's tab pane
-        if(response.isStatus()){
+        if (response.isStatus()) {
             // todo change name to real chat name
             // todo change tab colour instead of having a prefix for chat
             addNewChatTab(response.getChatroomname());
@@ -277,16 +299,17 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     /**
      * When user has logged in successfully
+     *
      * @param response the event message we got from server with relevant information
      */
     @Override
     public void loginResponseEvent(LoginResponse response) {
-        if(loginController != null){
+        if (loginController != null) {
             loginController.setLoginResponseMessage(response.getResponse(), response.isLoginStatus());
         }
 
         // if user did not manage to log in
-        if(!response.isLoginStatus()){
+        if (!response.isLoginStatus()) {
             return;
         }
 
@@ -301,5 +324,61 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                 tabbedPane.getTabs().remove(loginTab);
             }
         });
+    }
+
+    /**
+     * When client has gotten answer that a new ludo game has been created
+     *
+     * @param response the event message we got from server with relevant info
+     */
+    @Override
+    public void createGameResponseEvent(CreateGameResponse response) {
+        // close the "Search For Players" tab
+        if (searchForPlayersController != null) {
+            Platform.runLater(() -> {
+                tabbedPane.getTabs().remove(tabbedPane.getTabs().stream().filter(tab -> tab.getText() == "SearchForPlayers").findFirst().get());
+            });
+            searchForPlayersController = null;
+        }
+
+        // Something went wrong
+        if (!response.isJoinstatus()) {
+            // todo show message to user
+            return;
+        }
+
+        // add the new game tab
+        // todo change name of game tab for each game created
+        addNewGameTab("Game", response.getGameid(), new String[]{"You"});
+    }
+
+    /**
+     * When this client receives an invite to a game show a dialog with the invitation
+     *
+     * @param response the inviter and other information in an object response from server
+     */
+    @Override
+    public void sendGameInvitationsResponseEvent(SendGameInvitationsResponse response) {
+        // show the dialog to user
+        Platform.runLater(() -> {
+            new GameInvitationAlert(response.getHostdisplayname(), response.getGameid(), clientSocket);
+        });
+    }
+
+    /**
+     * When a new user has accepted the invitation and prepares to join the lobby
+     *
+     * @param response
+     */
+    @Override
+    public void userJoinedGameResponseEvent(UserJoinedGameResponse response) {
+        // if a gameboard of this game exists
+        if (gameBoardControllers.get(response.getGameid()) != null) {
+            gameBoardControllers.get(response.getGameid()).setPlayers(response.getPlayersinlobby());
+        } else {
+            // create a new game tab with the players currently in lobby
+            // todo change name of game tab for each game created
+            addNewGameTab("Game", response.getGameid(), response.getPlayersinlobby());
+        }
     }
 }

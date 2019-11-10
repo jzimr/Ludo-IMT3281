@@ -413,8 +413,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
-				case "SendGameInvitationResponse": {
-					SendGameInvitationsResponse message = new SendGameInvitationsResponse("SendGameInvitationResponse");
+				case "SendGameInvitationsResponse": {
+					SendGameInvitationsResponse message = new SendGameInvitationsResponse("SendGameInvitationsResponse");
 					message.setHostdisplayname(((SendGameInvitationsResponse)msg).getHostdisplayname());
 					message.setGameid(((SendGameInvitationsResponse)msg).getGameid());
 					String retString = mapper.writeValueAsString(message);
@@ -1027,7 +1027,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 		//Send out invitations here:
 		for (int i = 0; i < action.getToinvitedisplaynames().length; i++) {
-			SendGameInvitationsResponse invite = new SendGameInvitationsResponse("SendGameInvitationResponse");
+			SendGameInvitationsResponse invite = new SendGameInvitationsResponse("SendGameInvitationsResponse");
 			String userid = db.getUserId(action.getToinvitedisplaynames()[i]);
 			if (!userid.isEmpty()){
 				invite.setGameid(newGame.getGameid());

@@ -8,6 +8,13 @@ public class UserJoinedGameResponse extends Message {
 
     public UserJoinedGameResponse(String action) {super(action);}
 
+    public UserJoinedGameResponse(String action, String userid, String gameid, String[] playersinlobby){
+        super(action);
+        this.userid = userid;
+        this.gameid = gameid;
+        this.playersinlobby = playersinlobby;
+    }
+
     public void setGameid(String gameid) {
         this.gameid = gameid;
     }

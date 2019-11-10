@@ -34,7 +34,10 @@ public class ClientSocket {
     ChatJoinResponseListener chatJoinResponseListener = null;
     ArrayBlockingQueue<SentMessageResponseListener> sentMessageResponseListeners = new ArrayBlockingQueue<>(100);    // max of 100 chats at once
     ChatRoomsListResponseListener chatRoomsListResponseListener = null;
-    ArrayBlockingQueue<UsersListResponseListener> usersListResponseListeners = new ArrayBlockingQueue<>(100);
+    UsersListResponseListener usersListResponseListener = null;
+    CreateGameResponseListener createGameResponseListener = null;
+    SendGameInvitationsResponseListener sendGameInvitationsResponseListener = null;
+    UserJoinedGameResponseListener userJoinedGameResponseListener = null;
 
     /**
      * Create a connection from client to server
@@ -204,12 +207,31 @@ public class ClientSocket {
 
                     // send the message to each listener registered
                     UsersListResponse message6 = new UsersListResponse(action, userList);
-                    usersListResponseListeners.forEach(listener -> {
-                        if(listener != null){
-                            listener.usersListResponseEvent(message6);
-                        }
-                    });
+                    usersListResponseListener.usersListResponseEvent(message6);
                     break;
+                case "CreateGameResponse":
+                    CreateGameResponse message7 = new CreateGameResponse(action, jsonNode.get("gameid").asText(),
+                            jsonNode.get("joinstatus").asBoolean(), jsonNode.get("response").asText());
+                    createGameResponseListener.createGameResponseEvent(message7);
+                    break;
+                case "SendGameInvitationsResponse":
+                    SendGameInvitationsResponse message8 = new SendGameInvitationsResponse(action,
+                            jsonNode.get("gameid").asText(), jsonNode.get("hostdisplayname").asText());
+                    sendGameInvitationsResponseListener.sendGameInvitationsResponseEvent(message8);
+                    break;
+                case "UserJoinedGameResponse":
+                    // we get the String[] list from the jackson node
+                    ArrayNode lobbyListNode = (ArrayNode)jsonNode.get("playersinlobby");
+                    String[] lobbyList = new String[lobbyListNode.size()];
+                    for(int i = 0; i < lobbyListNode.size(); i++) {
+                        lobbyList[i] = lobbyListNode.get(i).asText();
+                    }
+
+                    UserJoinedGameResponse message9 = new UserJoinedGameResponse(action, jsonNode.get("userid").asText(),
+                            jsonNode.get("gameid").asText(), lobbyList);
+                    userJoinedGameResponseListener.userJoinedGameResponseEvent(message9);
+                    break;
+
 
                 default:
                     System.out.println("Json not recognized: " + jsonMessage);
@@ -262,10 +284,18 @@ public class ClientSocket {
     }
 
     public void addUsersListResponseListener(UsersListResponseListener listener){
-        usersListResponseListeners.add(listener);
+        usersListResponseListener = listener;
     }
 
-    public void removeAddUsersListResponseListener(UsersListResponseListener listener){
-        usersListResponseListeners.remove(listener);
+    public void addCreateGameResponseListener(CreateGameResponseListener listener){
+        createGameResponseListener = listener;
+    }
+
+    public void addSendGameInvitationsResponseListener(SendGameInvitationsResponseListener listener){
+        sendGameInvitationsResponseListener = listener;
+    }
+
+    public void addUserJoinedGameResponseListener(UserJoinedGameResponseListener listener){
+        userJoinedGameResponseListener = listener;
     }
 }

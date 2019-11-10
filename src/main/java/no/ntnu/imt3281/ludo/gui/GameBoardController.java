@@ -1,5 +1,6 @@
 package no.ntnu.imt3281.ludo.gui;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -9,6 +10,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.logic.Ludo;
+import no.ntnu.imt3281.ludo.logic.messages.UserJoinedGameResponse;
 
 public class GameBoardController {
 
@@ -107,16 +109,46 @@ public class GameBoardController {
 
     private ClientSocket clientSocket;
     private Ludo ludoGame;
+    private String gameId;
+    private String[] players;
 
     /**
      * Setup necessary stuff for this object
      *
      * @param clientSocket for client-server communcation
      */
-    public void setup(ClientSocket clientSocket, Ludo ludoGame) {
+    public void setup(ClientSocket clientSocket, String gameId) {
         this.clientSocket = clientSocket;
-        this.ludoGame = ludoGame;
+        this.gameId = gameId;
     }
+
+    /**
+     * Set the players of the ludo game (Setting all everytime as to be sure everyone has the same order of players)
+     * @param players the players in the game
+     */
+    public void setPlayers(String[] players){
+        this.players = players;
+
+        // set the text of each player in the list
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                int playerCount = players.length;
+
+                if(playerCount > 0){
+                    player1Name.setText(players[0]);
+                } if (playerCount > 1){
+                    player2Name.setText(players[1]);
+                } if (playerCount > 2){
+                    player3Name.setText(players[2]);
+                } if (playerCount > 3){
+                    player3Name.setText(players[3]);
+                }
+            }
+        });
+    }
+
+
 
 
 

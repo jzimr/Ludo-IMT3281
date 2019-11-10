@@ -3,7 +3,6 @@ package no.ntnu.imt3281.ludo.gui;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -15,7 +14,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.UsersListResponseListener;
-import no.ntnu.imt3281.ludo.logic.messages.UserLeftChatRoom;
 import no.ntnu.imt3281.ludo.logic.messages.UserWantsToCreateGame;
 import no.ntnu.imt3281.ludo.logic.messages.UserWantsUsersList;
 import no.ntnu.imt3281.ludo.logic.messages.UsersListResponse;
@@ -164,16 +162,4 @@ public class SearchForPlayersController implements UsersListResponseListener {
             playersListView.setItems(items);
         });
     }
-
-    /**
-     * Called when the tab of this controller is closed.
-     * Here we want to handle stuff like sending message to server.
-     */
-    public EventHandler<Event> onTabClose = new EventHandler<Event>() {
-        @Override
-        public void handle(Event arg0) {
-            // remove this listener from clientsocket
-            clientSocket.removeAddUsersListResponseListener(SearchForPlayersController.this);
-        }
-    };
 }

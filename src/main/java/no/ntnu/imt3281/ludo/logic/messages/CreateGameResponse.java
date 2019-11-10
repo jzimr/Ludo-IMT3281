@@ -8,6 +8,13 @@ public class CreateGameResponse extends Message {
 
     public CreateGameResponse(String action) {super(action);}
 
+    public CreateGameResponse(String action, String gameid, boolean joinstatus, String response){
+        super(action);
+        this.gameid = gameid;
+        this.joinstatus = joinstatus;
+        this.response = response;
+    }
+
     public void setGameid(String gameid) {
         this.gameid = gameid;
     }
