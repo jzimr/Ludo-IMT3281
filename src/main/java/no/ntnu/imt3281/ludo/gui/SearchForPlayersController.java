@@ -8,10 +8,9 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.geometry.Insets;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
@@ -67,11 +66,21 @@ public class SearchForPlayersController implements UsersListResponseListener {
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (item != null) {
-                    this.setText(item);
-                    this.setFont(Font.font(16));
+                    this.setText("");
+
+                    Label label = new Label();
+                    label.setText(item);
+                    label.setFont(Font.font(16));
+                    label.setPrefWidth(450.0);
 
                     // button next to each item in listview to invite players
                     Button button = new Button();
+                    button.setText("Invite");
+
+                    HBox hbox = new HBox();
+                    hbox.getChildren().addAll(label, button);
+                    hbox.setMargin(label, new Insets(0,0,0,30));
+                    hbox.setMargin(button, new Insets(2,0,2,0));
 
                     // in case where user has invited a maximum of 3 players or player has been invited already
                     if (areButtonsDisabled || playersInvited.contains(item)) {
@@ -85,7 +94,7 @@ public class SearchForPlayersController implements UsersListResponseListener {
                         }
                     });
 
-                    this.setGraphic(button);
+                    this.setGraphic(hbox);
                 }
             }
         });

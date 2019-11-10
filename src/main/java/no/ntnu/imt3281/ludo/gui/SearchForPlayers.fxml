@@ -12,33 +12,33 @@
 
 <AnchorPane prefHeight="722.0" prefWidth="1017.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="no.ntnu.imt3281.ludo.gui.SearchForPlayersController">
    <children>
-      <VBox alignment="CENTER" prefHeight="722.0" prefWidth="1017.0">
+      <VBox alignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+            <HBox alignment="CENTER" prefHeight="20.0" VBox.vgrow="ALWAYS">
                <children>
                   <TextField fx:id="searchTextField" alignment="CENTER" promptText="Search for People to Invite" HBox.hgrow="ALWAYS">
                      <HBox.margin>
-                        <Insets bottom="40.0" left="100.0" right="30.0" top="40.0" />
+                        <Insets left="100.0" right="30.0" />
                      </HBox.margin>
                      <font>
                         <Font size="16.0" />
                      </font>
                   </TextField>
-                  <Button fx:id="searchButton" mnemonicParsing="false" onAction="#searchPlayersButton" prefHeight="50.0" prefWidth="100.0" text="Search" HBox.hgrow="ALWAYS">
+                  <Button fx:id="searchButton" mnemonicParsing="false" onAction="#searchPlayersButton" prefHeight="40.0" prefWidth="100.0" text="Search" HBox.hgrow="ALWAYS">
                      <HBox.margin>
-                        <Insets bottom="40.0" right="100.0" top="40.0" />
+                        <Insets right="100.0" />
                      </HBox.margin>
                   </Button>
                </children>
             </HBox>
-            <ListView fx:id="playersListView" prefWidth="200.0" VBox.vgrow="ALWAYS">
+            <ListView fx:id="playersListView" VBox.vgrow="ALWAYS">
                <VBox.margin>
                   <Insets />
                </VBox.margin>
             </ListView>
-            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+            <HBox alignment="CENTER" prefHeight="20.0" VBox.vgrow="ALWAYS">
                <children>
-                  <Text fx:id="playersInvitedText" fill="#0f9721" strokeType="OUTSIDE" strokeWidth="0.0" text="Players Invited: 0/3" textAlignment="CENTER">
+                  <Text fx:id="playersInvitedText" fill="#0f9721" strokeType="OUTSIDE" strokeWidth="0.0" text="Players Invited: 0/3" textAlignment="CENTER" HBox.hgrow="ALWAYS">
                      <font>
                         <Font name="System Bold" size="16.0" />
                      </font>
@@ -46,7 +46,7 @@
                         <Insets right="60.0" />
                      </HBox.margin>
                   </Text>
-                  <Button fx:id="startButton" alignment="CENTER" contentDisplay="CENTER" disable="true" mnemonicParsing="false" onAction="#startGameButton" prefHeight="50.0" prefWidth="100.0" text="Start Lobby" />
+                  <Button fx:id="startButton" alignment="CENTER" contentDisplay="CENTER" disable="true" mnemonicParsing="false" onAction="#startGameButton" prefHeight="50.0" prefWidth="100.0" text="Start Lobby" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
          </children>
