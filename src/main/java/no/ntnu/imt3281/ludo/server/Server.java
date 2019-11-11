@@ -453,6 +453,21 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
+				case "PlayerWonGameResponse":{
+					PlayerWonGameResponse message = new PlayerWonGameResponse("PlayerWonGameResponse");
+					message.setPlayerwonid(((PlayerWonGameResponse)msg).getPlayerwonid());
+					message.setGameid(((PlayerWonGameResponse)msg).getGameid());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "PlayerStateChangeResponmse":{
+					PlayerStateChangeResponse message = new PlayerStateChangeResponse("PlayerStateChangeResponse");
+					message.setPlayerstate(((PlayerStateChangeResponse)msg).getPlayerstate());
+					message.setActiveplayerid(((PlayerStateChangeResponse)msg).getActiveplayerid());
+					message.setGameid(((PlayerStateChangeResponse)msg).getGameid());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
 
 				default: {
 					return "{\"ERROR\":\"something went wrong\"}";
@@ -1185,6 +1200,27 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	@Override
 	public void playerStateChanged(PlayerEvent event) {
+		Message retMsg;
+		Ludo game = event.getLudo();
+		if(event.getPlayerEvent().contentEquals("Won")){
+
+			retMsg = new PlayerWonGameResponse("PlayerWonGameResponse");
+			((PlayerWonGameResponse)retMsg).setPlayerwonid(event.getPlayerID());
+			((PlayerWonGameResponse)retMsg).setGameid(game.getGameid());
+
+		} else {
+			retMsg = new PlayerStateChangeResponse("PlayerStateChangeResponse");
+			((PlayerStateChangeResponse)retMsg).setGameid(game.getGameid());
+			((PlayerStateChangeResponse)retMsg).setActiveplayerid(event.getPlayerID());
+			((PlayerStateChangeResponse)retMsg).setPlayerstate(event.getPlayerEvent());
+		}
+
+		for (String name : game.getPlayers()){
+			retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+			synchronized (messagesToSend){
+				messagesToSend.add(retMsg);
+			}
+		}
 
 	}
 

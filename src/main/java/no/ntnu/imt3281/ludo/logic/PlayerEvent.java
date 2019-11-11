@@ -39,4 +39,15 @@ public class PlayerEvent {
         return false;
     }
 
+    public int getPlayerID() {
+        return playerID;
+    }
+
+    public Ludo getLudo() {
+        return ludo;
+    }
+
+    public String getPlayerEvent() {
+        return playerEvent;
+    }
 }
