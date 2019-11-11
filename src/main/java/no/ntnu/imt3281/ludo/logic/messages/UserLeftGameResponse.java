@@ -2,7 +2,7 @@ package no.ntnu.imt3281.ludo.logic.messages;
 
 public class UserLeftGameResponse extends Message{
 
-    String userid;
+    String displayname;
     String gameid;
 
     public UserLeftGameResponse(String action){super(action);}
@@ -15,11 +15,12 @@ public class UserLeftGameResponse extends Message{
         return gameid;
     }
 
-    public void setUserid(String userid) {
-        this.userid = userid;
+    public void setDisplayname(String displayname) {
+        this.displayname = displayname;
     }
 
-    public String getUserid() {
-        return userid;
+    public String getDisplayname() {
+        return displayname;
     }
+
 }

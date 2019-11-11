@@ -1118,12 +1118,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	private void UserLeftGame(UserLeftGame action){
 
 		UserLeftGameResponse retMsg = new UserLeftGameResponse("UserLeftGameResponse");
-		retMsg.setUserid(sessionIdToUserId(action.getRecipientSessionId()));
+		UserInfo info = db.getProfile(sessionIdToUserId(action.getRecipientSessionId()));
+		retMsg.setDisplayname(info.getDisplayName());
 		retMsg.setGameid(action.getGameid());
 
 		for (Ludo game : activeLudoGames) {
 			if (game.getGameid().contentEquals(action.getGameid())) {
-				UserInfo info = db.getProfile(retMsg.getUserid());
 				game.removePlayer(info.getDisplayName());
 				for(String name : game.getPlayers()){
 					retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
