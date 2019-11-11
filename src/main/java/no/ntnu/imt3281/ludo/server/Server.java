@@ -309,6 +309,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserWantsToCreateGame": UserWantsToCreateGame((UserWantsToCreateGame) action); break;
 			case "UserDoesGameInvitationAnswer": UserDoesGameInvitationAnswer((UserDoesGameInvitationAnswer) action); break;
 			case "UserLeftGame": UserLeftGame((UserLeftGame) action); break;
+			case "UserDoesPieceMove" : UserDoesPieceMove((UserDoesPieceMove) action); break;
 		}
 
 	}
@@ -439,6 +440,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					UserLeftGameResponse message = new UserLeftGameResponse("UserLeftGameResponse");
 					message.setGameid(((UserLeftGameResponse)msg).getGameid());
 					message.setUserid(((UserLeftGameResponse)msg).getUserid());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "PieceMovedResponse": {
+					PieceMovedResponse message = new PieceMovedResponse("PieceMovedResponse");
+					message.setPlayerid(((PieceMovedResponse)msg).getPlayerid());
+					message.setPiecemoved(((PieceMovedResponse)msg).getPiecemoved());
+					message.setMovedto(((PieceMovedResponse)msg).getMovedto());
+					message.setMovedfrom(((PieceMovedResponse)msg).getMovedfrom());
+					message.setGameid(((PieceMovedResponse)msg).getGameid());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -770,6 +781,14 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 	}
 
+	private void UserDoesPieceMove(UserDoesPieceMove action){
+		for (Ludo game : activeLudoGames) {
+			if (game.getGameid().contentEquals(action.getGameid())){
+				game.movePiece(action.getPlayerid(), action.getMovedfrom(), action.getMovedto());
+			}
+		}
+	}
+
 	/**
 	 * Converts session UUID to userid
 	 * @param sessionId
@@ -1016,6 +1035,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 		UserInfo info = db.getProfile(action.getHostid());
 		newGame.addPlayer(info.getDisplayName());
+		newGame.addDiceListener(this);
+		newGame.addPieceListener(this);
+		newGame.addPlayerListener(this);
 		activeLudoGames.add(newGame);
 
 		((CreateGameResponse)retMsg).setJoinstatus(true);
@@ -1139,6 +1161,22 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	@Override
 	public void pieceMoved(PieceEvent pieceEvent) {
+		Message retMsg = new PieceMovedResponse("PieceMovedResponse");
+		Ludo game = pieceEvent.getLudoGame();
+
+		((PieceMovedResponse)retMsg).setGameid(game.getGameid());
+		((PieceMovedResponse)retMsg).setMovedfrom(pieceEvent.getFrom());
+		((PieceMovedResponse)retMsg).setMovedto(pieceEvent.getTo());
+		((PieceMovedResponse)retMsg).setPiecemoved(pieceEvent.getPieceMoved());
+		((PieceMovedResponse)retMsg).setPlayerid(pieceEvent.getPlayerID());
+
+		for (String name : game.getPlayers()){
+			retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+			synchronized (messagesToSend){
+				messagesToSend.add(retMsg);
+			}
+		}
+
 	}
 
 	/**
