@@ -297,7 +297,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	private void handleAction(Message action){
 		switch (action.getAction()) {
-			case "UserDoesDiceThrow": UserDoesDiceThrow(action);break;
+			case "UserDoesDiceThrow": UserDoesDiceThrow((UserDoesDiceThrow) action);break;
 			case "UserDoesLoginManual": UserDoesLoginManual((ClientLogin) action);break;
 			case "UserDoesLoginAuto": UserDoesLoginAuto((ClientLogin) action); break;
 			case "UserDoesRegister": UserDoesRegister((ClientRegister) action); break;
@@ -343,11 +343,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
-				case "ServerThrowDice" : {
-					//TODO : Not done.
-					ServerThrowDice ret;
-					ret = mapper.readValue(msgJson, ServerThrowDice.class);
-					String retString = mapper.writeValueAsString(ret);
+				case "DiceThrowResponse" : {
+					DiceThrowResponse message = new DiceThrowResponse("DiceThrowResponse");
+					message.setDicerolled(((DiceThrowResponse)msg).getDicerolled());
+					message.setGameid(((DiceThrowResponse)msg).getGameid());
+					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
 				case "UserHasConnectedResponse" : {
@@ -762,16 +762,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
-	private void UserDoesDiceThrow(Message action){
-	        /*int i = 0; //Loop variable
-
-            while (i <= activeLudoGames.size() && i != action.getLudoId()) {
-                i++;
-            }
-	        Ludo selectedGame = activeLudoGames.get(i);
-			 //ludo logic
-            selectedGame.throwDice(); //Event will be called.
-			*/
+	private void UserDoesDiceThrow(UserDoesDiceThrow action){
+		for(Ludo game : activeLudoGames) {
+			if (game.getGameid().contentEquals(action.getGameid())) {
+				game.throwDice();
+			}
+		}
 	}
 
 	/**
@@ -1121,26 +1117,19 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	@Override
 	public void diceThrown(DiceEvent diceEvent) {
-		/*
-	    //All player ids that we want to return information to.
-	    int playerIds[] = new int[4];
+		Message retMsg = new DiceThrowResponse("DiceThrowResponse");
+		Ludo game = diceEvent.getLudoGame();
 
-	    for(int i = 0; i < 4; i++) {
-            JsonMessage retMsg = new JsonMessage();
+		((DiceThrowResponse)retMsg).setGameid(game.getGameid());
+		((DiceThrowResponse)retMsg).setDicerolled(diceEvent.getDiceRolled());
 
-            // Do Stuff
-            retMsg.setAction(JsonMessage.Actions.ServerThrowDice);
-            retMsg.setRecipientPlayerid(playerIds[i]);
-            retMsg.setPlayerId(diceEvent.getPlayerID());
-            retMsg.setLudoId(0); //TODO: This has to be found somehow.
-            retMsg.setDiceRolled(diceEvent.getDiceRolled());
+		for (String name : game.getPlayers()){
+			retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+			synchronized (messagesToSend){
+				messagesToSend.add(retMsg);
+			}
+		}
 
-            synchronized (messagesToSend){
-                messagesToSend.add(retMsg);
-            }
-        }
-
-	    */
 
 	}
 

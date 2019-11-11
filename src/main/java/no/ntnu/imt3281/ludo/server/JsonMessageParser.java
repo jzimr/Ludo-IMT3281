@@ -86,6 +86,11 @@ public class JsonMessageParser {
                     msg.setRecipientSessionId(sessionid);
                     return msg;
                 }
+                case "UserDoesDiceThrow":{
+                    msg = new UserDoesDiceThrow(action.get("action").asText(), action.get("playerid").asInt(), action.get("gameid").asText());
+                    msg.setRecipientSessionId(sessionid);
+                    return msg;
+                }
                 default: {
                     System.out.println("Unhandled incoming json: " + json);
                     break;
