@@ -439,7 +439,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				case "UserLeftGameResponse":{
 					UserLeftGameResponse message = new UserLeftGameResponse("UserLeftGameResponse");
 					message.setGameid(((UserLeftGameResponse)msg).getGameid());
-					message.setUserid(((UserLeftGameResponse)msg).getUserid());
+					message.setDisplayname(((UserLeftGameResponse)msg).getDisplayname());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
