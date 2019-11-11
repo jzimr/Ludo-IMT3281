@@ -269,7 +269,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 			}
 
-
 	}
 
 	/**
@@ -309,6 +308,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
             case "UserWantsUsersList": UserWantsUsersList((UserWantsUsersList) action); break;
 			case "UserWantsToCreateGame": UserWantsToCreateGame((UserWantsToCreateGame) action); break;
 			case "UserDoesGameInvitationAnswer": UserDoesGameInvitationAnswer((UserDoesGameInvitationAnswer) action); break;
+			case "UserLeftGame": UserLeftGame((UserLeftGame) action); break;
 		}
 
 	}
@@ -432,6 +432,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					UserDeclinedGameInvitationResponse message = new UserDeclinedGameInvitationResponse("UserDeclinedGameInvitationResponse");
 					message.setUserid(((UserDeclinedGameInvitationResponse)msg).getUserid());
 					message.setGameid(((UserDeclinedGameInvitationResponse)msg).getGameid());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "UserLeftGameResponse":{
+					UserLeftGameResponse message = new UserLeftGameResponse("UserLeftGameResponse");
+					message.setGameid(((UserLeftGameResponse)msg).getGameid());
+					message.setUserid(((UserLeftGameResponse)msg).getUserid());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -1090,6 +1097,23 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	private void UserLeftGame(UserLeftGame action){
+
+		UserLeftGameResponse retMsg = new UserLeftGameResponse("UserLeftGameResponse");
+		retMsg.setUserid(sessionIdToUserId(action.getRecipientSessionId()));
+		retMsg.setGameid(action.getGameid());
+
+		for (Ludo game : activeLudoGames) {
+			if (game.getGameid().contentEquals(action.getGameid())) {
+				UserInfo info = db.getProfile(retMsg.getUserid());
+				game.removePlayer(info.getDisplayName());
+				for(String name : game.getPlayers()){
+					retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+					messagesToSend.add(retMsg);
+				}
+			}
+		}
+	}
 
 	/**
 	 * Implemented interface DiceListener
