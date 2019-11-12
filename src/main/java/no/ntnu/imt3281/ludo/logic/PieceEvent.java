@@ -26,6 +26,26 @@ public class PieceEvent {
         this.to = to;
     }
 
+    public Ludo getLudoGame() {
+        return ludoGame;
+    }
+
+    public int getPlayerID() {
+        return playerID;
+    }
+
+    public int getPieceMoved() {
+        return pieceMoved;
+    }
+
+    public int getFrom() {
+        return from;
+    }
+
+    public int getTo() {
+        return to;
+    }
+
     @Override
     public boolean equals(Object obj) {
         // if we are comparing object to itself

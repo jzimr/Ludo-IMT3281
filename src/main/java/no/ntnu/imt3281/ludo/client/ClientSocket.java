@@ -38,6 +38,7 @@ public class ClientSocket {
     CreateGameResponseListener createGameResponseListener = null;
     SendGameInvitationsResponseListener sendGameInvitationsResponseListener = null;
     UserJoinedGameResponseListener userJoinedGameResponseListener = null;
+    ArrayBlockingQueue<UserLeftGameResponseListener> userLeftGameResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
 
     /**
      * Create a connection from client to server
@@ -144,7 +145,7 @@ public class ClientSocket {
      *
      * @param jsonMessage json message received from server
      */
-    private void handleMessagesFromServer(String jsonMessage) {
+    public void handleMessagesFromServer(String jsonMessage) {      // todo change public to private
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
@@ -231,6 +232,9 @@ public class ClientSocket {
                             jsonNode.get("gameid").asText(), lobbyList);
                     userJoinedGameResponseListener.userJoinedGameResponseEvent(message9);
                     break;
+                case "UserLeftGameResponse":
+                    // todo
+                    break;
 
 
                 default:
@@ -297,5 +301,13 @@ public class ClientSocket {
 
     public void addUserJoinedGameResponseListener(UserJoinedGameResponseListener listener){
         userJoinedGameResponseListener = listener;
+    }
+
+    public void addUserLeftGameResponseListener(UserLeftGameResponseListener listener){
+        userLeftGameResponseListeners.add(listener);
+    }
+
+    public void removeUserLeftGameResponseListener(UserLeftGameResponseListener listener){
+        userLeftGameResponseListeners.remove(listener);
     }
 }

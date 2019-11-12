@@ -31,6 +31,8 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     private MenuItem joinRoom;
     @FXML
     private MenuItem challengeButton;
+    @FXML
+    private MenuItem about;
 
     @FXML
     private TabPane tabbedPane;
@@ -147,6 +149,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         GameBoardController controller = loader.getController();
         controller.setup(clientSocket, gameId);
         controller.setPlayers(players);
+        gameTab.setOnClosed(controller.onTabClose);     // set method for when user closes tab
 
         // add to hashmap
         gameBoardControllers.put(gameId, controller);
@@ -262,6 +265,13 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         // notify server that we want to get the list of available chatrooms
         clientSocket.sendMessageToServer(new UserListChatrooms("UserListChatrooms"));
     }
+
+    @FXML
+    public void aboutHelp(ActionEvent e) {
+        // temporary for testing
+
+    }
+
 
 
     /**

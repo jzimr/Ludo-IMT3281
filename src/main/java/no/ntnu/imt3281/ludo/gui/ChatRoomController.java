@@ -123,10 +123,10 @@ public class ChatRoomController implements SentMessageResponseListener {
     public EventHandler<Event> onTabClose = new EventHandler<Event>() {
         @Override
         public void handle(Event arg0) {
-            // disconnect user from chat room
-            clientSocket.sendMessageToServer(new UserLeftChatRoom("UserLeftChatRoom", clientSocket.getUserId(), chatRoomName));
             // remove this listener from clientsocket
             clientSocket.removeSentMessageResponseListener(ChatRoomController.this);
+            // disconnect user from chat room
+            clientSocket.sendMessageToServer(new UserLeftChatRoom("UserLeftChatRoom", clientSocket.getUserId(), chatRoomName));
         }
     };
 }
