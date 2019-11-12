@@ -1185,9 +1185,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			if (game.getGameid().contentEquals(action.getGameid())) {
 				game.removePlayer(info.getDisplayName());
 				for(String name : game.getPlayers()){
-					retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
-					synchronized (messagesToSend){
-						messagesToSend.add(retMsg);
+					if (!name.contentEquals(info.getDisplayName())){
+						retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+						System.out.println(name);
+						synchronized (messagesToSend){
+							messagesToSend.add(retMsg);
+						}
 					}
 				}
 			}
