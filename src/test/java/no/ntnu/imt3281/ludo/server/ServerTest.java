@@ -48,6 +48,7 @@ public class ServerTest {
     public static void setupServerAndClient() throws IOException {
         System.out.println("Wiping DB... Staring server... Starting connections...");
         //Wipe db and setup server.
+
         try {
             Connection testConnection = DriverManager.getConnection("jdbc:derby:./ludoTestDB");
             Statement statement = testConnection.createStatement();
@@ -230,14 +231,18 @@ public class ServerTest {
 
         gotMessage = br_client_1.readLine();
         System.out.println("Got Message Client1 : " + gotMessage); //Mainly for debugging purposes
-        assertTrue(gotMessage.contains("\"playersinlobby\":[\"test\",\"test2\",null,null]}"));
+        assertTrue(gotMessage.contains("\"playersinlobby\":[\"test\",\"test2\"]}"));
 
         gotMessage = br_client_2.readLine();
         System.out.println("Got Message Client 2: " + gotMessage); //Mainly for debugging purposes
-        assertTrue(gotMessage.contains("\"playersinlobby\":[\"test\",\"test2\",null,null]}"));
+        assertTrue(gotMessage.contains("\"playersinlobby\":[\"test\",\"test2\"]}"));
 
         gotMessage = br_client_2.readLine();
         System.out.println("Got Message Client 2: " + gotMessage); //Mainly for debugging purposes
+        gotMessage = br_client_2.readLine();
+        System.out.println("Got Message Client 2: " + gotMessage); //Mainly for debugging purposes
+        assertTrue(gotMessage.contains("{\"action\":\"GameHasStartedResponse\",\"gameid\":"));
+
 
     }
 
