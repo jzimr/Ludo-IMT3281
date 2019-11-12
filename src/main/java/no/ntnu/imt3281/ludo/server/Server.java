@@ -309,6 +309,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserWantsToCreateGame": UserWantsToCreateGame((UserWantsToCreateGame) action); break;
 			case "UserDoesGameInvitationAnswer": UserDoesGameInvitationAnswer((UserDoesGameInvitationAnswer) action); break;
 			case "UserLeftGame": UserLeftGame((UserLeftGame) action); break;
+			case "UserDoesPieceMove" : UserDoesPieceMove((UserDoesPieceMove) action); break;
 		}
 
 	}
@@ -438,7 +439,32 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				case "UserLeftGameResponse":{
 					UserLeftGameResponse message = new UserLeftGameResponse("UserLeftGameResponse");
 					message.setGameid(((UserLeftGameResponse)msg).getGameid());
-					message.setUserid(((UserLeftGameResponse)msg).getUserid());
+					message.setDisplayname(((UserLeftGameResponse)msg).getDisplayname());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "PieceMovedResponse": {
+					PieceMovedResponse message = new PieceMovedResponse("PieceMovedResponse");
+					message.setPlayerid(((PieceMovedResponse)msg).getPlayerid());
+					message.setPiecemoved(((PieceMovedResponse)msg).getPiecemoved());
+					message.setMovedto(((PieceMovedResponse)msg).getMovedto());
+					message.setMovedfrom(((PieceMovedResponse)msg).getMovedfrom());
+					message.setGameid(((PieceMovedResponse)msg).getGameid());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "PlayerWonGameResponse":{
+					PlayerWonGameResponse message = new PlayerWonGameResponse("PlayerWonGameResponse");
+					message.setPlayerwonid(((PlayerWonGameResponse)msg).getPlayerwonid());
+					message.setGameid(((PlayerWonGameResponse)msg).getGameid());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "PlayerStateChangeResponmse":{
+					PlayerStateChangeResponse message = new PlayerStateChangeResponse("PlayerStateChangeResponse");
+					message.setPlayerstate(((PlayerStateChangeResponse)msg).getPlayerstate());
+					message.setActiveplayerid(((PlayerStateChangeResponse)msg).getActiveplayerid());
+					message.setGameid(((PlayerStateChangeResponse)msg).getGameid());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -770,6 +796,14 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 	}
 
+	private void UserDoesPieceMove(UserDoesPieceMove action){
+		for (Ludo game : activeLudoGames) {
+			if (game.getGameid().contentEquals(action.getGameid())){
+				game.movePiece(action.getPlayerid(), action.getMovedfrom(), action.getMovedto());
+			}
+		}
+	}
+
 	/**
 	 * Converts session UUID to userid
 	 * @param sessionId
@@ -1016,6 +1050,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 		UserInfo info = db.getProfile(action.getHostid());
 		newGame.addPlayer(info.getDisplayName());
+		newGame.addDiceListener(this);
+		newGame.addPieceListener(this);
+		newGame.addPlayerListener(this);
 		activeLudoGames.add(newGame);
 
 		((CreateGameResponse)retMsg).setJoinstatus(true);
@@ -1096,12 +1133,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	private void UserLeftGame(UserLeftGame action){
 
 		UserLeftGameResponse retMsg = new UserLeftGameResponse("UserLeftGameResponse");
-		retMsg.setUserid(sessionIdToUserId(action.getRecipientSessionId()));
+		UserInfo info = db.getProfile(sessionIdToUserId(action.getRecipientSessionId()));
+		retMsg.setDisplayname(info.getDisplayName());
 		retMsg.setGameid(action.getGameid());
 
 		for (Ludo game : activeLudoGames) {
 			if (game.getGameid().contentEquals(action.getGameid())) {
-				UserInfo info = db.getProfile(retMsg.getUserid());
 				game.removePlayer(info.getDisplayName());
 				for(String name : game.getPlayers()){
 					retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
@@ -1139,6 +1176,22 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	@Override
 	public void pieceMoved(PieceEvent pieceEvent) {
+		Message retMsg = new PieceMovedResponse("PieceMovedResponse");
+		Ludo game = pieceEvent.getLudoGame();
+
+		((PieceMovedResponse)retMsg).setGameid(game.getGameid());
+		((PieceMovedResponse)retMsg).setMovedfrom(pieceEvent.getFrom());
+		((PieceMovedResponse)retMsg).setMovedto(pieceEvent.getTo());
+		((PieceMovedResponse)retMsg).setPiecemoved(pieceEvent.getPieceMoved());
+		((PieceMovedResponse)retMsg).setPlayerid(pieceEvent.getPlayerID());
+
+		for (String name : game.getPlayers()){
+			retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+			synchronized (messagesToSend){
+				messagesToSend.add(retMsg);
+			}
+		}
+
 	}
 
 	/**
@@ -1147,6 +1200,27 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	@Override
 	public void playerStateChanged(PlayerEvent event) {
+		Message retMsg;
+		Ludo game = event.getLudo();
+		if(event.getPlayerEvent().contentEquals("Won")){
+
+			retMsg = new PlayerWonGameResponse("PlayerWonGameResponse");
+			((PlayerWonGameResponse)retMsg).setPlayerwonid(event.getPlayerID());
+			((PlayerWonGameResponse)retMsg).setGameid(game.getGameid());
+
+		} else {
+			retMsg = new PlayerStateChangeResponse("PlayerStateChangeResponse");
+			((PlayerStateChangeResponse)retMsg).setGameid(game.getGameid());
+			((PlayerStateChangeResponse)retMsg).setActiveplayerid(event.getPlayerID());
+			((PlayerStateChangeResponse)retMsg).setPlayerstate(event.getPlayerEvent());
+		}
+
+		for (String name : game.getPlayers()){
+			retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+			synchronized (messagesToSend){
+				messagesToSend.add(retMsg);
+			}
+		}
 
 	}
 
