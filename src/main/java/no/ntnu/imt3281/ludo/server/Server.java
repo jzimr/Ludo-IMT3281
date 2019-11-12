@@ -171,10 +171,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					Iterator<Client> iterator = clients.iterator();
 					while (iterator.hasNext()) {
 						Client c = iterator.next();
-						System.out.println("msg rescip " + msg.getRecipientSessionId());
 						if (c.getUuid() != null && msg.getRecipientSessionId().contentEquals(c.getUuid())) {
 							try {
-								System.out.println("lolsub: "+msg.getRecipientSessionId());
 								String converted = convertToCorrectJson(msg);
 								System.out.println(converted);
 								c.send(converted);
@@ -462,7 +460,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
-				case "PlayerStateChangeResponmse":{
+				case "PlayerStateChangeResponse":{
 					PlayerStateChangeResponse message = new PlayerStateChangeResponse("PlayerStateChangeResponse");
 					message.setPlayerstate(((PlayerStateChangeResponse)msg).getPlayerstate());
 					message.setActiveplayerid(((PlayerStateChangeResponse)msg).getActiveplayerid());
@@ -478,6 +476,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				}
 
 				default: {
+					System.out.println(msg);
 					return "{\"ERROR\":\"something went wrong\"}";
 				}
 			}
@@ -1182,7 +1181,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				game.removePlayer(info.getDisplayName());
 				for(String name : game.getPlayers()){
 					retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
-					messagesToSend.add(retMsg);
+					synchronized (messagesToSend){
+						messagesToSend.add(retMsg);
+					}
 				}
 			}
 		}
@@ -1231,7 +1232,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			((CreateGameResponse)retMsg).setJoinstatus(true);
 			((CreateGameResponse)retMsg).setResponse("Joined game successfully");
 			((CreateGameResponse)retMsg).setGameid(newGame.getGameid());
-
 			synchronized (messagesToSend) {
 				messagesToSend.add(retMsg);
 			}
