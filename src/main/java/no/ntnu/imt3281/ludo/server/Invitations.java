@@ -5,35 +5,25 @@ public class Invitations {
     private String gameid;
     private String[] players;
     private Boolean[] accepted;
-    private int answered = 0;
 
     public Invitations(){}
 
     public void setOneAccepted(int id) {
         accepted[id] = true;
-        answered++;
     }
 
-    public void setOneDecliend(int id) {
-        accepted[id] = false;
-        answered++;
-    }
-
-    public void setOnePlayer(String name, int id){
-        players[id] = name;
-    }
 
     public void setAccepted(Boolean[] accepted) {
         this.accepted = accepted;
+        for (int i = 1; i < accepted.length; i++){
+            accepted[i] = false;
+        }
     }
 
     public void setPlayers(String[] players) {
         this.players = players;
     }
 
-    public Boolean[] getAccepted() {
-        return accepted;
-    }
 
     public String[] getPlayers() {
         return players;
@@ -49,15 +39,22 @@ public class Invitations {
 
     public void setOneUpdate(String displayname, boolean pAccepted){
         for (int i = 0; i < players.length; i++) {
+            System.out.println(players[i] + " " + displayname);
             if (players[i].contentEquals(displayname)){
                 accepted[i] = pAccepted;
-                answered++;
             }
         }
     }
 
     public boolean isEveryoneAccepted(){
-        return answered == players.length;
+        int countTrue = 0;
+        for (int i = 0; i < accepted.length; i++) {
+            if (accepted[i]) {
+                countTrue++;
+            }
+        }
+        System.out.println(countTrue);
+        return countTrue == accepted.length;
     }
 
     public boolean getOnePlayerAccepted(int id){return accepted[id];}

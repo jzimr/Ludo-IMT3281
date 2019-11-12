@@ -1078,8 +1078,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 
 		Invitations invites = new Invitations();
-		invites.setPlayers(action.getToinvitedisplaynames());
-		invites.setAccepted(new Boolean[action.getToinvitedisplaynames().length]);
+
+		String[] arr = new String[action.getToinvitedisplaynames().length +1];
+		arr[0] = info.getDisplayName();
+		for (int i = 1; i < arr.length; i++) {
+			arr[i] = action.getToinvitedisplaynames()[i-1];
+		}
+
+		invites.setPlayers(arr);
+		invites.setAccepted(new Boolean[action.getToinvitedisplaynames().length + 1]);
+		invites.setOneAccepted(0);
 		invites.setGameid(newGame.getGameid());
 		pendingInvites.add(invites);
 
@@ -1127,6 +1135,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				}
 			}
 
+			for (Invitations invite : pendingInvites) {
+				if (invite.getGameid().contentEquals(action.getGameid())){
+					UserInfo info = db.getProfile(action.getUserid());
+					invite.setOneUpdate(info.getDisplayName(),true);
+				}
+			}
+
 		} else { //User declined. Send message to inviter. Which is host of game (?)
 			String hostId = null;
 			for(Ludo game : activeLudoGames) {
@@ -1141,6 +1156,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 			synchronized (messagesToSend){
 				messagesToSend.add(retMsg);
+			}
+
+			for (Invitations invite : pendingInvites) {
+				if (invite.getGameid().contentEquals(action.getGameid())){
+					UserInfo info = db.getProfile(action.getUserid());
+					invite.setOneUpdate(info.getDisplayName(),false);
+				}
 			}
 
 		}
