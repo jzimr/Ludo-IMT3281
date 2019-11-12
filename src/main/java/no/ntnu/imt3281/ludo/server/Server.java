@@ -23,8 +23,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	final private int SERVER_PORT = 4567; //Server Port
 	Database db; //Database
 
-	ArrayList<Ludo> activeLudoGames = new ArrayList<>(); //ArrayList over active games.
-	ArrayList<ChatRoom> activeChatRooms = new ArrayList<>(); //ArrayList over chat rooms.
+	ArrayList<Ludo> activeLudoGames = new ArrayList<>(); //ArrayList of active games.
+	ArrayList<ChatRoom> activeChatRooms = new ArrayList<>(); //ArrayList of chat rooms.
+	ArrayList<Invitations> pendingInvites = new ArrayList<>(); //ArrayList of pending invites.
 
 	LinkedList<Client> clients = new LinkedList<>(); //LinkedList containing clients
 
@@ -465,6 +466,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setPlayerstate(((PlayerStateChangeResponse)msg).getPlayerstate());
 					message.setActiveplayerid(((PlayerStateChangeResponse)msg).getActiveplayerid());
 					message.setGameid(((PlayerStateChangeResponse)msg).getGameid());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "GameHasStartedResponse":{
+					GameHasStartedResponse message = new GameHasStartedResponse("GameHasStartedResponse");
+					message.setGameid(((GameHasStartedResponse)msg).getGameid());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -1065,6 +1072,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			messagesToSend.add(retMsg);
 		}
 
+		Invitations invites = new Invitations();
+		invites.setPlayers(action.getToinvitedisplaynames());
+		invites.setAccepted(new Boolean[action.getToinvitedisplaynames().length]);
+		invites.setGameid(newGame.getGameid());
+		pendingInvites.add(invites);
+
 		//Send out invitations here:
 		for (int i = 0; i < action.getToinvitedisplaynames().length; i++) {
 			SendGameInvitationsResponse invite = new SendGameInvitationsResponse("SendGameInvitationsResponse");
@@ -1116,7 +1129,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					hostId = game.getHostid();
 				}
 			}
-
 			retMsg = new UserDeclinedGameInvitationResponse("UserDeclinedGameInvitationResponse");
 			retMsg.setRecipientSessionId(useridToSessionId(hostId));
 			((UserDeclinedGameInvitationResponse)retMsg).setGameid(action.getGameid());
@@ -1126,6 +1138,33 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				messagesToSend.add(retMsg);
 			}
 
+		}
+
+		for (Invitations invite : pendingInvites) {
+			if (invite.getGameid().contentEquals(action.getGameid())){
+				UserInfo info = db.getProfile(action.getUserid());
+				invite.setOneUpdate(info.getDisplayName(), action.isAccepted());
+
+				if (invite.isEveryoneAccepted()){
+					Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
+					((GameHasStartedResponse)gameStarted).setGameid(invite.getGameid());
+
+					for (int i = 0; i < invite.getPlayers().length; i++){
+						if (invite.getOnePlayerAccepted(i)){
+
+							String userid = db.getUserId(invite.getOnePlayerName(i));
+							gameStarted.setRecipientSessionId(useridToSessionId(userid));
+
+							synchronized (messagesToSend){
+								messagesToSend.add(gameStarted);
+							}
+
+						}
+					}
+					//pendingInvites.remove(invite);
+				}
+
+			}
 		}
 
 	}
