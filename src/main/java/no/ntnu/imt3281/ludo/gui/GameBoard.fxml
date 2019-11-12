@@ -274,7 +274,7 @@
                                  </image>
                               </ImageView>
                               <Pane prefHeight="50.0" prefWidth="31.0" />
-                              <Button fx:id="throwTheDice" mnemonicParsing="false" prefHeight="50.0" prefWidth="172.0" text="%ludogameboard.throwDiceButton">
+                              <Button fx:id="throwTheDice" mnemonicParsing="false" onAction="#throwDiceButton" prefHeight="50.0" prefWidth="172.0" text="%ludogameboard.throwDiceButton">
                                  <font>
                                     <Font name="System Bold" size="13.0" />
                                  </font>

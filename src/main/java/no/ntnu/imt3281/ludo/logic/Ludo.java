@@ -210,7 +210,6 @@ public class Ludo {
 
         //Skip that players turn
         nextPlayerTurn();
-
     }
 
     /**

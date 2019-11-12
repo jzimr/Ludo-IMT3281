@@ -6,6 +6,11 @@ public class GameHasStartedResponse extends Message {
 
     public GameHasStartedResponse(String action){super(action);}
 
+    public GameHasStartedResponse(String action, String gameid){
+        super(action);
+        this.gameid = gameid;
+    }
+
     public String getGameid() {
         return gameid;
     }

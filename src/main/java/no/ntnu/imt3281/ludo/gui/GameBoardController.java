@@ -1,6 +1,7 @@
 package no.ntnu.imt3281.ludo.gui;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -14,12 +15,14 @@ import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.GameHasStartedResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.UserLeftGameResponseListener;
 import no.ntnu.imt3281.ludo.logic.*;
+import no.ntnu.imt3281.ludo.logic.messages.GameHasStartedResponse;
 import no.ntnu.imt3281.ludo.logic.messages.UserLeftGame;
 import no.ntnu.imt3281.ludo.logic.messages.UserLeftGameResponse;
 
 import java.util.Arrays;
 
-public class GameBoardController implements UserLeftGameResponseListener, DiceListener, PieceListener, PlayerListener {
+public class GameBoardController implements UserLeftGameResponseListener, GameHasStartedResponseListener,
+        DiceListener, PieceListener, PlayerListener {
 
     @FXML
     private GridPane homeGrid;
@@ -133,6 +136,7 @@ public class GameBoardController implements UserLeftGameResponseListener, DiceLi
 
         // add listeners
         clientSocket.addUserLeftGameResponseListener(this);
+        clientSocket.addGameHasStartedResponseListener(this);
     }
 
     /**
@@ -145,6 +149,7 @@ public class GameBoardController implements UserLeftGameResponseListener, DiceLi
         for (int i = this.players.length; i < players.length; i++) {
             ludoGame.addPlayer(players[i]);
         }
+
 
         // update our list here
         this.players = players;
@@ -168,9 +173,20 @@ public class GameBoardController implements UserLeftGameResponseListener, DiceLi
         });
     }
 
+    /**
+     * When user clicks button to throw dice
+     * @param event
+     */
+    @FXML
+    void throwDiceButton(ActionEvent event) {
+        // send message to server that we want to throw dice
+        // todo
+    }
+
 
     @Override
     public void userLeftGameResponseEvent(UserLeftGameResponse response) {
+        // remove from ludo logic
         ludoGame.removePlayer(response.getDisplayname());
 
         // todo handle chat as well
@@ -194,6 +210,12 @@ public class GameBoardController implements UserLeftGameResponseListener, DiceLi
         });
     }
 
+    @Override
+    public void gameHasStartedResponseEvent(GameHasStartedResponse response) {
+        // enable button for the user whose turn it is
+        // todo
+    }
+
     /**
      * Compare gameId in this object with gameId in parameter
      *
@@ -201,7 +223,7 @@ public class GameBoardController implements UserLeftGameResponseListener, DiceLi
      * @return if are equal or not
      */
     @Override
-    public boolean equals(String gameId) {
+    public boolean equalsGameId(String gameId) {
         return this.gameId.equals(gameId);
     }
 
@@ -212,8 +234,10 @@ public class GameBoardController implements UserLeftGameResponseListener, DiceLi
     public EventHandler<Event> onTabClose = new EventHandler<Event>() {
         @Override
         public void handle(Event arg0) {
-            // remove this listener from clientsocket
+            // remove listeners from clientsocket
             clientSocket.removeUserLeftGameResponseListener(GameBoardController.this);
+            clientSocket.removeGameHasStartedResponseListener(GameBoardController.this);
+
             // disconnect user from the game
             clientSocket.sendMessageToServer(new UserLeftGame("UserLeftGame", gameId));
             // todo disconnect from the chat as well

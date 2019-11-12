@@ -40,6 +40,7 @@ public class ClientSocket {
     SendGameInvitationsResponseListener sendGameInvitationsResponseListener = null;
     UserJoinedGameResponseListener userJoinedGameResponseListener = null;
     ArrayBlockingQueue<UserLeftGameResponseListener> userLeftGameResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
+    ArrayBlockingQueue<GameHasStartedResponseListener> gameHasStartedResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
 
     /**
      * Create a connection from client to server
@@ -236,9 +237,17 @@ public class ClientSocket {
 
                     // send the message to the correct listener
                     UserLeftGameResponseListener listener2 = userLeftGameResponseListeners.stream()
-                            .filter(l -> l != null && l.equals(message10.getGameid())).findFirst().orElse(null);
+                            .filter(l -> l != null && l.equalsGameId(message10.getGameid())).findFirst().orElse(null);
                     if(listener2 != null) listener2.userLeftGameResponseEvent(message10);
                     break;
+                case "GameHasStartedResponse":
+                    GameHasStartedResponse message11 = new GameHasStartedResponse(action, jsonNode.get("gameid").asText());
+
+                    // send the message to the correct listener
+                    GameHasStartedResponseListener listener3 = gameHasStartedResponseListeners.stream()
+                            .filter(l -> l != null && l.equalsGameId(message11.getGameid())).findFirst().orElse(null);
+                    if(listener3 != null) listener3.gameHasStartedResponseEvent(message11);
+
 
 
                 default:
@@ -313,5 +322,13 @@ public class ClientSocket {
 
     public void removeUserLeftGameResponseListener(UserLeftGameResponseListener listener){
         userLeftGameResponseListeners.remove(listener);
+    }
+
+    public void addGameHasStartedResponseListener(GameHasStartedResponseListener listener){
+        gameHasStartedResponseListeners.add(listener);
+    }
+
+    public void removeGameHasStartedResponseListener(GameHasStartedResponseListener listener){
+        gameHasStartedResponseListeners.remove(listener);
     }
 }
