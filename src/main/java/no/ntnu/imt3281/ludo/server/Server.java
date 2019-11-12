@@ -311,6 +311,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserDoesGameInvitationAnswer": UserDoesGameInvitationAnswer((UserDoesGameInvitationAnswer) action); break;
 			case "UserLeftGame": UserLeftGame((UserLeftGame) action); break;
 			case "UserDoesPieceMove" : UserDoesPieceMove((UserDoesPieceMove) action); break;
+			case "UserDoesRandomGameSearch":UserDoesRandomGameSearch((UserDoesRandomGameSearch) action);break;
 		}
 
 	}
@@ -1187,6 +1188,57 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 	}
 
+	private void UserDoesRandomGameSearch(UserDoesRandomGameSearch action){
+		UserInfo info = db.getProfile(action.getUserid());
+
+		boolean foundGame = false;
+
+		for (Ludo game : activeLudoGames) {
+			if (game.getStatus().contentEquals("Created")){
+				foundGame = true;
+				game.addPlayer(info.getDisplayName());
+
+				Message retMsg = new UserJoinedGameResponse("UserJoinedGameResponse");
+				((UserJoinedGameResponse)retMsg).setGameid(game.getGameid());
+				((UserJoinedGameResponse)retMsg).setUserid(action.getUserid());
+				((UserJoinedGameResponse)retMsg).setPlayersinlobby(game.getPlayers());
+
+				for (String name : game.getPlayers()) {
+					String userid = db.getUserId(name);
+					retMsg.setRecipientSessionId(useridToSessionId(userid));
+					synchronized (messagesToSend){
+						messagesToSend.add(retMsg);
+					}
+				}
+
+			}
+		}
+
+		if (!foundGame) {
+			Message retMsg = new CreateGameResponse("CreateGameResponse");
+			retMsg.setRecipientSessionId(action.recipientSessionId);
+
+			Ludo newGame = new Ludo();
+			newGame.setHostid(sessionIdToUserId(action.getRecipientSessionId()));
+			newGame.setGameid(UUID.randomUUID().toString());
+
+			newGame.addPlayer(info.getDisplayName());
+			newGame.addDiceListener(this);
+			newGame.addPieceListener(this);
+			newGame.addPlayerListener(this);
+			activeLudoGames.add(newGame);
+
+			((CreateGameResponse)retMsg).setJoinstatus(true);
+			((CreateGameResponse)retMsg).setResponse("Joined game successfully");
+			((CreateGameResponse)retMsg).setGameid(newGame.getGameid());
+
+			synchronized (messagesToSend) {
+				messagesToSend.add(retMsg);
+			}
+		}
+
+	}
+
 	/**
 	 * Implemented interface DiceListener
 	 * @param diceEvent returns data about dice rolled
@@ -1246,6 +1298,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			retMsg = new PlayerWonGameResponse("PlayerWonGameResponse");
 			((PlayerWonGameResponse)retMsg).setPlayerwonid(event.getPlayerID());
 			((PlayerWonGameResponse)retMsg).setGameid(game.getGameid());
+			// TODO : Update DB with winner.
 
 		} else {
 			retMsg = new PlayerStateChangeResponse("PlayerStateChangeResponse");
