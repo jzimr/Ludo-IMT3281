@@ -148,6 +148,8 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
         GameBoardController controller = loader.getController();
         controller.setup(clientSocket, gameId);
+
+        // add all the other players to this ludogame
         controller.setPlayers(players);
         gameTab.setOnClosed(controller.onTabClose);     // set method for when user closes tab
 
@@ -268,7 +270,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     @FXML
     public void aboutHelp(ActionEvent e) {
-        // temporary for testing
+        // todo
 
     }
 

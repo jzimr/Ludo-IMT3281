@@ -7,6 +7,12 @@ public class UserLeftGameResponse extends Message{
 
     public UserLeftGameResponse(String action){super(action);}
 
+    public UserLeftGameResponse(String action, String displayname, String gameid){
+        super(action);
+        this.displayname = displayname;
+        this.gameid = gameid;
+    }
+
     public void setGameid(String gameid) {
         this.gameid = gameid;
     }

@@ -126,7 +126,7 @@ public class Ludo {
      * <p>
      *     Includes both active and inactive players
      * </p>
-     * @return number of active players (1-4)
+     * @return number of players (1-4)
      */
     int nrOfPlayers(){
         return (int)Arrays.stream(players).filter(n -> n != null).count();
@@ -156,8 +156,8 @@ public class Ludo {
      * @return ID of player or -1 if not found
      */
     public int getPlayerID(String playerName){
-        for(int i = 0; i < 4; i++){
-            if(players[i] == playerName){
+        for(int i = 0; i < nrOfPlayers(); i++){
+            if(players[i] != null && players[i].equals(playerName)){
                 return i;
             }
         }
@@ -237,7 +237,7 @@ public class Ludo {
      */
     public int activePlayers(){
         // if has player and player is active
-        return (int)Arrays.stream(players).filter(n -> activePlayers[getPlayerID(n)]).count();
+        return (int)Arrays.stream(players).filter(n -> n != null && activePlayers[getPlayerID(n)]).count();
     }
 
     /**

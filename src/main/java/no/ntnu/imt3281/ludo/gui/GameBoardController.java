@@ -11,12 +11,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.GameHasStartedResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.UserLeftGameResponseListener;
 import no.ntnu.imt3281.ludo.logic.*;
-import no.ntnu.imt3281.ludo.logic.messages.UserJoinedGameResponse;
-import no.ntnu.imt3281.ludo.logic.messages.UserLeftChatRoom;
 import no.ntnu.imt3281.ludo.logic.messages.UserLeftGame;
 import no.ntnu.imt3281.ludo.logic.messages.UserLeftGameResponse;
+
+import java.util.Arrays;
 
 public class GameBoardController implements UserLeftGameResponseListener, DiceListener, PieceListener, PlayerListener {
 
@@ -116,7 +117,7 @@ public class GameBoardController implements UserLeftGameResponseListener, DiceLi
     private ClientSocket clientSocket;
     private Ludo ludoGame;
     private String gameId;
-    private String[] players;
+    private String[] players = new String[]{};
 
     /**
      * Setup necessary stuff for this object
@@ -127,33 +128,42 @@ public class GameBoardController implements UserLeftGameResponseListener, DiceLi
         this.clientSocket = clientSocket;
         this.gameId = gameId;
 
+        // initiate a new LudoGame object
+        ludoGame = new Ludo();
+
         // add listeners
         clientSocket.addUserLeftGameResponseListener(this);
     }
 
     /**
-     * Set the players of the ludo game (Setting whole array everytime to be sure
-     * everyone has the same order of players when game starts)
+     * Add a list of players to the ludo game
+     *
      * @param players the players in the game
      */
-    public void setPlayers(String[] players){
+    public void setPlayers(String[] players) {
+        // for each player that has not been added yet
+        for (int i = this.players.length; i < players.length; i++) {
+            ludoGame.addPlayer(players[i]);
+        }
+
+        // update our list here
         this.players = players;
 
-        // set the text of each player in the list
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                int playerCount = players.length;
+        // set the text in GUI
+        Platform.runLater(() -> {
+            int playerCount = players.length;
 
-                if(playerCount > 0){
-                    player1Name.setText(players[0]);
-                } if (playerCount > 1){
-                    player2Name.setText(players[1]);
-                } if (playerCount > 2){
-                    player3Name.setText(players[2]);
-                } if (playerCount > 3){
-                    player3Name.setText(players[3]);
-                }
+            if (playerCount > 0) {
+                player1Name.setText(players[0]);
+            }
+            if (playerCount > 1) {
+                player2Name.setText(players[1]);
+            }
+            if (playerCount > 2) {
+                player3Name.setText(players[2]);
+            }
+            if (playerCount > 3) {
+                player3Name.setText(players[3]);
             }
         });
     }
@@ -161,11 +171,32 @@ public class GameBoardController implements UserLeftGameResponseListener, DiceLi
 
     @Override
     public void userLeftGameResponseEvent(UserLeftGameResponse response) {
-        // todo
+        ludoGame.removePlayer(response.getDisplayname());
+
+        // todo handle chat as well
+
+        // update the text in GUI
+        Platform.runLater(() -> {
+            int playerCount = players.length;
+
+            if (playerCount > 0 && response.getDisplayname().equals(players[0])) {
+                player1Name.setOpacity(0.25);
+            }
+            if (playerCount > 1 && response.getDisplayname().equals(players[1])) {
+                player2Name.setOpacity(0.25);
+            }
+            if (playerCount > 2 && response.getDisplayname().equals(players[2])) {
+                player3Name.setOpacity(0.25);
+            }
+            if (playerCount > 3 && response.getDisplayname().equals(players[3])) {
+                player4Name.setOpacity(0.25);
+            }
+        });
     }
 
     /**
      * Compare gameId in this object with gameId in parameter
+     *
      * @param gameId the unique ID of the ludo game
      * @return if are equal or not
      */
@@ -185,6 +216,7 @@ public class GameBoardController implements UserLeftGameResponseListener, DiceLi
             clientSocket.removeUserLeftGameResponseListener(GameBoardController.this);
             // disconnect user from the game
             clientSocket.sendMessageToServer(new UserLeftGame("UserLeftGame", gameId));
+            // todo disconnect from the chat as well
         }
     };
 

@@ -68,24 +68,4 @@ public class PieceEvent {
 
         return false;
     }
-
-    public int getPlayerID() {
-        return playerID;
-    }
-
-    public Ludo getLudoGame() {
-        return ludoGame;
-    }
-
-    public int getFrom() {
-        return from;
-    }
-
-    public int getPieceMoved() {
-        return pieceMoved;
-    }
-
-    public int getTo() {
-        return to;
-    }
 }

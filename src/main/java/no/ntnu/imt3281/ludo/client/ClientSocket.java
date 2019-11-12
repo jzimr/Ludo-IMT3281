@@ -10,6 +10,7 @@ import no.ntnu.imt3281.ludo.logic.messages.*;
 import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class ClientSocket {
@@ -145,7 +146,7 @@ public class ClientSocket {
      *
      * @param jsonMessage json message received from server
      */
-    public void handleMessagesFromServer(String jsonMessage) {      // todo change public to private
+    private void handleMessagesFromServer(String jsonMessage) {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
@@ -180,12 +181,10 @@ public class ClientSocket {
                             jsonNode.get("chatroomname").asText(), jsonNode.get("chatmessage").asText(),
                             jsonNode.get("timestamp").asText());
 
-                    // send the message to each listener registered
-                    sentMessageResponseListeners.forEach(listener -> {
-                        if(listener != null && listener.equals(message4.getChatroomname())){
-                            listener.sentMessageResponseEvent(message4);
-                        }
-                    });
+                    // send the message to the correct listener
+                    SentMessageResponseListener listener = sentMessageResponseListeners.stream()
+                            .filter(l -> l != null && l.equals(message4.getChatroomname())).findFirst().orElse(null);
+                    if(listener != null) listener.sentMessageResponseEvent(message4);
                     break;
                 case "ChatRoomsListResponse":
                     // we get the String[] list from the jackson node
@@ -206,7 +205,6 @@ public class ClientSocket {
                         userList[i] = userListNode.get(i).asText();
                     }
 
-                    // send the message to each listener registered
                     UsersListResponse message6 = new UsersListResponse(action, userList);
                     usersListResponseListener.usersListResponseEvent(message6);
                     break;
@@ -233,7 +231,13 @@ public class ClientSocket {
                     userJoinedGameResponseListener.userJoinedGameResponseEvent(message9);
                     break;
                 case "UserLeftGameResponse":
-                    // todo
+                    UserLeftGameResponse message10 = new UserLeftGameResponse(action, jsonNode.get("displayname").asText(),
+                            jsonNode.get("gameid").asText());
+
+                    // send the message to the correct listener
+                    UserLeftGameResponseListener listener2 = userLeftGameResponseListeners.stream()
+                            .filter(l -> l != null && l.equals(message10.getGameid())).findFirst().orElse(null);
+                    if(listener2 != null) listener2.userLeftGameResponseEvent(message10);
                     break;
 
 
