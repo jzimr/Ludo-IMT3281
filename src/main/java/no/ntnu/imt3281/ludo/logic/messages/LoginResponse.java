@@ -4,6 +4,7 @@ public class LoginResponse extends Message {
     String response;
     boolean loginStatus;
     String userid;
+    String displayname;
 
     public LoginResponse(String action){super(action);}
 
@@ -36,6 +37,14 @@ public class LoginResponse extends Message {
 
     public String getUserid() {
         return userid;
+    }
+
+    public void setDisplayname(String displayname) {
+        this.displayname = displayname;
+    }
+
+    public String getDisplayname() {
+        return displayname;
     }
 }
 

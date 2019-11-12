@@ -208,6 +208,7 @@ public class Ludo {
             playerListener.playerStateChanged(new PlayerEvent(this, getPlayerID(playerName), PlayerEvent.LEFTGAME));
         }
 
+        //if (playerTurn)
         //Skip that players turn
         nextPlayerTurn();
 

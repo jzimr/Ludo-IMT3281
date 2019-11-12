@@ -334,6 +334,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setLoginStatus(( (LoginResponse) msg) .isLoginStatus());
 					message.setResponse(((LoginResponse) msg).getResponse());
 					message.setUserid(((LoginResponse) msg).getUserid());
+					message.setDisplayname(((LoginResponse)msg).getDisplayname());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -508,6 +509,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				String userid = db.getUserId(action.getUsername());
 				retMsg.setUserid(userid);
 				setUseridToClient(action.getRecipientSessionId(), userid);
+				UserInfo info = db.getProfile(userid);
+				retMsg.setDisplayname(info.getDisplayName());
 
 				int tokenCount = db.countSessionToken(userid);
 
@@ -555,6 +558,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 				retMsg.setUserid(userid);
 				setUseridToClient(action.getRecipientSessionId(), userid);
+				UserInfo info = db.getProfile(userid);
+				retMsg.setDisplayname(info.getDisplayName());
 
 			} else {
 				retMsg.setResponse("Session token are invalid. Try again");
