@@ -18,6 +18,7 @@ public class ClientSocket {
     private Socket connection = null;
     private boolean connected = false;
     private String userId = null;
+    private String displayName = null;
     protected BufferedWriter bw;
     protected BufferedReader br;
 
@@ -41,6 +42,8 @@ public class ClientSocket {
     UserJoinedGameResponseListener userJoinedGameResponseListener = null;
     ArrayBlockingQueue<UserLeftGameResponseListener> userLeftGameResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
     ArrayBlockingQueue<GameHasStartedResponseListener> gameHasStartedResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
+    ArrayBlockingQueue<DiceThrowResponseListener> diceThrowResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
+    ArrayBlockingQueue<PieceMovedResponseListener> pieceMovedResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
 
     /**
      * Create a connection from client to server
@@ -154,7 +157,7 @@ public class ClientSocket {
             JsonNode jsonNode = objectMapper.readTree(jsonMessage);
             String action = jsonNode.get("action").asText();
 
-            if(!action.equals("Ping"))
+            if (!action.equals("Ping"))
                 System.out.println("Got message from server: " + jsonMessage);
 
             switch (action) {
@@ -162,9 +165,11 @@ public class ClientSocket {
                     return;
                 case "LoginResponse":
                     LoginResponse message1 = new LoginResponse(action, jsonNode.get("response").asText(),
-                            jsonNode.get("loginStatus").asBoolean(), jsonNode.get("userid").asText());
+                            jsonNode.get("loginStatus").asBoolean(), jsonNode.get("userid").asText(), jsonNode.get("displayname").asText());
                     userId = message1.getUserid();                          // get the userId from server on login so we can send messages back to server when needed
-                    if(userId == null) closeConnectionToServer();           // if we could not get userId from server, something went wrong, so we close connection
+                    displayName = message1.getDisplayname();                // get the displayname of this client so we can identify him in the ludogame
+                    if (userId == null)
+                        closeConnectionToServer();           // if we could not get userId from server, something went wrong, so we close connection
                     loginResponseListener.loginResponseEvent(message1);     // send the event to the desired listener
                     break;
                 case "RegisterResponse":
@@ -185,13 +190,13 @@ public class ClientSocket {
                     // send the message to the correct listener
                     SentMessageResponseListener listener = sentMessageResponseListeners.stream()
                             .filter(l -> l != null && l.equals(message4.getChatroomname())).findFirst().orElse(null);
-                    if(listener != null) listener.sentMessageResponseEvent(message4);
+                    if (listener != null) listener.sentMessageResponseEvent(message4);
                     break;
                 case "ChatRoomsListResponse":
                     // we get the String[] list from the jackson node
-                    ArrayNode chatRoomsNode = (ArrayNode)jsonNode.get("chatRoom");
+                    ArrayNode chatRoomsNode = (ArrayNode) jsonNode.get("chatRoom");
                     String[] chatRooms = new String[chatRoomsNode.size()];
-                    for(int i = 0; i < chatRoomsNode.size(); i++){
+                    for (int i = 0; i < chatRoomsNode.size(); i++) {
                         chatRooms[i] = chatRoomsNode.get(i).asText();
                     }
 
@@ -200,9 +205,9 @@ public class ClientSocket {
                     break;
                 case "UsersListResponse":
                     // we get the String[] list from the jackson node
-                    ArrayNode userListNode = (ArrayNode)jsonNode.get("displaynames");
+                    ArrayNode userListNode = (ArrayNode) jsonNode.get("displaynames");
                     String[] userList = new String[userListNode.size()];
-                    for(int i = 0; i < userListNode.size(); i++){
+                    for (int i = 0; i < userListNode.size(); i++) {
                         userList[i] = userListNode.get(i).asText();
                     }
 
@@ -221,9 +226,9 @@ public class ClientSocket {
                     break;
                 case "UserJoinedGameResponse":
                     // we get the String[] list from the jackson node
-                    ArrayNode lobbyListNode = (ArrayNode)jsonNode.get("playersinlobby");
+                    ArrayNode lobbyListNode = (ArrayNode) jsonNode.get("playersinlobby");
                     String[] lobbyList = new String[lobbyListNode.size()];
-                    for(int i = 0; i < lobbyListNode.size(); i++) {
+                    for (int i = 0; i < lobbyListNode.size(); i++) {
                         lobbyList[i] = lobbyListNode.get(i).asText();
                     }
 
@@ -238,7 +243,7 @@ public class ClientSocket {
                     // send the message to the correct listener
                     UserLeftGameResponseListener listener2 = userLeftGameResponseListeners.stream()
                             .filter(l -> l != null && l.equalsGameId(message10.getGameid())).findFirst().orElse(null);
-                    if(listener2 != null) listener2.userLeftGameResponseEvent(message10);
+                    if (listener2 != null) listener2.userLeftGameResponseEvent(message10);
                     break;
                 case "GameHasStartedResponse":
                     GameHasStartedResponse message11 = new GameHasStartedResponse(action, jsonNode.get("gameid").asText());
@@ -246,8 +251,30 @@ public class ClientSocket {
                     // send the message to the correct listener
                     GameHasStartedResponseListener listener3 = gameHasStartedResponseListeners.stream()
                             .filter(l -> l != null && l.equalsGameId(message11.getGameid())).findFirst().orElse(null);
-                    if(listener3 != null) listener3.gameHasStartedResponseEvent(message11);
+                    if (listener3 != null) listener3.gameHasStartedResponseEvent(message11);
+                    break;
+                case "PlayerStateChangeResponse":
+                    // todo
+                    break;
+                case "DiceThrowResponse":
+                    DiceThrowResponse message12 = new DiceThrowResponse(action, jsonNode.get("gameid").asText(),
+                            jsonNode.get("dicerolled").asInt());
 
+                    // send the message to the correct listener
+                    DiceThrowResponseListener listener4 = diceThrowResponseListeners.stream()
+                            .filter(l -> l != null && l.equalsGameId(message12.getGameid())).findFirst().orElse(null);
+                    if (listener4 != null) listener4.diceThrowResponseEvent(message12);
+                    break;
+                case "PieceMovedResponse":
+                    PieceMovedResponse message13 = new PieceMovedResponse(action, jsonNode.get("gameid").asText(),
+                            jsonNode.get("playerid").asInt(), jsonNode.get("piecemoved").asInt(), jsonNode.get("movedfrom").asInt(),
+                            jsonNode.get("movedto").asInt());
+
+                    // send the message to the correct listener
+                    PieceMovedResponseListener listener5 = pieceMovedResponseListeners.stream()
+                            .filter(l -> l != null && l.equalsGameId(message13.getGameid())).findFirst().orElse(null);
+                    if (listener5 != null) listener5.pieceMovedResponseEvent(message13);
+                    break;
 
 
                 default:
@@ -266,6 +293,15 @@ public class ClientSocket {
      */
     public String getUserId() {
         return userId;
+    }
+
+    /**
+     * Get the displayname of the client which he uses to be identified by other players
+     *
+     * @return the display name of the client
+     */
+    public String getDisplayName() {
+        return displayName;
     }
 
     /**
@@ -288,47 +324,63 @@ public class ClientSocket {
         chatJoinResponseListener = listener;
     }
 
-    public void addSentMessageResponseListener(SentMessageResponseListener listener){
+    public void addSentMessageResponseListener(SentMessageResponseListener listener) {
         sentMessageResponseListeners.add(listener);
     }
 
-    public void removeSentMessageResponseListener(SentMessageResponseListener listener){
+    public void removeSentMessageResponseListener(SentMessageResponseListener listener) {
         sentMessageResponseListeners.remove(listener);
     }
 
-    public void addChatRoomsListResponseListener(ChatRoomsListResponseListener listener){
+    public void addChatRoomsListResponseListener(ChatRoomsListResponseListener listener) {
         chatRoomsListResponseListener = listener;
     }
 
-    public void addUsersListResponseListener(UsersListResponseListener listener){
+    public void addUsersListResponseListener(UsersListResponseListener listener) {
         usersListResponseListener = listener;
     }
 
-    public void addCreateGameResponseListener(CreateGameResponseListener listener){
+    public void addCreateGameResponseListener(CreateGameResponseListener listener) {
         createGameResponseListener = listener;
     }
 
-    public void addSendGameInvitationsResponseListener(SendGameInvitationsResponseListener listener){
+    public void addSendGameInvitationsResponseListener(SendGameInvitationsResponseListener listener) {
         sendGameInvitationsResponseListener = listener;
     }
 
-    public void addUserJoinedGameResponseListener(UserJoinedGameResponseListener listener){
+    public void addUserJoinedGameResponseListener(UserJoinedGameResponseListener listener) {
         userJoinedGameResponseListener = listener;
     }
 
-    public void addUserLeftGameResponseListener(UserLeftGameResponseListener listener){
+    public void addUserLeftGameResponseListener(UserLeftGameResponseListener listener) {
         userLeftGameResponseListeners.add(listener);
     }
 
-    public void removeUserLeftGameResponseListener(UserLeftGameResponseListener listener){
+    public void removeUserLeftGameResponseListener(UserLeftGameResponseListener listener) {
         userLeftGameResponseListeners.remove(listener);
     }
 
-    public void addGameHasStartedResponseListener(GameHasStartedResponseListener listener){
+    public void addGameHasStartedResponseListener(GameHasStartedResponseListener listener) {
         gameHasStartedResponseListeners.add(listener);
     }
 
-    public void removeGameHasStartedResponseListener(GameHasStartedResponseListener listener){
+    public void removeGameHasStartedResponseListener(GameHasStartedResponseListener listener) {
         gameHasStartedResponseListeners.remove(listener);
+    }
+
+    public void addDiceThrowResponseListener(DiceThrowResponseListener listener) {
+        diceThrowResponseListeners.add(listener);
+    }
+
+    public void removeDiceThrowResponseListener(DiceThrowResponseListener listener) {
+        diceThrowResponseListeners.remove(listener);
+    }
+
+    public void addPieceMovedResponseListener(PieceMovedResponseListener listener){
+        pieceMovedResponseListeners.add(listener);
+    }
+
+    public void removePieceMovedListener(PieceMovedResponseListener listener){
+        pieceMovedResponseListeners.remove(listener);
     }
 }

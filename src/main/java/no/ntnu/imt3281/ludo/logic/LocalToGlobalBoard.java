@@ -6,7 +6,7 @@ package no.ntnu.imt3281.ludo.logic;
  *     E.g. RED_BOARD[3] means that the local position '3' has the global position '18'
  * </p>
  */
-public class BoardLocations {
+public class LocalToGlobalBoard {
     final static int[] RED_BOARD = {
             0,
             16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38,

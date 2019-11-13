@@ -8,8 +8,9 @@ public class UserDoesPieceMove extends Message {
     int movedfrom;
     int movedto;
 
-    public UserDoesPieceMove(String action, int playerid, int piecemoved, int movedfrom, int movedto){
+    public UserDoesPieceMove(String action, String gameid, int playerid, int piecemoved, int movedfrom, int movedto){
         super(action);
+        this.gameid = gameid;
         this.playerid = playerid;
         this.piecemoved = piecemoved;
         this.movedfrom = movedfrom;

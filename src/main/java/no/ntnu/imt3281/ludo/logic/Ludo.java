@@ -1,6 +1,5 @@
 package no.ntnu.imt3281.ludo.logic;
 
-import javafx.application.Platform;
 import no.ntnu.imt3281.ludo.Exceptions.NoRoomForMorePlayersException;
 import no.ntnu.imt3281.ludo.Exceptions.NotEnoughPlayersException;
 
@@ -366,7 +365,6 @@ public class Ludo {
 
             //Skip turn if the player is blocked.
             if (towersBlocksOpponents(playerTurn, rolled)) {
-
                 nextPlayerTurn();
             }
 
@@ -482,13 +480,13 @@ public class Ludo {
     public int userGridToLudoBoardGrid(int playerID, int position){
         switch (playerID){
             case RED:
-                return BoardLocations.RED_BOARD[position];
+                return LocalToGlobalBoard.RED_BOARD[position];
             case BLUE:
-                return BoardLocations.BLUE_BOARD[position];
+                return LocalToGlobalBoard.BLUE_BOARD[position];
             case YELLOW:
-                return BoardLocations.YELLOW_BOARD[position];
+                return LocalToGlobalBoard.YELLOW_BOARD[position];
             case GREEN:
-                return BoardLocations.GREEN_BOARD[position];
+                return LocalToGlobalBoard.GREEN_BOARD[position];
             default:
                 return -1;
         }

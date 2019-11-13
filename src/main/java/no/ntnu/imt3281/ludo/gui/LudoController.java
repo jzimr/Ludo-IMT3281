@@ -361,7 +361,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
         // add the new game tab
         // todo change name of game tab for each game created
-        addNewGameTab("Game", response.getGameid(), new String[]{"You"});
+        addNewGameTab("Game", response.getGameid(), new String[]{clientSocket.getDisplayName()});
     }
 
     /**
