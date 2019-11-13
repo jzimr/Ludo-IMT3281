@@ -370,6 +370,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setStatus(((ChatJoinResponse)msg).isStatus());
 					message.setResponse(((ChatJoinResponse)msg).getResponse());
 					message.setChatroomname(((ChatJoinResponse)msg).getChatroomname());
+					message.setUsersinroom(((ChatJoinResponse)msg).getUsersinroom());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -673,6 +674,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			if (added) {
 				((ChatJoinResponse)retMsg).setResponse("Joined room successfully");
 
+				((ChatJoinResponse)retMsg).setUsersinroom(getUsersInChatRoom(action.getChatroomname()));
+
 				//Announce the users presence to others in the chat room.
 				announceToUsersInChatRoom(retMsg, action.getChatroomname());
 
@@ -696,6 +699,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 					//Announce the users presence to others in the chat room.
 					announceToUsersInChatRoom(retMsg, action.getChatroomname());
+
+					((ChatJoinResponse)retMsg).setUsersinroom(getUsersInChatRoom(action.getChatroomname()));
 
 				} else {
 					((ChatJoinResponse)retMsg).setStatus(false);
@@ -897,6 +902,30 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			}
 		}
 		return false;
+	}
+
+	private String[] getUsersInChatRoom(String chatRoomName){
+		String[] arr = new String[0];
+		ArrayList<String> arrayList = null;
+
+		for(ChatRoom room : activeChatRooms) {
+			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())){
+				arrayList = new ArrayList<>();
+				for (String userid : room.getConnectedUsers()){
+					UserInfo info = db.getProfile(userid);
+					arrayList.add(info.getDisplayName());
+				}
+			}
+		}
+
+		if (arrayList.size() > 0) {
+			arr = new String[arrayList.size()];
+			for ( int i = 0; i < arrayList.size(); i++) {
+				arr[i] = arrayList.get(i);
+			}
+		}
+
+		return arr;
 	}
 
 	/**

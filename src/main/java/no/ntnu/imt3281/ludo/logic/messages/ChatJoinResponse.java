@@ -4,6 +4,7 @@ public class ChatJoinResponse extends Message{
     boolean status;
     String response;
     String chatroomname;
+    String[] usersinroom;
 
     public ChatJoinResponse(String action) {super(action);}
 
@@ -36,5 +37,13 @@ public class ChatJoinResponse extends Message{
 
     public String getChatroomname() {
         return chatroomname;
+    }
+
+    public void setUsersinroom(String[] usersinroom) {
+        this.usersinroom = usersinroom;
+    }
+
+    public String[] getUsersinroom() {
+        return usersinroom;
     }
 }
