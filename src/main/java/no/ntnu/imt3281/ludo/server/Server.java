@@ -370,6 +370,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setStatus(((ChatJoinResponse)msg).isStatus());
 					message.setResponse(((ChatJoinResponse)msg).getResponse());
 					message.setChatroomname(((ChatJoinResponse)msg).getChatroomname());
+					message.setUsersinroom(((ChatJoinResponse)msg).getUsersinroom());
+					message.setChatlog(((ChatJoinResponse)msg).getChatlog());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -673,6 +675,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			if (added) {
 				((ChatJoinResponse)retMsg).setResponse("Joined room successfully");
 
+				((ChatJoinResponse)retMsg).setUsersinroom(getUsersInChatRoom(action.getChatroomname()));
+				((ChatJoinResponse)retMsg).setChatlog(getChatLog(action.getChatroomname()));
+
 				//Announce the users presence to others in the chat room.
 				announceToUsersInChatRoom(retMsg, action.getChatroomname());
 
@@ -697,6 +702,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					//Announce the users presence to others in the chat room.
 					announceToUsersInChatRoom(retMsg, action.getChatroomname());
 
+					((ChatJoinResponse)retMsg).setUsersinroom(getUsersInChatRoom(action.getChatroomname()));
+					((ChatJoinResponse)retMsg).setChatlog(getChatLog(action.getChatroomname()));
+
 				} else {
 					((ChatJoinResponse)retMsg).setStatus(false);
 					((ChatJoinResponse)retMsg).setResponse("Creating room failed. Try again");
@@ -716,6 +724,26 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			messagesToSend.add(retMsg);
 		}
 
+	}
+
+	private ChatMessage[] getChatLog(String chatroomname){
+		ArrayList<ChatMessage> arraylist = db.getChatMessages(chatroomname);
+		ChatMessage[] arr;
+
+		if  (arraylist.size() >= 50) {
+			List<ChatMessage> subArraylist = arraylist.subList(arraylist.size()-50, arraylist.size());
+			arr = new ChatMessage[subArraylist.size()];
+			for (int i = 0; i <= subArraylist.size(); i++){
+				arr[i] = arraylist.get(i);
+			}
+		} else {
+			arr = new ChatMessage[arraylist.size()];
+			for (int i = 0; i < arraylist.size(); i++){
+				arr[i] = arraylist.get(i);
+			}
+		}
+
+		return arr;
 	}
 
 	private void UserLeftChatRoom(UserLeftChatRoom action){
@@ -897,6 +925,30 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			}
 		}
 		return false;
+	}
+
+	private String[] getUsersInChatRoom(String chatRoomName){
+		String[] arr = new String[0];
+		ArrayList<String> arrayList = null;
+
+		for(ChatRoom room : activeChatRooms) {
+			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())){
+				arrayList = new ArrayList<>();
+				for (String userid : room.getConnectedUsers()){
+					UserInfo info = db.getProfile(userid);
+					arrayList.add(info.getDisplayName());
+				}
+			}
+		}
+
+		if (arrayList.size() > 0) {
+			arr = new String[arrayList.size()];
+			for ( int i = 0; i < arrayList.size(); i++) {
+				arr[i] = arrayList.get(i);
+			}
+		}
+
+		return arr;
 	}
 
 	/**
@@ -1127,6 +1179,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				}
 			}
 
+			for (Invitations invite : pendingInvites) {
+				if (invite.getGameid().contentEquals(action.getGameid())){
+					UserInfo info = db.getProfile(action.getUserid());
+					invite.setOneUpdate(info.getDisplayName(),true);
+				}
+			}
+
 		} else { //User declined. Send message to inviter. Which is host of game (?)
 			String hostId = null;
 			for(Ludo game : activeLudoGames) {
@@ -1143,20 +1202,27 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				messagesToSend.add(retMsg);
 			}
 
-		}
+			for (Invitations invite : pendingInvites) {
+				if (invite.getGameid().contentEquals(action.getGameid())){
+					UserInfo info = db.getProfile(action.getUserid());
+					invite.setOneUpdate(info.getDisplayName(),false);
+				}
+			}
 
+		}
+		checkIfEveryoneAnsweredInvite(action);
+	}
+
+	private void checkIfEveryoneAnsweredInvite(UserDoesGameInvitationAnswer action){
 		for (Invitations invite : pendingInvites) {
 			if (invite.getGameid().contentEquals(action.getGameid())){
 				UserInfo info = db.getProfile(action.getUserid());
-				invite.setOneUpdate(info.getDisplayName(), action.isAccepted());
 
 				if (invite.isEveryoneAccepted()){
-					Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
-					((GameHasStartedResponse)gameStarted).setGameid(invite.getGameid());
-
 					for (int i = 0; i < invite.getPlayers().length; i++){
 						if (invite.getOnePlayerAccepted(i)){
-
+							Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
+							((GameHasStartedResponse)gameStarted).setGameid(invite.getGameid());
 							String userid = db.getUserId(invite.getOnePlayerName(i));
 							gameStarted.setRecipientSessionId(useridToSessionId(userid));
 
@@ -1167,11 +1233,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						}
 					}
 					//pendingInvites.remove(invite);
+					for (Ludo game : activeLudoGames) {
+						Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
+						((GameHasStartedResponse)gameStarted).setGameid(invite.getGameid());
+						gameStarted.setRecipientSessionId(useridToSessionId(game.getHostid()));
+						messagesToSend.add(gameStarted);
+					}
 				}
 
 			}
 		}
-
 	}
 
 	private void UserLeftGame(UserLeftGame action){
@@ -1184,10 +1255,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		for (Ludo game : activeLudoGames) {
 			if (game.getGameid().contentEquals(action.getGameid())) {
 				game.removePlayer(info.getDisplayName());
-				for(String name : game.getPlayers()){
-					retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
-					synchronized (messagesToSend){
-						messagesToSend.add(retMsg);
+				for(String name : game.getActivePlayers()){
+					if (!name.contentEquals(info.getDisplayName())){
+						retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+						System.out.println(name);
+						synchronized (messagesToSend){
+							messagesToSend.add(retMsg);
+						}
 					}
 				}
 			}

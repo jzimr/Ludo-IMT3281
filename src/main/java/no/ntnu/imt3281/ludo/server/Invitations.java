@@ -12,28 +12,21 @@ public class Invitations {
     public void setOneAccepted(int id) {
         accepted[id] = true;
         answered++;
+        System.out.println("We ++ bois " + id);
     }
 
-    public void setOneDecliend(int id) {
-        accepted[id] = false;
-        answered++;
-    }
-
-    public void setOnePlayer(String name, int id){
-        players[id] = name;
-    }
 
     public void setAccepted(Boolean[] accepted) {
         this.accepted = accepted;
+        for (int i = 1; i < accepted.length; i++){
+            accepted[i] = false;
+        }
     }
 
     public void setPlayers(String[] players) {
         this.players = players;
     }
 
-    public Boolean[] getAccepted() {
-        return accepted;
-    }
 
     public String[] getPlayers() {
         return players;
@@ -49,14 +42,15 @@ public class Invitations {
 
     public void setOneUpdate(String displayname, boolean pAccepted){
         for (int i = 0; i < players.length; i++) {
+            System.out.println(players[i] + " " + displayname);
             if (players[i].contentEquals(displayname)){
-                accepted[i] = pAccepted;
-                answered++;
+                setOneAccepted(i);
             }
         }
     }
 
     public boolean isEveryoneAccepted(){
+        System.out.println(answered + " " + players.length);
         return answered == players.length;
     }
 

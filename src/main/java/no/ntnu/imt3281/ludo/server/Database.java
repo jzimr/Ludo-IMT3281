@@ -512,7 +512,7 @@ public class Database {
         // get the messages
         try {
             PreparedStatement stmt = connection.prepareStatement("SELECT * FROM chat_log " +
-                    "WHERE chat_name=?");
+                    "WHERE chat_name=? ORDER BY 'timestamp' DESC");
             stmt.setString(1, chatName);
 
             ResultSet rs = stmt.executeQuery();

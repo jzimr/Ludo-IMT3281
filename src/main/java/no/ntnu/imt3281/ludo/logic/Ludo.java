@@ -173,6 +173,22 @@ public class Ludo {
     }
 
     /**
+     * Returns names of all players who are active
+     * @return string[] of all active players
+     */
+    public String[] getActivePlayers(){
+        String[] arr = new String[4];
+
+        for(int i = 0; i < getPlayers().length; i++) {
+            if (activePlayers[i]) {
+                arr[i] = getPlayerName(i);
+            }
+        }
+
+        return Arrays.stream(arr).filter(player -> player != null).toArray(String[]::new);
+    }
+
+    /**
      * Add a new player to this game
      * @param playerName name of player to add
      * @throws NoRoomForMorePlayersException if game already has a maximum of 4 players
