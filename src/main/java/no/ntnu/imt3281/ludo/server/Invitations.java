@@ -5,11 +5,14 @@ public class Invitations {
     private String gameid;
     private String[] players;
     private Boolean[] accepted;
+    private int answered = 0;
 
     public Invitations(){}
 
     public void setOneAccepted(int id) {
         accepted[id] = true;
+        answered++;
+        System.out.println("We ++ bois " + id);
     }
 
 
@@ -41,20 +44,14 @@ public class Invitations {
         for (int i = 0; i < players.length; i++) {
             System.out.println(players[i] + " " + displayname);
             if (players[i].contentEquals(displayname)){
-                accepted[i] = pAccepted;
+                setOneAccepted(i);
             }
         }
     }
 
     public boolean isEveryoneAccepted(){
-        int countTrue = 0;
-        for (int i = 0; i < accepted.length; i++) {
-            if (accepted[i]) {
-                countTrue++;
-            }
-        }
-        System.out.println(countTrue);
-        return countTrue == accepted.length;
+        System.out.println(answered + " " + players.length);
+        return answered == players.length;
     }
 
     public boolean getOnePlayerAccepted(int id){return accepted[id];}

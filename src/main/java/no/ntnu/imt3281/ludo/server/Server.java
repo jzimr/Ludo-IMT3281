@@ -1078,16 +1078,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 
 		Invitations invites = new Invitations();
-
-		String[] arr = new String[action.getToinvitedisplaynames().length +1];
-		arr[0] = info.getDisplayName();
-		for (int i = 1; i < arr.length; i++) {
-			arr[i] = action.getToinvitedisplaynames()[i-1];
-		}
-
-		invites.setPlayers(arr);
-		invites.setAccepted(new Boolean[action.getToinvitedisplaynames().length + 1]);
-		invites.setOneAccepted(0);
+		invites.setPlayers(action.getToinvitedisplaynames());
+		invites.setAccepted(new Boolean[action.getToinvitedisplaynames().length]);
 		invites.setGameid(newGame.getGameid());
 		pendingInvites.add(invites);
 
@@ -1166,19 +1158,19 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			}
 
 		}
+		checkIfEveryoneAnsweredInvite(action);
+	}
 
+	private void checkIfEveryoneAnsweredInvite(UserDoesGameInvitationAnswer action){
 		for (Invitations invite : pendingInvites) {
 			if (invite.getGameid().contentEquals(action.getGameid())){
 				UserInfo info = db.getProfile(action.getUserid());
-				invite.setOneUpdate(info.getDisplayName(), action.isAccepted());
 
 				if (invite.isEveryoneAccepted()){
-					Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
-					((GameHasStartedResponse)gameStarted).setGameid(invite.getGameid());
-
 					for (int i = 0; i < invite.getPlayers().length; i++){
 						if (invite.getOnePlayerAccepted(i)){
-
+							Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
+							((GameHasStartedResponse)gameStarted).setGameid(invite.getGameid());
 							String userid = db.getUserId(invite.getOnePlayerName(i));
 							gameStarted.setRecipientSessionId(useridToSessionId(userid));
 
@@ -1189,11 +1181,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						}
 					}
 					//pendingInvites.remove(invite);
+					for (Ludo game : activeLudoGames) {
+						Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
+						((GameHasStartedResponse)gameStarted).setGameid(invite.getGameid());
+						gameStarted.setRecipientSessionId(useridToSessionId(game.getHostid()));
+						messagesToSend.add(gameStarted);
+					}
 				}
 
 			}
 		}
-
 	}
 
 	private void UserLeftGame(UserLeftGame action){
