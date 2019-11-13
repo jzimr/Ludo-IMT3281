@@ -17,35 +17,43 @@ public class UserDoesPieceMove extends Message {
         this.movedto = movedto;
     }
 
-    public void setPlayerid(int playerid) {
-        this.playerid = playerid;
-    }
-
-    public int getPlayerid() {
-        return playerid;
+    public String getGameid() {
+        return gameid;
     }
 
     public void setGameid(String gameid) {
         this.gameid = gameid;
     }
 
-    public String getGameid() {
-        return gameid;
+    public int getPlayerid() {
+        return playerid;
     }
 
-    public void setMovedfrom(int movedfrom) {
-        this.movedfrom = movedfrom;
+    public void setPlayerid(int playerid) {
+        this.playerid = playerid;
+    }
+
+    public int getPiecemoved() {
+        return piecemoved;
+    }
+
+    public void setPiecemoved(int piecemoved) {
+        this.piecemoved = piecemoved;
     }
 
     public int getMovedfrom() {
         return movedfrom;
     }
 
-    public void setMovedto(int movedto) {
-        this.movedto = movedto;
+    public void setMovedfrom(int movedfrom) {
+        this.movedfrom = movedfrom;
     }
 
     public int getMovedto() {
         return movedto;
+    }
+
+    public void setMovedto(int movedto) {
+        this.movedto = movedto;
     }
 }

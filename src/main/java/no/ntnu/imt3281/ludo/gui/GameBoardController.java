@@ -23,6 +23,7 @@ import no.ntnu.imt3281.ludo.logic.*;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class GameBoardController implements UserLeftGameResponseListener, GameHasStartedResponseListener, DiceThrowResponseListener,
@@ -233,7 +234,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
      * @param event
      */
     @FXML
-    void clickedBoardGrid(MouseEvent event) {
+    void clickedPiece(MouseEvent event) {
         // get the piece that was clicked on
         Node clickedNode = (Node) event.getPickResult().getIntersectedNode();
         int pieceId = -1;
@@ -242,9 +243,13 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         boolean movePieceSuccess = false;
 
         // if we have not rolled dice yet or it's not our turn at the moment or we did not click on our own piece
-        if(diceRolled != -1 || !itsMyTurn() || Arrays.stream(ourPieces).noneMatch(p -> p.getId().equals(clickedNode.getId()))){
+        if(diceRolled == -1 || !itsMyTurn() || Arrays.stream(ourPieces).noneMatch(p -> p.getId().equals(clickedNode.getId()))){
+            System.out.println(diceRolled + ", " + itsMyTurn() + ", " + Arrays.stream(ourPieces).noneMatch(p -> p.getId().equals(clickedNode.getId())) +
+                    ", (" + ourPieces[0].getId() + ", " + clickedNode.getId() + ")");
             return;
         }
+
+        System.out.println("Trying to move " + clickedNode.getId());
 
         // get the pieceId we clicked on
         for(int i = 0; i < 4; i++){
@@ -254,13 +259,19 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         }
         // get the local position of the piece we clicked
         localPiecePosition = ludoGame.getPosition(ourPlayerId, pieceId);
-        moveTo = localPiecePosition + diceRolled;
+
+        // player wants to move piece from home
+        if(localPiecePosition == 0)
+            moveTo = 1;
+        else
+            moveTo = localPiecePosition + diceRolled;
 
         // try to make the move that player chose
         movePieceSuccess = ludoGame.movePiece(ourPlayerId, localPiecePosition, moveTo);
 
         // could not move the piece for some reason
         if(!movePieceSuccess){
+            System.out.println("Could not move piece");
             return;
         }
 
@@ -308,15 +319,20 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         // if we threw the dice and it's still our turn
         if (itsMyTurn()) {
             // if the player does not have all pieces at home, we let player move a piece
+            /*
             for(int i = 0; i < 4; i++){
                 if(ludoGame.getPosition(ourPlayerId, i) != 0){
                     diceRolled = response.getDicerolled();
                     return;
                 }
             }
+             */
+
+            diceRolled = response.getDicerolled();
 
             // else all our pieces are still at home, so we can't really move any pieces
             // so we re-enable the button
+            System.out.println("enabled button");
             throwTheDice.setDisable(false);
         }
     }
@@ -330,6 +346,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
      */
     @Override
     public void pieceMovedResponseEvent(PieceMovedResponse response) {
+        // ignore messages that we sent out
+        if(response.getPlayerid() == ourPlayerId)
+            return;
+
         // put it into our logic class
         boolean success = ludoGame.movePiece(response.getPlayerid(), response.getMovedfrom(), response.getMovedto());
 
@@ -391,64 +411,68 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
      */
     @Override
     public void pieceMoved(PieceEvent pieceEvent) {
-        int movedPlayerId = pieceEvent.getPlayerID();
-        int movedPieceId = pieceEvent.getPieceMoved();
-        int globalPositionFrom = ludoGame.userGridToLudoBoardGrid(movedPlayerId, pieceEvent.getFrom());      // convert player position to global
-        int globalPositionTo = ludoGame.userGridToLudoBoardGrid(movedPlayerId, pieceEvent.getTo());
-        GlobalToGridBoard.CellCoordinates gridPositionFrom = GlobalToGridBoard.globalToGridCoordinations(globalPositionFrom);   // convert global position to grid (GUI)
-        GlobalToGridBoard.CellCoordinates gridPositionTo = GlobalToGridBoard.globalToGridCoordinations(globalPositionTo);
+        // need to run code in main JavaFX thread
+        Platform.runLater(() -> {
+            int movedPlayerId = pieceEvent.getPlayerID();
+            int movedPieceId = pieceEvent.getPieceMoved();
+            int globalPositionFrom = ludoGame.userGridToLudoBoardGrid(movedPlayerId, pieceEvent.getFrom());      // convert player position to global
+            int globalPositionTo = ludoGame.userGridToLudoBoardGrid(movedPlayerId, pieceEvent.getTo());
+            GlobalToGridBoard.CellCoordinates gridPositionFrom = GlobalToGridBoard.globalToGridCoordinations(globalPositionFrom);   // convert global position to grid (GUI)
+            GlobalToGridBoard.CellCoordinates gridPositionTo = GlobalToGridBoard.globalToGridCoordinations(globalPositionTo);
 
-        if(pieceEvent.getFrom() == 0){       // If user moved from home position we use homeGrid
-            // change the from positions because we want to move the particular piece the player clicked and need
-            // to convert localposition to the correct gridpositions
-            globalPositionFrom += movedPieceId;
-            gridPositionFrom = GlobalToGridBoard.globalToGridCoordinations(globalPositionFrom);
+            if(pieceEvent.getFrom() == 0){       // If user moved from home position we use homeGrid
+                // change the from positions because we want to move the particular piece the player clicked and need
+                // to convert localposition to the correct gridpositions
+                globalPositionFrom += movedPieceId;
+                gridPositionFrom = GlobalToGridBoard.globalToGridCoordinations(globalPositionFrom);
 
-            Node piece = getNodeFromGridPane(homeGrid, gridPositionFrom.row, gridPositionFrom.column);
+                Node piece = getNodeFromGridPane(homeGrid, gridPositionFrom.row, gridPositionFrom.column);
 
-            homeGrid.getChildren().remove(piece);                       // remove from parent
-            movingGrid.getChildren().add(piece);                        // add to new parent
-            GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
-            GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
-        } else {                            // else we use movingGrid
-            Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column);
+                homeGrid.getChildren().remove(piece);                       // remove from parent
+                movingGrid.getChildren().add(piece);                        // add to new parent
+                GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
+                GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
+            } else {                            // else we use movingGrid
+                Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column);
 
-            GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
-            GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
+                GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
+                GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
 
-        }
+            }
+        });
     }
 
     @Override
     public void playerStateChanged(PlayerEvent event) {
-        // user left game, let's disable his GUI for all other players
-        if(event.getPlayerEvent() == PlayerEvent.LEFTGAME){
-            Platform.runLater(() -> {
-                int playerCount = players.length;
-                String playerName = ludoGame.getPlayerName(event.getPlayerID());
+        System.out.println(event.getPlayerEvent());
 
-                if (playerCount > 0 && playerName.equals(players[0])) {
-                    player1Name.setOpacity(0.25);
-                }
-                if (playerCount > 1 && playerName.equals(players[1])) {
-                    player2Name.setOpacity(0.25);
-                }
-                if (playerCount > 2 && playerName.equals(players[2])) {
-                    player3Name.setOpacity(0.25);
-                }
-                if (playerCount > 3 && playerName.equals(players[3])) {
-                    player4Name.setOpacity(0.25);
+        // user left game, let's disable his GUI for all other players
+        if(event.getPlayerEvent().equals(PlayerEvent.LEFTGAME)){
+            Platform.runLater(() -> {
+                int playerId = event.getPlayerID();
+                String newPlayerName = ludoGame.getPlayerName(playerId);
+
+                switch(playerId){
+                    case 0:
+                        player1Name.setOpacity(0.25); player1Name.setText(newPlayerName); break;
+                    case 1:
+                        player2Name.setOpacity(0.25); player2Name.setText(newPlayerName); break;
+                    case 2:
+                        player3Name.setOpacity(0.25); player3Name.setText(newPlayerName); break;
+                    case 3:
+                        player4Name.setOpacity(0.25); player4Name.setText(newPlayerName); break;
                 }
             });
         }
 
         // it's our turn again
-        if (event.getPlayerEvent() == PlayerEvent.PLAYING) {
+        if (event.getPlayerID() == ourPlayerId && event.getPlayerEvent().equals(PlayerEvent.PLAYING)) {
             throwTheDice.setDisable(false);
         }
 
         // we're waiting for our turn
-        if (event.getPlayerEvent() == PlayerEvent.WAITING) {
+        if (event.getPlayerID() == ourPlayerId && event.getPlayerEvent().equals(PlayerEvent.WAITING)) {
+            System.out.println("Waiting...");
             throwTheDice.setDisable(true);
         }
     }

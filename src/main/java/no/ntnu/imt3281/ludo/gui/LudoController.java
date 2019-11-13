@@ -301,7 +301,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
         // if success, we add the chat tab to the user's tab pane
         if (response.isStatus()) {
-            // todo change name to real chat name
             // todo change tab colour instead of having a prefix for chat
             addNewChatTab(response.getChatroomname());
         }

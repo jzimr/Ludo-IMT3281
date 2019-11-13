@@ -57,6 +57,7 @@ public class GlobalToGridBoard {
             // coordinates between red-blue
             new CellCoordinates(6, 9),
             new CellCoordinates(6, 10),
+            new CellCoordinates(6, 11),
             new CellCoordinates(6, 12),
             new CellCoordinates(6, 13),
             new CellCoordinates(6, 14),

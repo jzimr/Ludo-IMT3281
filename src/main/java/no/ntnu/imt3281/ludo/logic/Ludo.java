@@ -416,7 +416,7 @@ public class Ludo {
 
         // if no piece can be moved, go to next player's turn
         if(pieceToBeMoved == -1){
-            nextPlayerTurn();
+            //nextPlayerTurn();
             return false;
         }
 
@@ -433,7 +433,7 @@ public class Ludo {
 
         // move over the board limit
         if(to > 59){
-            nextPlayerTurn();
+            //nextPlayerTurn();
             return false;
         }
 
@@ -469,7 +469,6 @@ public class Ludo {
 
             // if did not throw 6, go to next player
             if(diceRolled != 6){
-
                 nextPlayerTurn();
             }
 
@@ -479,11 +478,11 @@ public class Ludo {
         }
 
         if(timesRolled == 3) {
-            nextPlayerTurn();
+            //nextPlayerTurn();
             return false;
         }
 
-        nextPlayerTurn();
+        //nextPlayerTurn();
         return false;
     }
 
