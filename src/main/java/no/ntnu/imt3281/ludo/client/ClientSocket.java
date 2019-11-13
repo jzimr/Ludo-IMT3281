@@ -47,6 +47,8 @@ public class ClientSocket {
     ArrayBlockingQueue<GameHasStartedResponseListener> gameHasStartedResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
     ArrayBlockingQueue<DiceThrowResponseListener> diceThrowResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
     ArrayBlockingQueue<PieceMovedResponseListener> pieceMovedResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
+    ArrayBlockingQueue<ChatJoinNewUserResponseListener> chatJoinNewUserResponseListeners = new ArrayBlockingQueue<>(100);
+    ArrayBlockingQueue<UserLeftChatRoomResponseListener> userLeftChatRoomResponseListeners = new ArrayBlockingQueue<>(100);
 
     /**
      * Create a connection from client to server
@@ -206,7 +208,7 @@ public class ClientSocket {
 
                     // send the message to the correct listener
                     SentMessageResponseListener listener = sentMessageResponseListeners.stream()
-                            .filter(l -> l != null && l.equals(message4.getChatroomname())).findFirst().orElse(null);
+                            .filter(l -> l != null && l.equalsChatRoomId(message4.getChatroomname())).findFirst().orElse(null);
                     if (listener != null) listener.sentMessageResponseEvent(message4);
                     break;
                 case "ChatRoomsListResponse":
@@ -292,8 +294,24 @@ public class ClientSocket {
                             .filter(l -> l != null && l.equalsGameId(message13.getGameid())).findFirst().orElse(null);
                     if (listener5 != null) listener5.pieceMovedResponseEvent(message13);
                     break;
+                case "ChatJoinNewUserResponse":
+                    ChatJoinNewUserResponse message14 = new ChatJoinNewUserResponse(action, jsonNode.get("displayname").asText(),
+                            jsonNode.get("chatroomname").asText());
 
+                    // send the message to the correct listener
+                    ChatJoinNewUserResponseListener listener6 = chatJoinNewUserResponseListeners.stream()
+                            .filter(l -> l != null && l.equalsChatRoomId(message14.getChatroomname())).findFirst().orElse(null);
+                    if (listener6 != null) listener6.chatJoinNewUserResponseEvent(message14);
+                    break;
+                case "UserLeftChatRoomResponse":
+                    UserLeftChatRoomResponse message15 = new UserLeftChatRoomResponse(action, jsonNode.get("chatroomname").asText(),
+                            jsonNode.get("displayname").asText());
 
+                    // send the message to the correct listener
+                    UserLeftChatRoomResponseListener listener7 = userLeftChatRoomResponseListeners.stream()
+                            .filter(l -> l != null && l.equalsChatRoomId(message15.getChatroomname())).findFirst().orElse(null);
+                    if (listener7 != null) listener7.userLeftChatRoomResponseEvent(message15);
+                    break;
                 default:
                     System.out.println("Json not recognized: " + jsonMessage);
                     break;
@@ -399,5 +417,21 @@ public class ClientSocket {
 
     public void removePieceMovedListener(PieceMovedResponseListener listener){
         pieceMovedResponseListeners.remove(listener);
+    }
+
+    public void addChatJoinNewUserResponseListener(ChatJoinNewUserResponseListener listener){
+        chatJoinNewUserResponseListeners.add(listener);
+    }
+
+    public void removeChatJoinNewUserResponseListener(ChatJoinNewUserResponseListener listener){
+        chatJoinNewUserResponseListeners.remove(listener);
+    }
+
+    public void addUserLeftChatRoomResponseListener(UserLeftChatRoomResponseListener listener){
+        userLeftChatRoomResponseListeners.add(listener);
+    }
+
+    public void removeUserLeftChatRoomResponseListener(UserLeftChatRoomResponseListener listener){
+        userLeftChatRoomResponseListeners.remove(listener);
     }
 }

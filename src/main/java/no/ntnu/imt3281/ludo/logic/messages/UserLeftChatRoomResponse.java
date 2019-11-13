@@ -8,6 +8,11 @@ public class UserLeftChatRoomResponse extends Message {
 
     public UserLeftChatRoomResponse(String action){super(action);}
 
+    public UserLeftChatRoomResponse(String action, String chatroomname, String displayname){
+        super(action);
+        this.chatroomname = chatroomname;
+        this.displayname = displayname;
+    }
 
     public void setChatroomname(String chatroomname) {
         this.chatroomname = chatroomname;

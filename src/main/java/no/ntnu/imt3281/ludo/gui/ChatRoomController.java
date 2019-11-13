@@ -10,12 +10,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.text.Font;
 import javafx.util.Callback;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.ChatJoinNewUserResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.SentMessageResponseListener;
-import no.ntnu.imt3281.ludo.logic.messages.SentMessageResponse;
-import no.ntnu.imt3281.ludo.logic.messages.UserLeftChatRoom;
-import no.ntnu.imt3281.ludo.logic.messages.UserSentMessage;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.UserLeftChatRoomResponseListener;
+import no.ntnu.imt3281.ludo.logic.messages.*;
 import no.ntnu.imt3281.ludo.server.ChatMessage;
 
 import java.text.SimpleDateFormat;
@@ -23,7 +24,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 
-public class ChatRoomController implements SentMessageResponseListener {
+public class ChatRoomController implements SentMessageResponseListener, ChatJoinNewUserResponseListener,
+        UserLeftChatRoomResponseListener {
     @FXML
     private TextArea chatLogText;
 
@@ -34,28 +36,62 @@ public class ChatRoomController implements SentMessageResponseListener {
     private Button messageButton;
 
     @FXML
-    private ListView usersList;
+    private ListView<String> userList;
 
     private ClientSocket clientSocket;
     private String chatRoomName;
 
-    private ChatMessage[] chatlog;
-    private String[] usersInChatRoom;
-    private ObservableList observableList = FXCollections.observableArrayList();
-    private List<String> stringList = new ArrayList<>();
+    ObservableList<String> usersInChatRoom;
 
     /**
      * Method to pass client socket from LudoController to this
      * and the chat name itself
      */
-    public void setup(ClientSocket clientSocket, String chatRoomName) {
+    public void setup(ClientSocket clientSocket, String chatRoomName, final ChatMessage[] chatLog, final String[] usersInChatRoom) {
         this.clientSocket = clientSocket;
         this.chatRoomName = chatRoomName;
 
         // add listeners
         clientSocket.addSentMessageResponseListener(this);
-        Platform.runLater(() -> addChatLogMessages());
-        Platform.runLater(() -> addOnlineUsers());
+        clientSocket.addChatJoinNewUserResponseListener(this);
+        clientSocket.addUserLeftChatRoomResponseListener(this);
+
+        // add chat history to the chat
+        for(int i = 0; i < chatLog.length; i++) {
+            ChatMessage message = chatLog[i];
+
+            Date date = new Date(message.getTimeSent() * 1000L);
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+            sdf.setTimeZone(TimeZone.getTimeZone("GMT+0"));
+            String time = sdf.format(date);
+
+            Platform.runLater(() -> {
+                chatLogText.appendText(time + " - " + message.getdisplayName() + ": " + message.getChatMessage() + "\t\n");
+            });
+        }
+        // add all online users in a list
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                // change the font of the text inside the cells
+                userList.setCellFactory(cell -> new ListCell<String>() {
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if(empty){
+                            setText(null);
+                        }
+                        else if(item != null) {
+                            setText(item);
+                            setFont(Font.font(16));
+                        }
+                    }
+                });
+
+                ChatRoomController.this.usersInChatRoom = FXCollections.observableArrayList(usersInChatRoom);
+                userList.setItems(ChatRoomController.this.usersInChatRoom);
+            }
+        });
     }
 
     /**
@@ -98,42 +134,8 @@ public class ChatRoomController implements SentMessageResponseListener {
         chatTextInput.clear();
     }
 
-
-    private void addChatLogMessages(){
-        for(ChatMessage message : chatlog){
-            Date date = new Date(message.getTimeSent()*1000L);
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-            sdf.setTimeZone(TimeZone.getTimeZone("GMT+0"));
-            String time = sdf.format(date);
-            chatLogText.appendText(time + " - " + message.getdisplayName() + ": " + message.getChatMessage() + "\t\n");
-        }
-    }
-
-    @FXML
-    private void addOnlineUsers(){
-
-        for(int i = 0; i < usersInChatRoom.length; i++){
-            stringList.add(usersInChatRoom[i]);
-            observableList.add(usersInChatRoom[i]);
-        }
-
-        //observableList.setAll(stringList);
-        System.out.println(observableList.size());
-        usersList.setItems(observableList);
-        usersList.setCellFactory((Callback<ListView<String>, ListCell<String>>) listView -> new ListViewCell());
-
-    }
-
-    public void setChatlog(ChatMessage[] chatlog) {
-        this.chatlog = chatlog;
-    }
-
-    public void setUsersInChatRoom(String[] usersInChatRoom) {
-        this.usersInChatRoom = usersInChatRoom;
-    }
-
     @Override
-    public boolean equals(String chatName) {
+    public boolean equalsChatRoomId(String chatName) {
         return this.chatRoomName.equals(chatName);
     }
 
@@ -145,7 +147,10 @@ public class ChatRoomController implements SentMessageResponseListener {
     @Override
     public void sentMessageResponseEvent(SentMessageResponse response) {
         // convert time to local time
+        System.out.println("yes");
+
         LocalDateTime time;
+
         try {
             time = LocalDateTime.ofEpochSecond(Long.parseLong(response.getTimestamp()), 0, ZoneOffset.ofHours(0));
         } catch (NumberFormatException e) {
@@ -157,9 +162,34 @@ public class ChatRoomController implements SentMessageResponseListener {
         String userSent = response.getdisplayname();
         String messageSent = response.getChatmessage();
 
+
         Platform.runLater(() -> {
             // display user as red
             chatLogText.appendText(timeSent + " - " + userSent + ": " + messageSent + "\t\n");
+        });
+    }
+
+    /**
+     * Message when we or another user joined the chat room (used for keeping track of people in chat)
+     * @param response
+     */
+    @Override
+    public void chatJoinNewUserResponseEvent(ChatJoinNewUserResponse response) {
+        Platform.runLater(() -> {
+            usersInChatRoom.add(response.getDisplayname());
+            //userList.setItems(usersInChatRoom);
+        });
+    }
+
+    /**
+     * Message when another user left the chat room (used for keeping track of people in chat)
+     * @param response
+     */
+    @Override
+    public void userLeftChatRoomResponseEvent(UserLeftChatRoomResponse response) {
+        Platform.runLater(() ->  {
+            usersInChatRoom.remove(response.getDisplayname());
+            //userList.setItems(usersInChatRoom);
         });
     }
 
@@ -173,6 +203,9 @@ public class ChatRoomController implements SentMessageResponseListener {
         public void handle(Event arg0) {
             // remove this listener from clientsocket
             clientSocket.removeSentMessageResponseListener(ChatRoomController.this);
+            clientSocket.removeChatJoinNewUserResponseListener(ChatRoomController.this);
+            clientSocket.removeUserLeftChatRoomResponseListener(ChatRoomController.this);
+
             // disconnect user from chat room
             clientSocket.sendMessageToServer(new UserLeftChatRoom("UserLeftChatRoom", clientSocket.getUserId(), chatRoomName));
         }
