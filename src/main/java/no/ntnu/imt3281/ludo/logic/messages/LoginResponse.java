@@ -8,11 +8,12 @@ public class LoginResponse extends Message {
 
     public LoginResponse(String action){super(action);}
 
-    public LoginResponse(String action, String response, boolean loginStatus, String userid){
+    public LoginResponse(String action, String response, boolean loginStatus, String userid, String displayname){
         super(action);
         this.response = response;
         this.loginStatus = loginStatus;
         this.userid = userid;
+        this.displayname = displayname;
     }
 
     public void setLoginStatus(boolean loginStatus) {

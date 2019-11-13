@@ -10,6 +10,15 @@ public class PieceMovedResponse extends Message {
 
     public PieceMovedResponse(String action){super(action);}
 
+    public PieceMovedResponse(String action, String gameid, int playerid, int piecemoved, int movedfrom, int movedto){
+        super(action);
+        this.gameid = gameid;
+        this.playerid = playerid;
+        this.piecemoved = piecemoved;
+        this.movedfrom = movedfrom;
+        this.movedto = movedto;
+    }
+
     public void setGameid(String gameid) {
         this.gameid = gameid;
     }

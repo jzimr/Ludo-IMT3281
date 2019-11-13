@@ -1,16 +1,16 @@
 package no.ntnu.imt3281.ludo.gui;
 
-public class LudoBoardGridMapping {
+public class GlobalToGridBoard {
     /**
      * Class for holding the position in cell coordinates
      */
     public static class CellCoordinates {
-        int gridRow;
-        int gridColumn;
+        int row;
+        int column;
 
-        public CellCoordinates(int gridRow, int gridColumn){
-            this.gridRow = gridRow;
-            this.gridColumn = gridColumn;
+        public CellCoordinates(int row, int column){
+            this.row = row;
+            this.column = column;
         }
     }
 
@@ -57,6 +57,7 @@ public class LudoBoardGridMapping {
             // coordinates between red-blue
             new CellCoordinates(6, 9),
             new CellCoordinates(6, 10),
+            new CellCoordinates(6, 11),
             new CellCoordinates(6, 12),
             new CellCoordinates(6, 13),
             new CellCoordinates(6, 14),
@@ -141,7 +142,7 @@ public class LudoBoardGridMapping {
             new CellCoordinates(7, 6)
     };
 
-    public static CellCoordinates ludoBoardGridToGUIGrid(int ludoBoardPosition){
+    public static CellCoordinates globalToGridCoordinations(int ludoBoardPosition){
         return cellCoordinates[ludoBoardPosition];
     }
 }

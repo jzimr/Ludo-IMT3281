@@ -92,7 +92,7 @@ public class JsonMessageParser {
                     return msg;
                 }
                 case "UserDoesPieceMove":{
-                    msg = new UserDoesPieceMove(action.get("action").asText(), action.get("playerid").asInt(), action.get("piecemoved").asInt(), action.get("movedfrom").asInt(), action.get("movedto").asInt());
+                    msg = new UserDoesPieceMove(action.get("action").asText(), action.get("gameid").asText(), action.get("playerid").asInt(), action.get("piecemoved").asInt(), action.get("movedfrom").asInt(), action.get("movedto").asInt());
                     msg.setRecipientSessionId(sessionid);
                     return msg;
                 }

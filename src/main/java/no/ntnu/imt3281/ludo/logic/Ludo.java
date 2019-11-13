@@ -1,6 +1,5 @@
 package no.ntnu.imt3281.ludo.logic;
 
-import javafx.application.Platform;
 import no.ntnu.imt3281.ludo.Exceptions.NoRoomForMorePlayersException;
 import no.ntnu.imt3281.ludo.Exceptions.NotEnoughPlayersException;
 
@@ -227,7 +226,6 @@ public class Ludo {
         //if (playerTurn)
         //Skip that players turn
         nextPlayerTurn();
-
     }
 
     /**
@@ -383,7 +381,6 @@ public class Ludo {
 
             //Skip turn if the player is blocked.
             if (towersBlocksOpponents(playerTurn, rolled)) {
-
                 nextPlayerTurn();
             }
 
@@ -419,7 +416,7 @@ public class Ludo {
 
         // if no piece can be moved, go to next player's turn
         if(pieceToBeMoved == -1){
-            nextPlayerTurn();
+            //nextPlayerTurn();
             return false;
         }
 
@@ -436,7 +433,7 @@ public class Ludo {
 
         // move over the board limit
         if(to > 59){
-            nextPlayerTurn();
+            //nextPlayerTurn();
             return false;
         }
 
@@ -472,7 +469,6 @@ public class Ludo {
 
             // if did not throw 6, go to next player
             if(diceRolled != 6){
-
                 nextPlayerTurn();
             }
 
@@ -482,11 +478,11 @@ public class Ludo {
         }
 
         if(timesRolled == 3) {
-            nextPlayerTurn();
+            //nextPlayerTurn();
             return false;
         }
 
-        nextPlayerTurn();
+        //nextPlayerTurn();
         return false;
     }
 
@@ -499,13 +495,13 @@ public class Ludo {
     public int userGridToLudoBoardGrid(int playerID, int position){
         switch (playerID){
             case RED:
-                return BoardLocations.RED_BOARD[position];
+                return LocalToGlobalBoard.RED_BOARD[position];
             case BLUE:
-                return BoardLocations.BLUE_BOARD[position];
+                return LocalToGlobalBoard.BLUE_BOARD[position];
             case YELLOW:
-                return BoardLocations.YELLOW_BOARD[position];
+                return LocalToGlobalBoard.YELLOW_BOARD[position];
             case GREEN:
-                return BoardLocations.GREEN_BOARD[position];
+                return LocalToGlobalBoard.GREEN_BOARD[position];
             default:
                 return -1;
         }

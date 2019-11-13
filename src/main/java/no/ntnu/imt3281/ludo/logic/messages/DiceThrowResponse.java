@@ -7,6 +7,12 @@ public class DiceThrowResponse extends Message{
 
     public DiceThrowResponse(String action) {super(action);}
 
+    public DiceThrowResponse(String action, String gameid, int dicerolled){
+        super(action);
+        this.gameid = gameid;
+        this.dicerolled = dicerolled;
+    }
+
     public void setGameid(String gameid) {
         this.gameid = gameid;
     }
