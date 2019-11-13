@@ -1,16 +1,16 @@
 package no.ntnu.imt3281.ludo.gui;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.util.Callback;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.SentMessageResponseListener;
 import no.ntnu.imt3281.ludo.logic.messages.SentMessageResponse;
@@ -21,8 +21,7 @@ import no.ntnu.imt3281.ludo.server.ChatMessage;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.TimeZone;
+import java.util.*;
 
 public class ChatRoomController implements SentMessageResponseListener {
     @FXML
@@ -42,6 +41,8 @@ public class ChatRoomController implements SentMessageResponseListener {
 
     private ChatMessage[] chatlog;
     private String[] usersInChatRoom;
+    private ObservableList observableList = FXCollections.observableArrayList();
+    private List<String> stringList = new ArrayList<>();
 
     /**
      * Method to pass client socket from LudoController to this
@@ -54,6 +55,7 @@ public class ChatRoomController implements SentMessageResponseListener {
         // add listeners
         clientSocket.addSentMessageResponseListener(this);
         Platform.runLater(() -> addChatLogMessages());
+        Platform.runLater(() -> addOnlineUsers());
     }
 
     /**
@@ -96,6 +98,7 @@ public class ChatRoomController implements SentMessageResponseListener {
         chatTextInput.clear();
     }
 
+
     private void addChatLogMessages(){
         for(ChatMessage message : chatlog){
             Date date = new Date(message.getTimeSent()*1000L);
@@ -104,6 +107,21 @@ public class ChatRoomController implements SentMessageResponseListener {
             String time = sdf.format(date);
             chatLogText.appendText(time + " - " + message.getdisplayName() + ": " + message.getChatMessage() + "\t\n");
         }
+    }
+
+    @FXML
+    private void addOnlineUsers(){
+
+        for(int i = 0; i < usersInChatRoom.length; i++){
+            stringList.add(usersInChatRoom[i]);
+            observableList.add(usersInChatRoom[i]);
+        }
+
+        //observableList.setAll(stringList);
+        System.out.println(observableList.size());
+        usersList.setItems(observableList);
+        usersList.setCellFactory((Callback<ListView<String>, ListCell<String>>) listView -> new ListViewCell());
+
     }
 
     public void setChatlog(ChatMessage[] chatlog) {
