@@ -1,15 +1,18 @@
 package no.ntnu.imt3281.ludo.client;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import no.ntnu.imt3281.ludo.gui.ChatRoomsListController;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.*;
 import no.ntnu.imt3281.ludo.logic.messages.*;
+import no.ntnu.imt3281.ludo.server.ChatMessage;
 
 import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -172,8 +175,22 @@ public class ClientSocket {
                     registerResponseListener.registerResponseEvent(message2);
                     break;
                 case "ChatJoinResponse":
+                    //Get and create array of usersinroom
+                    ArrayList<String> usersinroom = objectMapper.convertValue(jsonNode.get("usersinroom"), ArrayList.class);
+                    String[] usersInRoomArr = new String[usersinroom.size()];
+                    for(int i = 0; i < usersinroom.size(); i++) {
+                        usersInRoomArr[i] = usersinroom.get(i);
+                    }
+
+                    //Get and create array of chat messages.
+                    ArrayList<ChatMessage> chatlog = objectMapper.convertValue(jsonNode.get("chatlog"), new TypeReference <ArrayList<ChatMessage>>(){});
+                    ChatMessage[] chatlogArr = new ChatMessage[chatlog.size()];
+                    for(int i = 0; i < chatlog.size(); i++) {
+                        chatlogArr[i] = chatlog.get(i);
+                    }
+
                     ChatJoinResponse message3 = new ChatJoinResponse(action, jsonNode.get("status").asBoolean(),
-                            jsonNode.get("response").asText(), jsonNode.get("chatroomname").asText());
+                            jsonNode.get("response").asText(), jsonNode.get("chatroomname").asText(), usersInRoomArr, chatlogArr);
                     chatJoinResponseListener.chatJoinResponseEvent(message3);
                     break;
                 case "SentMessageResponse":

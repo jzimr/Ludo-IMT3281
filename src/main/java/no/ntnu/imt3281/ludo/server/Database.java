@@ -511,8 +511,8 @@ public class Database {
 
         // get the messages
         try {
-            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM chat_log " +
-                    "WHERE chat_name=? ORDER BY 'timestamp' DESC");
+            PreparedStatement stmt = connection.prepareStatement("SELECT chat_log.chat_name, user_info.display_name, chat_log.chat_message, chat_log.timestamp FROM chat_log " +
+                    "JOIN user_info ON user_info.user_id = chat_log.user_id WHERE chat_name=? ORDER BY 'timestamp' DESC");
             stmt.setString(1, chatName);
 
             ResultSet rs = stmt.executeQuery();
@@ -521,7 +521,7 @@ public class Database {
             while (rs.next()) {
                 chatMessages.add(new ChatMessage(
                         rs.getString("chat_name"),
-                        rs.getString("user_id"),
+                        rs.getString("display_name"),
                         rs.getString("chat_message"),
                         rs.getLong("timestamp")
                 ));

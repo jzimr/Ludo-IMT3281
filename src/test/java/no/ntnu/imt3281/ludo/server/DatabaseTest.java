@@ -15,6 +15,7 @@ public class DatabaseTest {
     private static Connection testConnection;          // database connection to execute sql statements
     private static SHA512Hasher hasher = new SHA512Hasher();    // our hasher object for hashing passwords
     private static String user1Id, user2Id;         // Unique UUID's of users
+    private static String user1display, user2display;
     private static byte[] user1Salt, user2Salt;     // unique salts of users for encryption
     private static String user1Session, user2Session;     // unique sessionIDs for creating sessions
 
@@ -183,6 +184,7 @@ public class DatabaseTest {
             // loop over data of user 1 to get user id and hash salt
             while (rs.next()) {
                 user1Id = rs.getString("user_id");
+                user1display = rs.getString("account_name");
                 user1Salt = rs.getBytes("account_salt");
             }
             rs = state.executeQuery("SELECT * FROM login_info WHERE account_name = 'Samy'");
@@ -190,6 +192,7 @@ public class DatabaseTest {
             // loop over data of user 2 to get user id and hash salt
             while (rs.next()) {
                 user2Id = rs.getString("user_id");
+                user2display = rs.getString("account_name");
                 user2Salt = rs.getBytes("account_salt");
             }
 
@@ -795,7 +798,7 @@ public class DatabaseTest {
 
         // check if first message match our insert
         assertEquals("Testroom", chatMessages.get(0).getChatName());
-        assertEquals(user1Id, chatMessages.get(0).getUserId());
+        assertEquals(user1display, chatMessages.get(0).getdisplayName());
         assertEquals("Wow, what a great game :)", chatMessages.get(0).getChatMessage());
 
 
@@ -806,7 +809,7 @@ public class DatabaseTest {
 
         // check if second message match our insert
         assertEquals("Testroom2", chatMessages.get(0).getChatName());
-        assertEquals(user2Id, chatMessages.get(0).getUserId());
+        assertEquals(user2display, chatMessages.get(0).getdisplayName());
         assertEquals("Ye, this game deserves an 'A'!", chatMessages.get(0).getChatMessage());
     }
 

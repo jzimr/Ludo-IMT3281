@@ -35,7 +35,6 @@ public class ChatRoomsListController implements ChatRoomsListResponseListener {
      * Method to pass client socket from LudoController to setup listeners
      */
     public void setup(ClientSocket clientSocket) {
-
         // add listener
         clientSocket.addChatRoomsListResponseListener(this);
     }

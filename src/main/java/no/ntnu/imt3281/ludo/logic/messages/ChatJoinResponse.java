@@ -11,11 +11,13 @@ public class ChatJoinResponse extends Message{
 
     public ChatJoinResponse(String action) {super(action);}
 
-    public ChatJoinResponse(String action, boolean status, String response, String chatroomname){
+    public ChatJoinResponse(String action, boolean status, String response, String chatroomname, String[] usersinroom, ChatMessage[] chatlog){
         super(action);
         this.status = status;
         this.response = response;
         this.chatroomname = chatroomname;
+        this.usersinroom = usersinroom;
+        this.chatlog = chatlog;
     }
 
     public void setResponse(String response) {
