@@ -101,6 +101,11 @@ public class JsonMessageParser {
                     msg.setRecipientSessionId(sessionid);
                     return msg;
                 }
+                case "UserWantToViewProfile":{
+                    msg = new UserWantToViewProfile(action.get("action").asText(),action.get("userid").asText());
+                    msg.setRecipientSessionId(sessionid);
+                    return msg;
+                }
                 default: {
                     System.out.println("Unhandled incoming json: " + json);
                     break;

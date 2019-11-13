@@ -310,6 +310,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserLeftGame": UserLeftGame((UserLeftGame) action); break;
 			case "UserDoesPieceMove" : UserDoesPieceMove((UserDoesPieceMove) action); break;
 			case "UserDoesRandomGameSearch":UserDoesRandomGameSearch((UserDoesRandomGameSearch) action);break;
+			case "UserWantToViewProfile": UserWantToViewProfile((UserWantToViewProfile) action); break;
 		}
 
 	}
@@ -474,6 +475,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				case "GameHasStartedResponse":{
 					GameHasStartedResponse message = new GameHasStartedResponse("GameHasStartedResponse");
 					message.setGameid(((GameHasStartedResponse)msg).getGameid());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case"UserWantToViewProfileResponse":{
+					UserWantToViewProfileResponse message = new UserWantToViewProfileResponse("UserWantToViewProfileResponse");
+					message.setUserId(((UserWantToViewProfileResponse)msg).getUserId());
+					message.setGamesWon(((UserWantToViewProfileResponse)msg).getGamesWon());
+					message.setGamesPlayed(((UserWantToViewProfileResponse)msg).getGamesPlayed());
+					message.setDisplayName(((UserWantToViewProfileResponse)msg).getDisplayName());
+					message.setAvatarPath(((UserWantToViewProfileResponse)msg).getAvatarPath());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -1315,6 +1326,32 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				messagesToSend.add(retMsg);
 			}
 		}
+
+	}
+
+	private void UserWantToViewProfile(UserWantToViewProfile action){
+		UserInfo info = db.getProfile(action.getUserid());
+		Message retMsg;
+		if (info != null){
+			retMsg = new UserWantToViewProfileResponse("UserWantToViewProfileResponse");
+			retMsg.setRecipientSessionId(action.getRecipientSessionId());
+			((UserWantToViewProfileResponse)retMsg).setAvatarPath(info.getAvatarPath());
+			((UserWantToViewProfileResponse)retMsg).setDisplayName(info.getDisplayName());
+			((UserWantToViewProfileResponse)retMsg).setGamesPlayed(info.getGamesPlayed());
+			((UserWantToViewProfileResponse)retMsg).setGamesWon(info.getGamesWon());
+			((UserWantToViewProfileResponse)retMsg).setUserId(info.getUserId());
+			synchronized (messagesToSend) {
+				messagesToSend.add(retMsg);
+			}
+		} else {
+			retMsg = new ErrorMessageResponse("ErrorMessageResponse");
+			retMsg.setRecipientSessionId(action.getRecipientSessionId());
+			((ErrorMessageResponse)retMsg).setMessage("No user with userid " + action.getUserid());
+			synchronized (messagesToSend){
+				messagesToSend.add(retMsg);
+			}
+		}
+
 
 	}
 
