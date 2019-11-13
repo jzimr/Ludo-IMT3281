@@ -1,10 +1,13 @@
 package no.ntnu.imt3281.ludo.logic.messages;
 
+import no.ntnu.imt3281.ludo.server.ChatMessage;
+
 public class ChatJoinResponse extends Message{
     boolean status;
     String response;
     String chatroomname;
     String[] usersinroom;
+    ChatMessage[] chatlog;
 
     public ChatJoinResponse(String action) {super(action);}
 
@@ -45,5 +48,13 @@ public class ChatJoinResponse extends Message{
 
     public String[] getUsersinroom() {
         return usersinroom;
+    }
+
+    public void setChatlog(ChatMessage[] chatlog) {
+        this.chatlog = chatlog;
+    }
+
+    public ChatMessage[] getChatlog() {
+        return chatlog;
     }
 }

@@ -371,6 +371,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setResponse(((ChatJoinResponse)msg).getResponse());
 					message.setChatroomname(((ChatJoinResponse)msg).getChatroomname());
 					message.setUsersinroom(((ChatJoinResponse)msg).getUsersinroom());
+					message.setChatlog(((ChatJoinResponse)msg).getChatlog());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -675,6 +676,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				((ChatJoinResponse)retMsg).setResponse("Joined room successfully");
 
 				((ChatJoinResponse)retMsg).setUsersinroom(getUsersInChatRoom(action.getChatroomname()));
+				((ChatJoinResponse)retMsg).setChatlog(getChatLog(action.getChatroomname()));
 
 				//Announce the users presence to others in the chat room.
 				announceToUsersInChatRoom(retMsg, action.getChatroomname());
@@ -701,6 +703,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					announceToUsersInChatRoom(retMsg, action.getChatroomname());
 
 					((ChatJoinResponse)retMsg).setUsersinroom(getUsersInChatRoom(action.getChatroomname()));
+					((ChatJoinResponse)retMsg).setChatlog(getChatLog(action.getChatroomname()));
 
 				} else {
 					((ChatJoinResponse)retMsg).setStatus(false);
@@ -721,6 +724,26 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			messagesToSend.add(retMsg);
 		}
 
+	}
+
+	private ChatMessage[] getChatLog(String chatroomname){
+		ArrayList<ChatMessage> arraylist = db.getChatMessages(chatroomname);
+		ChatMessage[] arr;
+
+		if  (arraylist.size() >= 50) {
+			List<ChatMessage> subArraylist = arraylist.subList(arraylist.size()-50, arraylist.size());
+			arr = new ChatMessage[subArraylist.size()];
+			for (int i = 0; i <= subArraylist.size(); i++){
+				arr[i] = arraylist.get(i);
+			}
+		} else {
+			arr = new ChatMessage[arraylist.size()];
+			for (int i = 0; i < arraylist.size(); i++){
+				arr[i] = arraylist.get(i);
+			}
+		}
+
+		return arr;
 	}
 
 	private void UserLeftChatRoom(UserLeftChatRoom action){
