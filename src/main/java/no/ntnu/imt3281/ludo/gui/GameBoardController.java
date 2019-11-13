@@ -249,8 +249,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             return;
         }
 
-        System.out.println("Trying to move " + clickedNode.getId());
-
         // get the pieceId we clicked on
         for(int i = 0; i < 4; i++){
             if(clickedNode.equals(ourPieces[i])){
@@ -275,7 +273,12 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             return;
         }
 
-        // else we succeeded and reset the dicerolled value (so we can't do illegal moves)
+        // if we rolled 6 and did not move piece from home => we get another throw
+        if(diceRolled == 6 && localPiecePosition != 0){
+            throwTheDice.setDisable(false);
+        }
+
+        // we reset the dicerolled value (so we can't do illegal moves)
         diceRolled = -1;
 
         // we send a message to the server
@@ -318,22 +321,22 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
         // if we threw the dice and it's still our turn
         if (itsMyTurn()) {
+
             // if the player does not have all pieces at home, we let player move a piece
-            /*
             for(int i = 0; i < 4; i++){
                 if(ludoGame.getPosition(ourPlayerId, i) != 0){
                     diceRolled = response.getDicerolled();
                     return;
                 }
             }
-             */
 
-            diceRolled = response.getDicerolled();
-
-            // else all our pieces are still at home, so we can't really move any pieces
-            // so we re-enable the button
-            System.out.println("enabled button");
-            throwTheDice.setDisable(false);
+            // else all our pieces are still at home and we did not roll a six,
+            // we re-enable the button
+            if(response.getDicerolled() != 6){
+                throwTheDice.setDisable(false);
+            } else {
+                diceRolled = response.getDicerolled();
+            }
         }
     }
 
@@ -346,11 +349,12 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
      */
     @Override
     public void pieceMovedResponseEvent(PieceMovedResponse response) {
-        // ignore messages that we sent out
-        if(response.getPlayerid() == ourPlayerId)
+        // ignore messages if we were the ones who sent it out
+        if(response.getPlayerid() == ourPlayerId){
             return;
+        }
 
-        // put it into our logic class
+        // else, register the move of another player into our logic class
         boolean success = ludoGame.movePiece(response.getPlayerid(), response.getMovedfrom(), response.getMovedto());
 
         // for debugging purposes
@@ -444,8 +448,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
     @Override
     public void playerStateChanged(PlayerEvent event) {
-        System.out.println(event.getPlayerEvent());
-
         // user left game, let's disable his GUI for all other players
         if(event.getPlayerEvent().equals(PlayerEvent.LEFTGAME)){
             Platform.runLater(() -> {
@@ -467,12 +469,13 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
         // it's our turn again
         if (event.getPlayerID() == ourPlayerId && event.getPlayerEvent().equals(PlayerEvent.PLAYING)) {
+            System.out.println("Playing: Enable button");
             throwTheDice.setDisable(false);
         }
 
         // we're waiting for our turn
         if (event.getPlayerID() == ourPlayerId && event.getPlayerEvent().equals(PlayerEvent.WAITING)) {
-            System.out.println("Waiting...");
+            System.out.println("Waiting: Disable button");
             throwTheDice.setDisable(true);
         }
     }
