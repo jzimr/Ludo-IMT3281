@@ -732,7 +732,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 		if  (arraylist.size() >= 50) {
 			List<ChatMessage> subArraylist = arraylist.subList(arraylist.size()-50, arraylist.size());
-			arr = new ChatMessage[subArraylist.size()];
+			arr = new ChatMessage[subArraylist.size() +1];
 			for (int i = 0; i <= subArraylist.size(); i++){
 				arr[i] = arraylist.get(i);
 			}

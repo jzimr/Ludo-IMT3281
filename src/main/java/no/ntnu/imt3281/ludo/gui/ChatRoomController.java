@@ -6,6 +6,7 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -15,9 +16,13 @@ import no.ntnu.imt3281.ludo.gui.ServerListeners.SentMessageResponseListener;
 import no.ntnu.imt3281.ludo.logic.messages.SentMessageResponse;
 import no.ntnu.imt3281.ludo.logic.messages.UserLeftChatRoom;
 import no.ntnu.imt3281.ludo.logic.messages.UserSentMessage;
+import no.ntnu.imt3281.ludo.server.ChatMessage;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Date;
+import java.util.TimeZone;
 
 public class ChatRoomController implements SentMessageResponseListener {
     @FXML
@@ -29,8 +34,14 @@ public class ChatRoomController implements SentMessageResponseListener {
     @FXML
     private Button messageButton;
 
+    @FXML
+    private ListView usersList;
+
     private ClientSocket clientSocket;
     private String chatRoomName;
+
+    private ChatMessage[] chatlog;
+    private String[] usersInChatRoom;
 
     /**
      * Method to pass client socket from LudoController to this
@@ -42,6 +53,7 @@ public class ChatRoomController implements SentMessageResponseListener {
 
         // add listeners
         clientSocket.addSentMessageResponseListener(this);
+        Platform.runLater(() -> addChatLogMessages());
     }
 
     /**
@@ -82,6 +94,24 @@ public class ChatRoomController implements SentMessageResponseListener {
 
         // at last clear the chat input
         chatTextInput.clear();
+    }
+
+    private void addChatLogMessages(){
+        for(ChatMessage message : chatlog){
+            Date date = new Date(message.getTimeSent()*1000L);
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+            sdf.setTimeZone(TimeZone.getTimeZone("GMT+0"));
+            String time = sdf.format(date);
+            chatLogText.appendText(time + " - " + message.getdisplayName() + ": " + message.getChatMessage() + "\t\n");
+        }
+    }
+
+    public void setChatlog(ChatMessage[] chatlog) {
+        this.chatlog = chatlog;
+    }
+
+    public void setUsersInChatRoom(String[] usersInChatRoom) {
+        this.usersInChatRoom = usersInChatRoom;
     }
 
     @Override

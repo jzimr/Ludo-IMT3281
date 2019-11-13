@@ -120,7 +120,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     /**
      * Creates a new chat tab for our client
      */
-    private void addNewChatTab(String chatName) {
+    private void addNewChatTab(String chatName, ChatJoinResponse message ) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("ChatRoom.fxml"));
         loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
 
@@ -129,7 +129,10 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         chatTab.setStyle("-fx-text-base-color: red");
 
         ChatRoomController controller = loader.getController();
+        controller.setUsersInChatRoom(message.getUsersinroom());
+        controller.setChatlog(message.getChatlog());
         controller.setup(clientSocket, chatName);
+
         // set listener for when user closes chat tab (except global chat)
         if (!chatName.equals("Global")) {
             chatTab.setOnClosed(controller.onTabClose);
@@ -302,7 +305,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         // if success, we add the chat tab to the user's tab pane
         if (response.isStatus()) {
             // todo change tab colour instead of having a prefix for chat
-            addNewChatTab(response.getChatroomname());
+            addNewChatTab(response.getChatroomname(), response);
         }
     }
 
