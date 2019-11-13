@@ -1374,24 +1374,30 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		Ludo game = event.getLudo();
 		if(event.getPlayerEvent().contentEquals("Won")){
 
-			retMsg = new PlayerWonGameResponse("PlayerWonGameResponse");
-			((PlayerWonGameResponse)retMsg).setPlayerwonid(event.getPlayerID());
-			((PlayerWonGameResponse)retMsg).setGameid(game.getGameid());
-			// TODO : Update DB with winner.
+			for (String name : game.getPlayers()){
+				retMsg = new PlayerWonGameResponse("PlayerWonGameResponse");
+				((PlayerWonGameResponse)retMsg).setPlayerwonid(event.getPlayerID());
+				((PlayerWonGameResponse)retMsg).setGameid(game.getGameid());
+				// TODO : Update DB with winner.
+				retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+				synchronized (messagesToSend){
+					messagesToSend.add(retMsg);
+				}
+			}
 
 		} else {
-			retMsg = new PlayerStateChangeResponse("PlayerStateChangeResponse");
-			((PlayerStateChangeResponse)retMsg).setGameid(game.getGameid());
-			((PlayerStateChangeResponse)retMsg).setActiveplayerid(event.getPlayerID());
-			((PlayerStateChangeResponse)retMsg).setPlayerstate(event.getPlayerEvent());
-		}
-
-		for (String name : game.getPlayers()){
-			retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
-			synchronized (messagesToSend){
-				messagesToSend.add(retMsg);
+			for (String name : game.getPlayers()){
+				retMsg = new PlayerStateChangeResponse("PlayerStateChangeResponse");
+				((PlayerStateChangeResponse)retMsg).setGameid(game.getGameid());
+				((PlayerStateChangeResponse)retMsg).setActiveplayerid(event.getPlayerID());
+				((PlayerStateChangeResponse)retMsg).setPlayerstate(event.getPlayerEvent());
+				retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+				synchronized (messagesToSend){
+					messagesToSend.add(retMsg);
+				}
 			}
 		}
+
 
 	}
 
