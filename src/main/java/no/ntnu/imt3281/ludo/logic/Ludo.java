@@ -363,7 +363,6 @@ public class Ludo {
         } else {
             //Third roll cant be 6.
             if (timesRolled == 3 && diceRolled == 6) {
-
                 nextPlayerTurn();
                 return rolled;
             }
@@ -372,11 +371,20 @@ public class Ludo {
             for(int i = 0; i < 4; i++){
                 int piecePos = piecesPosition[playerTurn][i];
                 if(piecePos+rolled > 59 && piecePos != 59){
-
                     nextPlayerTurn();
                     return rolled;
                 }
+            }
 
+            // if all pieces are either finished or at home and player did not roll six
+            for(int i = 0; i < 4; i++){
+                int piecePos = piecesPosition[playerTurn][i];
+                if((piecePos != 59 && piecePos != 0) || rolled == 6){
+                    break;
+                } else if (i == 3){
+                    nextPlayerTurn();
+                    return rolled;
+                }
             }
 
             //Skip turn if the player is blocked.
