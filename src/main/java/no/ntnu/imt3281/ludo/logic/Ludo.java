@@ -428,6 +428,27 @@ public class Ludo {
             if(pieceListener != null){
                 pieceListener.pieceMoved(new PieceEvent(this, playerID, pieceToBeMoved, from, to));
             }
+
+            piecesPosition[playerID][pieceToBeMoved] = to;
+            int playerUnder = getOnTopOfOtherPlayer(playerID, pieceToBeMoved);
+
+            // check if piece ontop of another player
+            if(playerUnder != -1){
+                int playerPosition = getPosition(playerID, pieceToBeMoved);
+                // get the specific piece that is under current player
+                for(int piece = 0; piece < 4; piece++){
+                    int otherPlayerPosition = getPosition(playerUnder, piece);
+                    if(userGridToLudoBoardGrid(playerID, playerPosition) == userGridToLudoBoardGrid(playerUnder, otherPlayerPosition)){
+                        // send him back home!
+                        piecesPosition[playerUnder][piece] = 0;
+                        // call event listener
+                        if(pieceListener != null){
+                            pieceListener.pieceMoved(new PieceEvent(this, playerUnder, piece, otherPlayerPosition, 0));
+                        }
+                    }
+                }
+            }
+
             nextPlayerTurn();
             return true;
         }
@@ -649,8 +670,7 @@ public class Ludo {
                     if (pieceLocations[i] == pieceLocations[j] //If we find a duplicate (Aka a tower)
                             && i != j                          //And they are not the same element
                             && pieceLocations[i] > startPos    //And the piece location are after where we are currently
-                            && pieceLocations[i] <= startPos + diceRolled // and is lower than where we want to go
-                            ) { //
+                            && pieceLocations[i] <= startPos + diceRolled) {// and is lower than where we want to go
                         return true; //Found a tower!
                     }
                 }
