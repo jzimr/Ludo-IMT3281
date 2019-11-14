@@ -1361,13 +1361,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	@Override
 	public void diceThrown(DiceEvent diceEvent) {
-		Message retMsg = new DiceThrowResponse("DiceThrowResponse");
 		Ludo game = diceEvent.getLudoGame();
 
-		((DiceThrowResponse)retMsg).setGameid(game.getGameid());
-		((DiceThrowResponse)retMsg).setDicerolled(diceEvent.getDiceRolled());
-
 		for (String name : game.getPlayers()){
+			Message retMsg = new DiceThrowResponse("DiceThrowResponse");
+
+			((DiceThrowResponse)retMsg).setGameid(game.getGameid());
+			((DiceThrowResponse)retMsg).setDicerolled(diceEvent.getDiceRolled());
 			retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
 			synchronized (messagesToSend){
 				messagesToSend.add(retMsg);
