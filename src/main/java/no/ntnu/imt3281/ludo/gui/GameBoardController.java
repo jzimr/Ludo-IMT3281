@@ -1,6 +1,7 @@
 package no.ntnu.imt3281.ludo.gui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -13,6 +14,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
@@ -143,9 +145,12 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     private ImageView[] yellowPieces;
     private ImageView[] greenPieces;
 
+    private Image[] diceImages;         // array that holds all dice images for animation while user rolls dice
+
     private int ourPlayerId;
     private ImageView[] ourPieces;      // same indexing as in Ludo logic class
     private int diceRolled = -1;        // -1 if dice has not been thrown by player yet, else 1-6
+    private Timeline throwDiceAnim;
 
     @FXML
     public void initialize() {
@@ -153,6 +158,19 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         bluePieces = new ImageView[]{bluePiece0, bluePiece1, bluePiece2, bluePiece3};
         yellowPieces = new ImageView[]{yellowPiece0, yellowPiece1, yellowPiece2, yellowPiece3};
         greenPieces = new ImageView[]{greenPiece0, greenPiece1, greenPiece2, greenPiece3};
+        diceImages = new Image[]{new Image("images/dice1.png"), new Image("images/dice2.png"), new Image("images/dice3.png"),
+                new Image("images/dice4.png"), new Image("images/dice5.png"), new Image("images/dice6.png")};
+
+        // we play a JavaFX animation for the winner for about 10 seconds, then automatically continue the game
+        throwDiceAnim = new Timeline( // todo fix
+                new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[0])),
+                new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[1])),
+                new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[2])),
+                new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[3])),
+                new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[4])),
+                new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[5]))
+        );
+        throwDiceAnim.setCycleCount(Timeline.INDEFINITE);
     }
 
     /**
@@ -231,6 +249,9 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     void throwDiceButton(ActionEvent event) {
         // disable button until we get response from server
         throwTheDice.setDisable(true);
+
+        // play animation while we wait
+        throwDiceAnim.playFromStart();
 
         // send message to server that we want to throw dice
         clientSocket.sendMessageToServer(new UserDoesDiceThrow("UserDoesDiceThrow", ludoGame.activePlayer(), gameId));
@@ -330,28 +351,34 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
      */
     @Override
     public void diceThrowResponseEvent(DiceThrowResponse response) {
-        // throw the dice that was rolled by server
-        ludoGame.throwDice(response.getDicerolled());
+        // play at least once
+        throwDiceAnim.setCycleCount(1);
+        // when finished we do the logic part of dicethrow
+        throwDiceAnim.setOnFinished(event -> {
+            diceThrown.setImage(diceImages[response.getDicerolled()-1]);
+            // throw the dice that was rolled by server
+            ludoGame.throwDice(response.getDicerolled());
 
-        // if we threw the dice and it's still our turn
-        if (itsMyTurn()) {
+            // if we threw the dice and it's still our turn
+            if (itsMyTurn()) {
 
-            // if the player does not have all pieces at home, we let player move a piece
-            for (int i = 0; i < 4; i++) {
-                if (ludoGame.getPosition(ourPlayerId, i) != 0) {
+                // if the player does not have all pieces at home, we let player move a piece
+                for (int i = 0; i < 4; i++) {
+                    if (ludoGame.getPosition(ourPlayerId, i) != 0) {
+                        diceRolled = response.getDicerolled();
+                        return;
+                    }
+                }
+
+                // else all our pieces are still at home and we did not roll a six,
+                // we re-enable the button
+                if (response.getDicerolled() != 6) {
+                    throwTheDice.setDisable(false);
+                } else {
                     diceRolled = response.getDicerolled();
-                    return;
                 }
             }
-
-            // else all our pieces are still at home and we did not roll a six,
-            // we re-enable the button
-            if (response.getDicerolled() != 6) {
-                throwTheDice.setDisable(false);
-            } else {
-                diceRolled = response.getDicerolled();
-            }
-        }
+        });
     }
 
     /**
@@ -517,18 +544,19 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         // a player won
         if (event.getPlayerEvent().equals(PlayerEvent.WON)) {
             Platform.runLater(() -> {
-                // we play a JavaFX animation for the winner for about 10 seconds, then automatically continue the game
+                // we play a JavaFX animation for the winner for about 10 seconds
                 Timeline winAnimation = new Timeline(
                         new KeyFrame(Duration.seconds(10), e -> {
                             winText.setText(ludoGame.getPlayerName(event.getPlayerID()) + " Won the Game!");
                             winWindow.setVisible(true);
                             winWindow.setDisable(false);
-                        }),
-                        new KeyFrame(Duration.seconds(0), e -> {
-                            winWindow.setVisible(false);
-                            winWindow.setDisable(true);
                         }));
                 winAnimation.play();
+                // when finished we continue the game
+                winAnimation.setOnFinished(e -> {
+                        winWindow.setVisible(false);
+                        winWindow.setDisable(true);
+                });
             });
         }
     }
