@@ -31,6 +31,7 @@ import no.ntnu.imt3281.ludo.logic.messages.*;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class GameBoardController implements UserLeftGameResponseListener, GameHasStartedResponseListener, DiceThrowResponseListener,
@@ -161,6 +162,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         diceImages = new Image[]{new Image("images/dice1.png"), new Image("images/dice2.png"), new Image("images/dice3.png"),
                 new Image("images/dice4.png"), new Image("images/dice5.png"), new Image("images/dice6.png")};
 
+
         // we play a JavaFX animation for the winner for about 10 seconds, then automatically continue the game
         /*
         throwDiceAnim = new Timeline( // todo fix
@@ -224,8 +226,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
             if (playerCount > 0) {
                 player1Name.setText(players[0]);                // set the text to our playername
-                if (ourPlayerId == 0)
-                    ourPieces = redPieces;       // need to have this so the GUI knows which pieces are ours
+                if (ourPlayerId == 0) ourPieces = redPieces;       // need to have this so the GUI knows which pieces are ours
             }
             if (playerCount > 1) {
                 player2Name.setText(players[1]);
@@ -238,6 +239,11 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             if (playerCount > 3) {
                 player3Name.setText(players[3]);
                 if (ourPlayerId == 3) ourPieces = greenPieces;
+            }
+
+            // make only our pieces selectable via mouse event
+            for(Node node : ourPieces){
+                node.setMouseTransparent(false);
             }
         });
     }
@@ -472,7 +478,8 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 globalPositionFrom += movedPieceId;
                 gridPositionFrom = GlobalToGridBoard.globalToGridCoordinations(globalPositionFrom);
 
-                Node piece = getNodeFromGridPane(homeGrid, gridPositionFrom.row, gridPositionFrom.column);
+                // get the piece this event was for
+                Node piece = getNodeFromGridPane(homeGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
 
                 homeGrid.getChildren().remove(piece);                       // remove from parent
                 movingGrid.getChildren().add(piece);                        // add to new parent
@@ -482,14 +489,14 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 globalPositionTo += movedPieceId;
                 gridPositionTo = GlobalToGridBoard.globalToGridCoordinations(globalPositionTo);
 
-                Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column);
+                Node piece = getNodeFromGridPane(homeGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
 
                 movingGrid.getChildren().remove(piece);                     // remove from parent
                 homeGrid.getChildren().add(piece);                          // add to new parent
                 GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
                 GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
             } else {                                                                // all other board movements
-                Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column);
+                Node piece = getNodeFromGridPane(homeGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
 
                 GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
                 GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
@@ -562,16 +569,24 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
     /**
      * Helper function to retrieve the Node in a specific cell in a grid.
+     * <p>
+     *     Need to send playerId and movedPieceID to identify a piece to be moved if there are multiple
+     *     pieces in the same cell.
+     * </p>
      *
      * @param gridPane the gridpane object we want to search in
      * @param row      the row of the gridpane
      * @param col      the column of the gridpane
      * @return the Node object of the found item in the cell or null if not found
      */
-    private Node getNodeFromGridPane(GridPane gridPane, int row, int col) {
+    private Node getNodeFromGridPane(GridPane gridPane, int row, int col, int playerId, int movedPieceId) {
         for (Node node : gridPane.getChildren()) {
             if (GridPane.getRowIndex(node) == row && GridPane.getColumnIndex(node) == col) {
-                return node;
+                if((node.getId().equals(redPieces[movedPieceId].getId()) && playerId == 0)      // here we get the
+                || (node.getId().equals(bluePieces[movedPieceId].getId()) && playerId == 1)     // correct pieces
+                || (node.getId().equals(yellowPieces[movedPieceId].getId()) && playerId == 2)   // of the players
+                || (node.getId().equals(greenPieces[movedPieceId].getId())) && playerId == 3)   // we want to get from
+                    return node;
             }
         }
         return null;

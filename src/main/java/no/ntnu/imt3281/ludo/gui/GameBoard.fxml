@@ -88,82 +88,82 @@
                       <RowConstraints minHeight="10.0" prefHeight="46.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                      <children>
-                        <ImageView fx:id="redPiece0" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                        <ImageView fx:id="redPiece0" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-red.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="redPiece1" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                        <ImageView fx:id="redPiece1" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-red.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="redPiece2" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                        <ImageView fx:id="redPiece2" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-red.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="redPiece3" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER">
+                        <ImageView fx:id="redPiece3" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-red.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="bluePiece0" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER">
+                        <ImageView fx:id="bluePiece0" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-blue.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="bluePiece1" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER">
+                        <ImageView fx:id="bluePiece1" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-blue.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="bluePiece2" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER">
+                        <ImageView fx:id="bluePiece2" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-blue.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="bluePiece3" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.rowIndex="7" GridPane.valignment="CENTER">
+                        <ImageView fx:id="bluePiece3" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.rowIndex="7" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-blue.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="yellowPiece0" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER">
+                        <ImageView fx:id="yellowPiece0" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-yellow.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="yellowPiece1" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER">
+                        <ImageView fx:id="yellowPiece1" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-yellow.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="yellowPiece2" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER">
+                        <ImageView fx:id="yellowPiece2" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-yellow.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="yellowPiece3" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="7" GridPane.valignment="CENTER">
+                        <ImageView fx:id="yellowPiece3" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="7" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-yellow.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="greenPiece0" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.valignment="CENTER" GridPane.vgrow="NEVER">
+                        <ImageView fx:id="greenPiece0" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.valignment="CENTER" GridPane.vgrow="NEVER">
                            <image>
                               <Image url="@../../../../../images/player-green.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="greenPiece1" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                        <ImageView fx:id="greenPiece1" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-green.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="greenPiece2" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                        <ImageView fx:id="greenPiece2" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-green.png" />
                            </image>
                         </ImageView>
-                        <ImageView fx:id="greenPiece3" fitHeight="40.0" fitWidth="30.0" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER">
+                        <ImageView fx:id="greenPiece3" fitHeight="40.0" fitWidth="30.0" mouseTransparent="true" onMouseClicked="#clickedPiece" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER">
                            <image>
                               <Image url="@../../../../../images/player-green.png" />
                            </image>
