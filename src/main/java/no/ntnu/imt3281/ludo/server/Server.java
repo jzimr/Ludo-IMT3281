@@ -174,7 +174,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						if (c.getUuid() != null && msg.getRecipientSessionId().contentEquals(c.getUuid())) {
 							try {
 								String converted = convertToCorrectJson(msg);
-								System.out.println(converted);
+								System.out.println("Session id: " + c.getUuid() + " " + converted);
 								c.send(converted);
 							} catch (IOException e) {   // Exception while sending to client, assume client is lost
 								synchronized (disconnectedClients) {
@@ -1383,16 +1383,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	@Override
 	public void pieceMoved(PieceEvent pieceEvent) {
-		Message retMsg = new PieceMovedResponse("PieceMovedResponse");
 		Ludo game = pieceEvent.getLudoGame();
-
-		((PieceMovedResponse)retMsg).setGameid(game.getGameid());
-		((PieceMovedResponse)retMsg).setMovedfrom(pieceEvent.getFrom());
-		((PieceMovedResponse)retMsg).setMovedto(pieceEvent.getTo());
-		((PieceMovedResponse)retMsg).setPiecemoved(pieceEvent.getPieceMoved());
-		((PieceMovedResponse)retMsg).setPlayerid(pieceEvent.getPlayerID());
-
 		for (String name : game.getPlayers()){
+
+			Message retMsg = new PieceMovedResponse("PieceMovedResponse");
+
+			((PieceMovedResponse)retMsg).setGameid(game.getGameid());
+			((PieceMovedResponse)retMsg).setMovedfrom(pieceEvent.getFrom());
+			((PieceMovedResponse)retMsg).setMovedto(pieceEvent.getTo());
+			((PieceMovedResponse)retMsg).setPiecemoved(pieceEvent.getPieceMoved());
+			((PieceMovedResponse)retMsg).setPlayerid(pieceEvent.getPlayerID());
 			retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
 			synchronized (messagesToSend){
 				messagesToSend.add(retMsg);

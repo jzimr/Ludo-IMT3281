@@ -648,7 +648,8 @@ public class Ludo {
                     if (pieceLocations[i] == pieceLocations[j] //If we find a duplicate (Aka a tower)
                             && i != j                          //And they are not the same element
                             && pieceLocations[i] > startPos    //And the piece location are after where we are currently
-                            && pieceLocations[i] <= startPos + diceRolled) { //And is lower than where we want to go.
+                            && pieceLocations[i] <= startPos + diceRolled // and is lower than where we want to go
+                            ) { //
                         return true; //Found a tower!
                     }
                 }
