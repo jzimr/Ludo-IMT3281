@@ -489,14 +489,14 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 globalPositionTo += movedPieceId;
                 gridPositionTo = GlobalToGridBoard.globalToGridCoordinations(globalPositionTo);
 
-                Node piece = getNodeFromGridPane(homeGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
+                Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
 
                 movingGrid.getChildren().remove(piece);                     // remove from parent
                 homeGrid.getChildren().add(piece);                          // add to new parent
                 GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
                 GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
             } else {                                                                // all other board movements
-                Node piece = getNodeFromGridPane(homeGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
+                Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
 
                 GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
                 GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
@@ -582,10 +582,11 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     private Node getNodeFromGridPane(GridPane gridPane, int row, int col, int playerId, int movedPieceId) {
         for (Node node : gridPane.getChildren()) {
             if (GridPane.getRowIndex(node) == row && GridPane.getColumnIndex(node) == col) {
+                System.out.println(node.getId() + ", " + redPieces[movedPieceId].getId() + ", " + playerId);
                 if((node.getId().equals(redPieces[movedPieceId].getId()) && playerId == 0)      // here we get the
                 || (node.getId().equals(bluePieces[movedPieceId].getId()) && playerId == 1)     // correct pieces
                 || (node.getId().equals(yellowPieces[movedPieceId].getId()) && playerId == 2)   // of the players
-                || (node.getId().equals(greenPieces[movedPieceId].getId())) && playerId == 3)   // we want to get from
+                || (node.getId().equals(greenPieces[movedPieceId].getId()) && playerId == 3))   // we want to get from
                     return node;
             }
         }
