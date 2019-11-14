@@ -624,70 +624,43 @@ public class Ludo {
      * @return true if the user is blocked, false if the player can move.
      */
     private boolean towersBlocksOpponents(int playerID, int diceRolled) {
+            for (int i = 0; i < 4; i++){ //Playerid
 
-        //Get pieces in play for user
-        for(int i = 0; i < 4; i++) {
-            if (piecesPosition[playerID][i] != 0) { // piece is not at home
-                if (isPieceMoveable(playerID, i, diceRolled)) { //user can move
-                    return false;
-                }
-            }
-        }
+                for (int j = 0; j < 4; j++){ //Pieceid
+                    for(int k = 0; k < 4; k++){//Pieceid
 
-        return true;
-    }
+                        int pieceid1_local = getPosition(i,j);
+                        int pieceid2_local = getPosition(i,k);
 
-    /**
-     *  Checks if a selected piece if able to move
-     * @param playerID id of player
-     * @param pieceID Id of player piece
-     * @param diceRolled Number that the dice rolled
-     * @return true if the user can move, false if the user cant move.
-     */
-    private boolean isPieceMoveable(int playerID, int pieceID, int diceRolled){
+                        int pieceid1 = userGridToLudoBoardGrid(i,getPosition(i,j));
+                        int pieceid2 = userGridToLudoBoardGrid(i,getPosition(i,k));
 
-        //Get position of players piece
-        int myPos = getPosition(playerID, pieceID);
-        int ludoBoardPos = userGridToLudoBoardGrid(playerID, myPos) ;
+                        if(pieceid1 == pieceid2 && j != k && pieceid1_local != 0 && pieceid2_local != 0 && playerID != i){ //any towers?
+                            for (int l = 0; l < 4; l++){ // My pieces
+                                int myPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,l));
 
-        if (isThereTowers(ludoBoardPos,diceRolled)){
-            return false; //Tower was found, user is blocked.
-        }
+                                if (pieceid1 > myPiece + diceRolled && myPiece != 0){ //Not blocking
+                                    return false;
+                                }
 
-        return true; //No piece was found blocking the user.
-    }
+                                if (pieceid1 < myPiece+diceRolled && diceRolled == 6) { //In the way but we can go over.
+                                    return false;
+                                }
 
-    /**
-     * Checks if there are any tower present on the path the user takes.
-     * @param startPos Start position of piece
-     * @param diceRolled Number that the dice rolled
-     * @return true if there is a tower, false if not
-     */
-    private boolean isThereTowers( int startPos, int diceRolled){
-
-        for(int otherPlayerId = 0; otherPlayerId < 4; otherPlayerId++) {
-
-            int[] pieceLocations = new int[4];
-
-            for(int otherPlayerPiece = 0; otherPlayerPiece < 4; otherPlayerPiece++) {
-                pieceLocations[otherPlayerPiece] = userGridToLudoBoardGrid(otherPlayerId, getPosition(otherPlayerId, otherPlayerPiece));
-            }
-
-            for(int i = 0; i < 4; i++) { //Loop over the pieceLocations array and see if we find duplicates.
-                for(int j = 0; j < 4; j++) {
-                    if (pieceLocations[i] == pieceLocations[j] //If we find a duplicate (Aka a tower)
-                            && i != j                          //And they are not the same element
-                            && pieceLocations[i] > startPos    //And the piece location are after where we are currently
-                            && pieceLocations[i] <= startPos + diceRolled) {// and is lower than where we want to go
-                        return true; //Found a tower!
+                                if (pieceid1 <= myPiece + diceRolled) { //Blocked, cant land on top or after a piece.
+                                    return true;
+                                }
+                            }
+                        }
                     }
                 }
             }
 
-        }
+        return false;
 
-        return false; //No there is no towers.
     }
+
+
 
     /**
      * Add the Dice listener to this particular Ludo class
