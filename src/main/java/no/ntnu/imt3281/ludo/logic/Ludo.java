@@ -447,8 +447,6 @@ public class Ludo {
                 pieceListener.pieceMoved(new PieceEvent(this, playerID, pieceToBeMoved, from, to));
             }
 
-
-
             // check if piece ontop of another player
             if(playerUnder != -1){
                 int playerPosition = getPosition(playerID, pieceToBeMoved);

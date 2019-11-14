@@ -1,6 +1,8 @@
 package no.ntnu.imt3281.ludo.gui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -14,6 +16,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.text.Text;
+import javafx.util.Duration;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.DiceThrowResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.GameHasStartedResponseListener;
@@ -123,6 +128,12 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     @FXML
     private Button sendTextButton;
 
+    @FXML
+    private Pane winWindow;
+
+    @FXML
+    private Text winText;
+
     private ClientSocket clientSocket;
     private Ludo ludoGame;
     private String gameId;
@@ -137,7 +148,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     private int diceRolled = -1;        // -1 if dice has not been thrown by player yet, else 1-6
 
     @FXML
-    public void initialize(){
+    public void initialize() {
         redPieces = new ImageView[]{redPiece0, redPiece1, redPiece2, redPiece3};
         bluePieces = new ImageView[]{bluePiece0, bluePiece1, bluePiece2, bluePiece3};
         yellowPieces = new ImageView[]{yellowPiece0, yellowPiece1, yellowPiece2, yellowPiece3};
@@ -193,19 +204,20 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
             if (playerCount > 0) {
                 player1Name.setText(players[0]);                // set the text to our playername
-                if(ourPlayerId == 0) ourPieces = redPieces;       // need to have this so the GUI knows which pieces are ours
+                if (ourPlayerId == 0)
+                    ourPieces = redPieces;       // need to have this so the GUI knows which pieces are ours
             }
             if (playerCount > 1) {
                 player2Name.setText(players[1]);
-                if(ourPlayerId == 1) ourPieces = bluePieces;
+                if (ourPlayerId == 1) ourPieces = bluePieces;
             }
             if (playerCount > 2) {
                 player3Name.setText(players[2]);
-                if(ourPlayerId == 2) ourPieces = yellowPieces;
+                if (ourPlayerId == 2) ourPieces = yellowPieces;
             }
             if (playerCount > 3) {
                 player3Name.setText(players[3]);
-                if(ourPlayerId == 3) ourPieces = greenPieces;
+                if (ourPlayerId == 3) ourPieces = greenPieces;
             }
         });
     }
@@ -227,8 +239,8 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     /**
      * When user clicked anywhere on the grids to move a piece
      * <p>
-     *     Code inside here will only be executed if it's the player's turn
-     *     and the player clicked on his own piece.
+     * Code inside here will only be executed if it's the player's turn
+     * and the player clicked on his own piece.
      * </p>
      *
      * @param event
@@ -243,23 +255,24 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         boolean movePieceSuccess = false;
 
         // if we have not rolled dice yet or it's not our turn at the moment or we did not click on our own piece
-        if(diceRolled == -1 || !itsMyTurn() || Arrays.stream(ourPieces).noneMatch(p -> p.getId().equals(clickedNode.getId()))){
+        if (diceRolled == -1 || !itsMyTurn() || Arrays.stream(ourPieces).noneMatch(p -> p.getId().equals(clickedNode.getId()))) {
             System.out.println(diceRolled + ", " + itsMyTurn() + ", " + Arrays.stream(ourPieces).noneMatch(p -> p.getId().equals(clickedNode.getId())) +
                     ", (" + ourPieces[0].getId() + ", " + clickedNode.getId() + ")");
             return;
         }
 
         // get the pieceId we clicked on
-        for(int i = 0; i < 4; i++){
-            if(clickedNode.equals(ourPieces[i])){
-                pieceId = i; break;
+        for (int i = 0; i < 4; i++) {
+            if (clickedNode.equals(ourPieces[i])) {
+                pieceId = i;
+                break;
             }
         }
         // get the local position of the piece we clicked
         localPiecePosition = ludoGame.getPosition(ourPlayerId, pieceId);
 
         // player wants to move piece from home
-        if(localPiecePosition == 0)
+        if (localPiecePosition == 0)
             moveTo = 1;
         else
             moveTo = localPiecePosition + diceRolled;
@@ -268,13 +281,13 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         movePieceSuccess = ludoGame.movePiece(ourPlayerId, localPiecePosition, moveTo);
 
         // could not move the piece for some reason
-        if(!movePieceSuccess){
+        if (!movePieceSuccess) {
             System.out.println("Could not move piece");
             return;
         }
 
         // if we rolled 6 and did not move piece from home => we get another throw
-        if(diceRolled == 6 && localPiecePosition != 0){
+        if (diceRolled == 6 && localPiecePosition != 0) {
             throwTheDice.setDisable(false);
         }
 
@@ -303,9 +316,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
     /**
      * Check if it is our turn
+     *
      * @return
      */
-    private boolean itsMyTurn(){
+    private boolean itsMyTurn() {
         return ludoGame.activePlayer() == ludoGame.getPlayerID(clientSocket.getDisplayName());
     }
 
@@ -323,8 +337,8 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         if (itsMyTurn()) {
 
             // if the player does not have all pieces at home, we let player move a piece
-            for(int i = 0; i < 4; i++){
-                if(ludoGame.getPosition(ourPlayerId, i) != 0){
+            for (int i = 0; i < 4; i++) {
+                if (ludoGame.getPosition(ourPlayerId, i) != 0) {
                     diceRolled = response.getDicerolled();
                     return;
                 }
@@ -332,7 +346,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
             // else all our pieces are still at home and we did not roll a six,
             // we re-enable the button
-            if(response.getDicerolled() != 6){
+            if (response.getDicerolled() != 6) {
                 throwTheDice.setDisable(false);
             } else {
                 diceRolled = response.getDicerolled();
@@ -343,14 +357,15 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     /**
      * The response when we or another user moved a piece.
      * <p>
-     *     We assume the values received are always correct
+     * We assume the values received are always correct
      * </p>
+     *
      * @param response
      */
     @Override
     public void pieceMovedResponseEvent(PieceMovedResponse response) {
         // ignore messages if we were the ones who sent it out
-        if(response.getPlayerid() == ourPlayerId){
+        if (response.getPlayerid() == ourPlayerId) {
             return;
         }
 
@@ -358,12 +373,12 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         boolean success = ludoGame.movePiece(response.getPlayerid(), response.getMovedfrom(), response.getMovedto());
 
         // for debugging purposes
-        if(!success){
-            try{
+        if (!success) {
+            try {
                 ObjectMapper objectMapper = new ObjectMapper();
                 String jsonMessage = objectMapper.writeValueAsString(response);  // json message to send
                 System.out.println("This move in pieceMovedResponseEvent is not valid! Data received: " + jsonMessage);
-            } catch(IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -411,6 +426,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     /**
      * This event is called whenever a piece has been moved.
      * We use this to move the piece in the GUI.
+     *
      * @param pieceEvent returns data about the piece moved
      */
     @Override
@@ -424,9 +440,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             GlobalToGridBoard.CellCoordinates gridPositionFrom = GlobalToGridBoard.globalToGridCoordinations(globalPositionFrom);   // convert global position to grid (GUI)
             GlobalToGridBoard.CellCoordinates gridPositionTo = GlobalToGridBoard.globalToGridCoordinations(globalPositionTo);
 
-            if(pieceEvent.getFrom() == 0){       // If user moved from home position we use homeGrid
-                // change the from positions because we want to move the particular piece the player clicked and need
-                // to convert localposition to the correct gridpositions
+            if (pieceEvent.getFrom() == 0) {                                        // user moved from home position
+                // change the from positions because we want to move the particular
+                // piece the player clicked and need to convert localposition to the
+                // correct gridpositions
                 globalPositionFrom += movedPieceId;
                 gridPositionFrom = GlobalToGridBoard.globalToGridCoordinations(globalPositionFrom);
 
@@ -436,7 +453,17 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 movingGrid.getChildren().add(piece);                        // add to new parent
                 GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
                 GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
-            } else {                            // else we use movingGrid
+            } else if (pieceEvent.getFrom() != 0 && pieceEvent.getTo() == 0) {      // user lost a piece
+                globalPositionTo += movedPieceId;
+                gridPositionTo = GlobalToGridBoard.globalToGridCoordinations(globalPositionTo);
+
+                Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column);
+
+                movingGrid.getChildren().remove(piece);                     // remove from parent
+                homeGrid.getChildren().add(piece);                          // add to new parent
+                GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
+                GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
+            } else {                                                                // all other board movements
                 Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column);
 
                 GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
@@ -449,20 +476,28 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     @Override
     public void playerStateChanged(PlayerEvent event) {
         // user left game, let's disable his GUI for all other players
-        if(event.getPlayerEvent().equals(PlayerEvent.LEFTGAME)){
+        if (event.getPlayerEvent().equals(PlayerEvent.LEFTGAME)) {
             Platform.runLater(() -> {
                 int playerId = event.getPlayerID();
                 String newPlayerName = ludoGame.getPlayerName(playerId);
 
-                switch(playerId){
+                switch (playerId) {
                     case 0:
-                        player1Name.setOpacity(0.25); player1Name.setText(newPlayerName); break;
+                        player1Name.setOpacity(0.25);
+                        player1Name.setText(newPlayerName);
+                        break;
                     case 1:
-                        player2Name.setOpacity(0.25); player2Name.setText(newPlayerName); break;
+                        player2Name.setOpacity(0.25);
+                        player2Name.setText(newPlayerName);
+                        break;
                     case 2:
-                        player3Name.setOpacity(0.25); player3Name.setText(newPlayerName); break;
+                        player3Name.setOpacity(0.25);
+                        player3Name.setText(newPlayerName);
+                        break;
                     case 3:
-                        player4Name.setOpacity(0.25); player4Name.setText(newPlayerName); break;
+                        player4Name.setOpacity(0.25);
+                        player4Name.setText(newPlayerName);
+                        break;
                 }
             });
         }
@@ -478,13 +513,30 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             System.out.println("Waiting: Disable button");
             throwTheDice.setDisable(true);
         }
+
+        // a player won
+        if (event.getPlayerEvent().equals(PlayerEvent.WON)) {
+            Platform.runLater(() -> {
+                // we play a JavaFX animation for the winner for about 10 seconds, then automatically continue the game
+                Timeline winAnimation = new Timeline(
+                        new KeyFrame(Duration.seconds(10), e -> {
+                            winText.setText(ludoGame.getPlayerName(event.getPlayerID()) + " Won the Game!");
+                            winWindow.setVisible(true);
+                        }),
+                        new KeyFrame(Duration.seconds(0), e -> {
+                            winWindow.setVisible(false);
+                        }));
+                winAnimation.play();
+            });
+        }
     }
 
     /**
      * Helper function to retrieve the Node in a specific cell in a grid.
+     *
      * @param gridPane the gridpane object we want to search in
-     * @param row the row of the gridpane
-     * @param col the column of the gridpane
+     * @param row      the row of the gridpane
+     * @param col      the column of the gridpane
      * @return the Node object of the found item in the cell or null if not found
      */
     private Node getNodeFromGridPane(GridPane gridPane, int row, int col) {
