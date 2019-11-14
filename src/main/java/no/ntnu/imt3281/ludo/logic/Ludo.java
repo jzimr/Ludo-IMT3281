@@ -624,7 +624,6 @@ public class Ludo {
      * @return true if the user is blocked, false if the player can move.
      */
     private boolean towersBlocksOpponents(int playerID, int diceRolled) {
-
         //Get pieces in play for user
         for(int i = 0; i < 4; i++) {
             if (piecesPosition[playerID][i] != 0) { // piece is not at home
@@ -683,7 +682,6 @@ public class Ludo {
                     }
                 }
             }
-
         }
 
         return false; //No there is no towers.

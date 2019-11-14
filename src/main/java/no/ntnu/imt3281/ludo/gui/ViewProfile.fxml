@@ -8,7 +8,7 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="$CONTROLLER_NAME$"
+            fx:controller="no.ntnu.imt3281.ludo.gui.ViewProfileController"
             prefHeight="400.0" prefWidth="600.0">
 
 </AnchorPane>

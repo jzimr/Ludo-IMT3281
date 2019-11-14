@@ -585,8 +585,8 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 System.out.println(node.getId() + ", " + redPieces[movedPieceId].getId() + ", " + playerId);
                 if((node.getId().equals(redPieces[movedPieceId].getId()) && playerId == 0)      // here we get the
                 || (node.getId().equals(bluePieces[movedPieceId].getId()) && playerId == 1)     // correct pieces
-                || (node.getId().equals(yellowPieces[movedPieceId].getId()) && playerId == 2)   // of the players
-                || (node.getId().equals(greenPieces[movedPieceId].getId()) && playerId == 3))   // we want to get from
+                || (node.getId().equals(yellowPieces[movedPieceId].getId()) && playerId == 2)   // of the players we
+                || (node.getId().equals(greenPieces[movedPieceId].getId()) && playerId == 3))   // want to get piece from
                     return node;
             }
         }

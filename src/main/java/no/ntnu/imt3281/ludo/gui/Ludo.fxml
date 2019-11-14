@@ -9,7 +9,7 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="no.ntnu.imt3281.ludo.gui.LudoController">
    <children>
-      <BorderPane prefHeight="800.0" prefWidth="1400.0">
+      <BorderPane prefHeight="722.0" prefWidth="1017.0">
          <top>
             <MenuBar BorderPane.alignment="CENTER">
               <menus>
