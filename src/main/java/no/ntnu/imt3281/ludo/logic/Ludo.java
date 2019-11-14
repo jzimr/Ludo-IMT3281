@@ -639,15 +639,15 @@ public class Ludo {
                             for (int l = 0; l < 4; l++){ // My pieces
                                 int myPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,l));
 
-                                if (pieceid1 > myPiece + diceRolled && myPiece != 0){ //Not blocking
+                                /*if (pieceid1 > myPiece + diceRolled && myPiece != 0){ //Not blocking
                                     return false;
                                 }
 
                                 if (pieceid1 < myPiece+diceRolled && diceRolled == 6) { //In the way but we can go over.
                                     return false;
-                                }
+                                }*/
 
-                                if (pieceid1 <= myPiece + diceRolled) { //Blocked, cant land on top or after a piece.
+                                if (pieceid1 <= myPiece + diceRolled && ((pieceid1 - myPiece) < 6) && (pieceid1 - myPiece >= 0)) { //Blocked, cant land on top or after a piece.
                                     return true;
                                 }
                             }
