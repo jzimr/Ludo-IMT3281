@@ -522,9 +522,11 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                         new KeyFrame(Duration.seconds(10), e -> {
                             winText.setText(ludoGame.getPlayerName(event.getPlayerID()) + " Won the Game!");
                             winWindow.setVisible(true);
+                            winWindow.setDisable(false);
                         }),
                         new KeyFrame(Duration.seconds(0), e -> {
                             winWindow.setVisible(false);
+                            winWindow.setDisable(true);
                         }));
                 winAnimation.play();
             });
