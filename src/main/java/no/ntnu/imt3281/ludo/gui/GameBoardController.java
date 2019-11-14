@@ -170,7 +170,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[4])),
                 new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[5]))
         );
-        throwDiceAnim.setCycleCount(Timeline.INDEFINITE);
+        //throwDiceAnim.setCycleCount(Timeline.INDEFINITE);
     }
 
     /**
@@ -251,7 +251,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         throwTheDice.setDisable(true);
 
         // play animation while we wait
-        throwDiceAnim.playFromStart();
+        throwDiceAnim.play();
 
         // send message to server that we want to throw dice
         clientSocket.sendMessageToServer(new UserDoesDiceThrow("UserDoesDiceThrow", ludoGame.activePlayer(), gameId));
@@ -277,8 +277,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
         // if we have not rolled dice yet or it's not our turn at the moment or we did not click on our own piece
         if (diceRolled == -1 || !itsMyTurn() || Arrays.stream(ourPieces).noneMatch(p -> p.getId().equals(clickedNode.getId()))) {
-            System.out.println(diceRolled + ", " + itsMyTurn() + ", " + Arrays.stream(ourPieces).noneMatch(p -> p.getId().equals(clickedNode.getId())) +
-                    ", (" + ourPieces[0].getId() + ", " + clickedNode.getId() + ")");
             return;
         }
 
@@ -352,9 +350,9 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     @Override
     public void diceThrowResponseEvent(DiceThrowResponse response) {
         // play at least once
-        throwDiceAnim.setCycleCount(1);
+        //throwDiceAnim.setCycleCount(1);
         // when finished we do the logic part of dicethrow
-        throwDiceAnim.setOnFinished(event -> {
+        Platform.runLater(() -> throwDiceAnim.setOnFinished(event -> {
             diceThrown.setImage(diceImages[response.getDicerolled()-1]);
             // throw the dice that was rolled by server
             ludoGame.throwDice(response.getDicerolled());
@@ -378,7 +376,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                     diceRolled = response.getDicerolled();
                 }
             }
-        });
+        }));
     }
 
     /**
@@ -495,8 +493,9 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
                 GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
                 GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
-
             }
+
+            System.out.println("(GUI) Moved piece " + movedPieceId + " of player " + movedPlayerId + " to coordinates(" + gridPositionTo.row + ", " + gridPositionTo.column + ")");
         });
     }
 

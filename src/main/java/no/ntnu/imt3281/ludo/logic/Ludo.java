@@ -381,6 +381,7 @@ public class Ludo {
 
             //Skip turn if the player is blocked.
             if (towersBlocksOpponents(playerTurn, rolled)) {
+                System.out.println("Towers blocks opponent, skipping turn");
                 nextPlayerTurn();
             }
 
