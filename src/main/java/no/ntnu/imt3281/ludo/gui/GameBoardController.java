@@ -162,6 +162,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 new Image("images/dice4.png"), new Image("images/dice5.png"), new Image("images/dice6.png")};
 
         // we play a JavaFX animation for the winner for about 10 seconds, then automatically continue the game
+        /*
         throwDiceAnim = new Timeline( // todo fix
                 new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[0])),
                 new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[1])),
@@ -170,6 +171,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[4])),
                 new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[5]))
         );
+         */
         //throwDiceAnim.setCycleCount(Timeline.INDEFINITE);
     }
 
@@ -251,7 +253,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         throwTheDice.setDisable(true);
 
         // play animation while we wait
-        throwDiceAnim.play();
+        //throwDiceAnim.play();
 
         // send message to server that we want to throw dice
         clientSocket.sendMessageToServer(new UserDoesDiceThrow("UserDoesDiceThrow", ludoGame.activePlayer(), gameId));
@@ -352,31 +354,29 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         // play at least once
         //throwDiceAnim.setCycleCount(1);
         // when finished we do the logic part of dicethrow
-        Platform.runLater(() -> throwDiceAnim.setOnFinished(event -> {
-            diceThrown.setImage(diceImages[response.getDicerolled()-1]);
-            // throw the dice that was rolled by server
-            ludoGame.throwDice(response.getDicerolled());
+        Platform.runLater(() -> diceThrown.setImage(diceImages[response.getDicerolled() - 1]));
+        // throw the dice that was rolled by server
+        ludoGame.throwDice(response.getDicerolled());
 
-            // if we threw the dice and it's still our turn
-            if (itsMyTurn()) {
+        // if we threw the dice and it's still our turn
+        if (itsMyTurn()) {
 
-                // if the player does not have all pieces at home, we let player move a piece
-                for (int i = 0; i < 4; i++) {
-                    if (ludoGame.getPosition(ourPlayerId, i) != 0) {
-                        diceRolled = response.getDicerolled();
-                        return;
-                    }
-                }
-
-                // else all our pieces are still at home and we did not roll a six,
-                // we re-enable the button
-                if (response.getDicerolled() != 6) {
-                    throwTheDice.setDisable(false);
-                } else {
+            // if the player does not have all pieces at home, we let player move a piece
+            for (int i = 0; i < 4; i++) {
+                if (ludoGame.getPosition(ourPlayerId, i) != 0) {
                     diceRolled = response.getDicerolled();
+                    return;
                 }
             }
-        }));
+
+            // else all our pieces are still at home and we did not roll a six,
+            // we re-enable the button
+            if (response.getDicerolled() != 6) {
+                throwTheDice.setDisable(false);
+            } else {
+                diceRolled = response.getDicerolled();
+            }
+        }
     }
 
     /**
@@ -553,8 +553,8 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 winAnimation.play();
                 // when finished we continue the game
                 winAnimation.setOnFinished(e -> {
-                        winWindow.setVisible(false);
-                        winWindow.setDisable(true);
+                    winWindow.setVisible(false);
+                    winWindow.setDisable(true);
                 });
             });
         }
