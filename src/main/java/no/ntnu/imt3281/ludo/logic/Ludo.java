@@ -466,6 +466,7 @@ public class Ludo {
             int playerUnder = getOnTopOfOtherPlayer(playerID, pieceToBeMoved);
 
             if(pieceBlockedByTower(playerID, diceRolled, pieceToBeMoved)) {
+                System.out.println("PieceBlockedByTower");
                 return false;
             }
 
@@ -507,6 +508,7 @@ public class Ludo {
             return false;
         }
 
+        System.out.println("Vi kom hit vi- Til slutten");
         //nextPlayerTurn();
         return false;
     }
