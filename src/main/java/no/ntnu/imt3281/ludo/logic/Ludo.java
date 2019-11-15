@@ -366,19 +366,13 @@ public class Ludo {
                 return rolled;
             }
 
-            // if we can only move 1 piece atm
+            // Check if:
+            // 1. pieces are at not finished AND roll will not go over 59 AND piece is not at home OR.
+            // 2. piece is home and rolled six.
+            // If none of the pieces can do that, we go to next player's turn.
             for(int i = 0; i < 4; i++){
                 int piecePos = piecesPosition[playerTurn][i];
-                if(piecePos+rolled > 59 && piecePos != 59){
-                    nextPlayerTurn();
-                    return rolled;
-                }
-            }
-
-            // if all pieces are either finished or at home and player did not roll six
-            for(int i = 0; i < 4; i++){
-                int piecePos = piecesPosition[playerTurn][i];
-                if((piecePos != 59 && piecePos != 0) || rolled == 6){
+                if((piecePos != 59 && piecePos + rolled <= 59 && piecePos != 0) || (rolled == 6 && piecePos == 0)){
                     break;
                 } else if (i == 3){
                     nextPlayerTurn();
