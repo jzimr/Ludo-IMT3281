@@ -477,6 +477,10 @@ public class Ludo {
                 pieceListener.pieceMoved(new PieceEvent(this, playerID, pieceToBeMoved, from, to));
             }
 
+            if(pieceBlockedByTower(playerID, diceRolled, pieceToBeMoved)) {
+                return false;
+            }
+
             // check if piece ontop of another player
             if(playerUnder != -1){
                 int playerPosition = getPosition(playerID, pieceToBeMoved);
@@ -655,6 +659,41 @@ public class Ludo {
                     }
                 }
             }
+        return false;
+    }
+
+    private boolean pieceBlockedByTower(int playerID, int diceRolled, int pieceToBeMoved) {
+        for (int i = 0; i < 4; i++){ //Playerid
+
+            for (int j = 0; j < 4; j++){ //Pieceid
+                for(int k = 0; k < 4; k++){//Pieceid
+
+                    int pieceid1_local = getPosition(i,j);
+                    int pieceid2_local = getPosition(i,k);
+
+                    int pieceid1 = userGridToLudoBoardGrid(i,getPosition(i,j));
+                    int pieceid2 = userGridToLudoBoardGrid(i,getPosition(i,k));
+
+                    if(pieceid1 == pieceid2 && j != k && pieceid1_local != 0 && pieceid2_local != 0 && playerID != i){ //any towers?
+                            int myPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,pieceToBeMoved));
+
+                            /*if (pieceid1 > myPiece + diceRolled && myPiece != 0){ //Not blocking
+                                  return false;
+                              }
+
+                                 */
+                            if (pieceid1 < myPiece+diceRolled && diceRolled == 6) { //In the way but we can go over.
+                                return false;
+
+                            }
+
+                            if (pieceid1 != myPiece + diceRolled && myPiece + diceRolled >= pieceid1) { //Blocked, cant go past tower unless we roll 6.
+                                return true;
+                            }
+                    }
+                }
+            }
+        }
         return false;
     }
 
