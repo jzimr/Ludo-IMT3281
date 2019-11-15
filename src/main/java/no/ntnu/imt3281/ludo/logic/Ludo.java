@@ -356,7 +356,6 @@ public class Ludo {
             // if player rolled 3 times and it's not 6 then next player's turn
             if(timesRolled == 3 && rolled != 6){
 
-
                 nextPlayerTurn();
             }
 
@@ -388,7 +387,7 @@ public class Ludo {
             }
 
             //Skip turn if the player is blocked.
-            if (towersBlocksOpponents(playerTurn, rolled)) {
+            if (!towersBlocksOpponents(playerTurn, rolled)) {
                 System.out.println("Towers blocks opponent, skipping turn");
                 nextPlayerTurn();
             }
@@ -625,9 +624,10 @@ public class Ludo {
      * Checks if the player is able to move.
      * @param playerID id of player
      * @param diceRolled Number that the dice rolled
-     * @return true if the user is blocked, false if the player can move.
+     * @return false if the user is blocked, true if the player can move.
      */
     private boolean towersBlocksOpponents(int playerID, int diceRolled) {
+
             for (int i = 0; i < 4; i++){ //Playerid
 
                 for (int j = 0; j < 4; j++){ //Pieceid
@@ -640,26 +640,40 @@ public class Ludo {
                         int pieceid2 = userGridToLudoBoardGrid(i,getPosition(i,k));
 
                         if(pieceid1 == pieceid2 && j != k && pieceid1_local != 0 && pieceid2_local != 0 && playerID != i){ //any towers?
+                            int falseCounter = 0; // Pieces blocked
+                            int piecesInPlay = 0; // Pieces in play and not at end
                             for (int l = 0; l < 4; l++){ // My pieces
                                 int myPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,l));
 
-                                /*if (pieceid1 > myPiece + diceRolled && myPiece != 0){ //Not blocking
-                                    return false;
+                                if (myPiece != 0 && myPiece != 59) {
+                                    piecesInPlay++;
                                 }
 
-                                if (pieceid1 < myPiece+diceRolled && diceRolled == 6) { //In the way but we can go over.
+                                /*if (pieceid1 > myPiece + diceRolled && myPiece != 0){ //Not blocking
                                     return false;
                                 }*/
 
-                                if (pieceid1 <= myPiece + diceRolled && ((pieceid1 - myPiece) < 6) && (pieceid1 - myPiece >= 0)) { //Blocked, cant land on top or after a piece.
-                                    return true;
+                                //if (pieceid1 < myPiece+diceRolled && diceRolled == 6) { //In the way but we can go over.
+                                    //return true;
+                                //}
+
+                                if (pieceid1 <= myPiece + diceRolled && ((pieceid1 - myPiece) < 6) && (pieceid1 - myPiece > 0)) { //Blocked, cant land on top or after a piece.
+                                   falseCounter++;
                                 }
+
+                                if (falseCounter == piecesInPlay) {
+                                    System.out.println("Heider " + l);
+                                    return false;
+                                }
+
                             }
+
                         }
                     }
                 }
             }
-        return false;
+
+        return true;
     }
 
     private boolean pieceBlockedByTower(int playerID, int diceRolled, int pieceToBeMoved) {
