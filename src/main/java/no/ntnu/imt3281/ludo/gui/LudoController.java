@@ -262,9 +262,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     @FXML
     public void aboutHelp(ActionEvent e) {
-        for (Map.Entry<String, GameBoardController> entry : gameBoardControllers.entrySet()) {
-            entry.getValue().testPlayerWon();
-        }
+        //todo
     }
 
 
