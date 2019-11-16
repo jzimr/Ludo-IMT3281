@@ -2,10 +2,12 @@ package no.ntnu.imt3281.ludo.gui;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
@@ -105,6 +107,12 @@ public class LoginController implements RegisterResponseListener {
         // all text fields should be filled out
         if (serverAddress.isEmpty() || password.isEmpty() || username.isEmpty()) {
             setResponseMessage("Server address, username and password can't be empty!", true);
+            return;
+        }
+
+        // username can't exceed 24 characters
+        if(username.length() > 24){
+            setResponseMessage("Username can be max 24 characters long!", true);
             return;
         }
 

@@ -411,8 +411,6 @@ public class LudoTest {
 		assertTrue(ludo.movePiece(Ludo.RED, 12, 16)); // RED now have two pieces on 31
 		assertEquals(Ludo.BLUE, ludo.activePlayer(), 0);
 
-		System.out.println("here we start");
-
 		ludo.throwDice(5); // Blue have one piece in play, but can not move past REDs tower
 
 		// Since BLUE can not move, the move goes on to RED
