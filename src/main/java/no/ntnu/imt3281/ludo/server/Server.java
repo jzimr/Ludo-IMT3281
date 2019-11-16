@@ -1366,7 +1366,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		Message retMsg = new UserWantToEditProfileResponse("UserWantToEditProfileResponse");
 		retMsg.setRecipientSessionId(action.getRecipientSessionId());
 		UserInfo oldInfo = db.getProfile(sessionIdToUserId(action.getRecipientSessionId()));
-		UserInfo newInfo = new UserInfo(action.getUserid(), action.getDisplayname(),action.getImageString(), oldInfo.getGamesPlayed(), oldInfo.getGamesWon());
+		UserInfo newInfo = new UserInfo(sessionIdToUserId(action.getRecipientSessionId()), action.getDisplayname(),action.getImageString(), oldInfo.getGamesPlayed(), oldInfo.getGamesWon());
 
         boolean profileUpdate = false, passwordUpdate = false;
 
@@ -1379,7 +1379,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 		if (!action.getPassword().isEmpty()){
 			try {
-				db.updateAccountPassword(action.getUserid(), action.getPassword());
+				db.updateAccountPassword(sessionIdToUserId(action.getRecipientSessionId()), action.getPassword());
 				passwordUpdate = true;
 			} catch (SQLException e) {
 				e.printStackTrace();

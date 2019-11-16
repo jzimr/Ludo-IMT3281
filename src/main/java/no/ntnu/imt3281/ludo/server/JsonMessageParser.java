@@ -107,7 +107,7 @@ public class JsonMessageParser {
                     return msg;
                 }
                 case "UserWantToEditProfile":{
-                    msg = new UserWantToEditProfile(action.get("action").asText(), action.get("userid").asText(), action.get("displayname").asText(), action.get("imagestring").asText(), action.get("password").asText());
+                    msg = new UserWantToEditProfile(action.get("action").asText(), action.get("displayname").asText(), action.get("imagestring").asText(), action.get("password").asText());
                     msg.setRecipientSessionId(sessionid);
                     return msg;
                 }
