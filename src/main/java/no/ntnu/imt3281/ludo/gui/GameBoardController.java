@@ -19,6 +19,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
@@ -30,8 +31,6 @@ import no.ntnu.imt3281.ludo.logic.*;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class GameBoardController implements UserLeftGameResponseListener, GameHasStartedResponseListener, DiceThrowResponseListener,
@@ -137,15 +136,28 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     @FXML
     private Text winText;
 
+    // highlights to show players whose turn it is
+    @FXML
+    private Rectangle redHighlight;
+    @FXML
+    private Rectangle blueHighlight;
+    @FXML
+    private Rectangle yellowHighlight;
+    @FXML
+    private Rectangle greenHighlight;
+
     private ClientSocket clientSocket;
     private Ludo ludoGame;
     private String gameId;
     private String[] players = new String[]{};
+
+    private Label[] playerNames;        // array that holds all players' labels. Indexing is done by Ludo players (RED, BLUE, YELLOW, GREEN)
     private ImageView[] redPieces;
     private ImageView[] bluePieces;
     private ImageView[] yellowPieces;
     private ImageView[] greenPieces;
-
+    private ImageView[][] pieces;       // array that holds all pieces of a player. Indexing is done by ludo players (e.g. [0] = redPieces above)
+    private Rectangle[] highlights;       // array that holds all highlight nodes. Indexing is done by Ludo players
     private Image[] diceImages;         // array that holds all dice images for animation while user rolls dice
 
     private int ourPlayerId;
@@ -155,10 +167,13 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
     @FXML
     public void initialize() {
+        playerNames = new Label[]{player1Name, player2Name, player3Name, player4Name};
         redPieces = new ImageView[]{redPiece0, redPiece1, redPiece2, redPiece3};
         bluePieces = new ImageView[]{bluePiece0, bluePiece1, bluePiece2, bluePiece3};
         yellowPieces = new ImageView[]{yellowPiece0, yellowPiece1, yellowPiece2, yellowPiece3};
         greenPieces = new ImageView[]{greenPiece0, greenPiece1, greenPiece2, greenPiece3};
+        pieces = new ImageView[][]{redPieces, bluePieces, yellowPieces, greenPieces};
+        highlights = new Rectangle[]{redHighlight, blueHighlight, yellowHighlight, greenHighlight};
         diceImages = new Image[]{new Image("images/dice1.png"), new Image("images/dice2.png"), new Image("images/dice3.png"),
                 new Image("images/dice4.png"), new Image("images/dice5.png"), new Image("images/dice6.png")};
 
@@ -224,25 +239,16 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         Platform.runLater(() -> {
             int playerCount = players.length;
 
-            if (playerCount > 0) {
-                player1Name.setText(players[0]);                // set the text to our playername
-                if (ourPlayerId == 0) ourPieces = redPieces;       // need to have this so the GUI knows which pieces are ours
-            }
-            if (playerCount > 1) {
-                player2Name.setText(players[1]);
-                if (ourPlayerId == 1) ourPieces = bluePieces;
-            }
-            if (playerCount > 2) {
-                player3Name.setText(players[2]);
-                if (ourPlayerId == 2) ourPieces = yellowPieces;
-            }
-            if (playerCount > 3) {
-                player3Name.setText(players[3]);
-                if (ourPlayerId == 3) ourPieces = greenPieces;
+            // set player texts and save our own pieces
+            for(int i = 0; i < playerCount; i++){
+                playerNames[i].setText(players[i]);
+                if(ourPlayerId == i){
+                    ourPieces = pieces[i];
+                }
             }
 
-            // make only our pieces selectable via mouse event
-            for(Node node : ourPieces){
+            // make only our pieces selectable via mouse event (for GUI)
+            for (Node node : ourPieces) {
                 node.setMouseTransparent(false);
             }
         });
@@ -335,10 +341,11 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
     @Override
     public void gameHasStartedResponseEvent(GameHasStartedResponse response) {
-        // enable button for the user whose turn it is
+        // enable button  and set highlight for the user whose turn it is (red automatically)
         if (itsMyTurn()) {
             throwTheDice.setDisable(false);
         }
+        highlights[0].setVisible(true);
     }
 
     /**
@@ -357,10 +364,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
      */
     @Override
     public void diceThrowResponseEvent(DiceThrowResponse response) {
-        // play at least once
-        //throwDiceAnim.setCycleCount(1);
-        // when finished we do the logic part of dicethrow
-        Platform.runLater(() -> diceThrown.setImage(diceImages[response.getDicerolled() - 1]));
         // throw the dice that was rolled by server
         ludoGame.throwDice(response.getDicerolled());
 
@@ -451,7 +454,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
     @Override
     public void diceThrown(DiceEvent diceEvent) {
-        // todo
+        Platform.runLater(() -> diceThrown.setImage(diceImages[diceEvent.getDiceRolled() - 1]));
     }
 
     /**
@@ -462,6 +465,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
      */
     @Override
     public void pieceMoved(PieceEvent pieceEvent) {
+        System.out.println("(Event) Moved piece " + pieceEvent.getPieceMoved() + " of player " + pieceEvent.getPlayerID() + " from " + pieceEvent.getFrom() + " to " + pieceEvent.getTo());
         // need to run code in main JavaFX thread
         Platform.runLater(() -> {
             int movedPlayerId = pieceEvent.getPlayerID();
@@ -480,6 +484,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
                 // get the piece this event was for
                 Node piece = getNodeFromGridPane(homeGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
+                if(piece == null){  // fixes a nasty bug when moving sometimes
+                    System.out.println("(GUI) could not move piece because piece == null");
+                    return;
+                }
 
                 homeGrid.getChildren().remove(piece);                       // remove from parent
                 movingGrid.getChildren().add(piece);                        // add to new parent
@@ -490,6 +498,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 gridPositionTo = GlobalToGridBoard.globalToGridCoordinations(globalPositionTo);
 
                 Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
+                if(piece == null){   // fixes a nasty bug when moving sometimes
+                    System.out.println("(GUI) could not move piece because piece == null");
+                    return;
+                }
 
                 movingGrid.getChildren().remove(piece);                     // remove from parent
                 homeGrid.getChildren().add(piece);                          // add to new parent
@@ -497,6 +509,12 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
             } else {                                                                // all other board movements
                 Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
+                if(piece == null){  // fixes a nasty bug when moving sometimes
+                    System.out.println("(GUI) could not move piece because piece == null");
+                    return;
+                }
+                System.out.println(gridPositionFrom.row + ", " + gridPositionFrom.column + ", " + movedPieceId + ", " + movedPlayerId);
+                System.out.println(piece);
 
                 GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
                 GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
@@ -508,61 +526,58 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
     @Override
     public void playerStateChanged(PlayerEvent event) {
+        final int playerId = event.getPlayerID();
+
         // user left game, let's disable his GUI for all other players
         if (event.getPlayerEvent().equals(PlayerEvent.LEFTGAME)) {
             Platform.runLater(() -> {
-                int playerId = event.getPlayerID();
                 String newPlayerName = ludoGame.getPlayerName(playerId);
 
-                switch (playerId) {
-                    case 0:
-                        player1Name.setOpacity(0.25);
-                        player1Name.setText(newPlayerName);
-                        break;
-                    case 1:
-                        player2Name.setOpacity(0.25);
-                        player2Name.setText(newPlayerName);
-                        break;
-                    case 2:
-                        player3Name.setOpacity(0.25);
-                        player3Name.setText(newPlayerName);
-                        break;
-                    case 3:
-                        player4Name.setOpacity(0.25);
-                        player4Name.setText(newPlayerName);
-                        break;
-                }
+                // make it clear to other player's in GUI that this player has left
+                playerNames[playerId].setOpacity(0.25);
+                playerNames[playerId].setText(newPlayerName);
             });
         }
 
-        // it's our turn again
-        if (event.getPlayerID() == ourPlayerId && event.getPlayerEvent().equals(PlayerEvent.PLAYING)) {
-            System.out.println("Playing: Enable button");
-            throwTheDice.setDisable(false);
+        // when its another player's turn
+        if (event.getPlayerEvent().equals(PlayerEvent.PLAYING)) {
+            // highlight whose turn it is
+            highlights[playerId].setVisible(true);
+
+            // it's our turn again, enable throwdice button
+            if(event.getPlayerID() == ourPlayerId){
+                System.out.println("Playing: Enable button");
+                throwTheDice.setDisable(false);
+            }
         }
 
-        // we're waiting for our turn
-        if (event.getPlayerID() == ourPlayerId && event.getPlayerEvent().equals(PlayerEvent.WAITING)) {
-            System.out.println("Waiting: Disable button");
-            throwTheDice.setDisable(true);
+        // when a player is done with his turn
+        if (event.getPlayerEvent().equals(PlayerEvent.WAITING)) {
+            // highlight whose turn it is
+            highlights[playerId].setVisible(false);
+
+            // our turn is done, disabling button
+            if(event.getPlayerID() == ourPlayerId){
+                System.out.println("Waiting: Disable button");
+                throwTheDice.setDisable(true);
+            }
         }
 
         // a player won
         if (event.getPlayerEvent().equals(PlayerEvent.WON)) {
-            Platform.runLater(() -> {
-                // we play a JavaFX animation for the winner for about 10 seconds
-                Timeline winAnimation = new Timeline(
-                        new KeyFrame(Duration.seconds(10), e -> {
-                            winText.setText(ludoGame.getPlayerName(event.getPlayerID()) + " Won the Game!");
-                            winWindow.setVisible(true);
-                            winWindow.setDisable(false);
-                        }));
-                winAnimation.play();
-                // when finished we continue the game
-                winAnimation.setOnFinished(e -> {
-                    winWindow.setVisible(false);
-                    winWindow.setDisable(true);
-                });
+            //Platform.runLater(() -> {
+            // we play a JavaFX animation for the winner for about 10 seconds
+            Timeline winAnimation = new Timeline(
+                    new KeyFrame(Duration.seconds(10), e -> {
+                        winText.setText(ludoGame.getPlayerName(event.getPlayerID()) + " Won the Game!");
+                        winWindow.setVisible(true);
+                        winWindow.setDisable(false);
+                    }));
+            winAnimation.play();
+            // when finished we continue the game
+            winAnimation.setOnFinished(e -> {
+                winWindow.setVisible(false);
+                winWindow.setDisable(true);
             });
         }
     }
@@ -570,8 +585,8 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     /**
      * Helper function to retrieve the Node in a specific cell in a grid.
      * <p>
-     *     Need to send playerId and movedPieceID to identify a piece to be moved if there are multiple
-     *     pieces in the same cell.
+     * Need to send playerId and movedPieceID to identify a piece to be moved if there are multiple
+     * pieces in the same cell.
      * </p>
      *
      * @param gridPane the gridpane object we want to search in
@@ -583,10 +598,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         for (Node node : gridPane.getChildren()) {
             if (GridPane.getRowIndex(node) == row && GridPane.getColumnIndex(node) == col) {
                 System.out.println(node.getId() + ", " + redPieces[movedPieceId].getId() + ", " + playerId);
-                if((node.getId().equals(redPieces[movedPieceId].getId()) && playerId == 0)      // here we get the
-                || (node.getId().equals(bluePieces[movedPieceId].getId()) && playerId == 1)     // correct pieces
-                || (node.getId().equals(yellowPieces[movedPieceId].getId()) && playerId == 2)   // of the players we
-                || (node.getId().equals(greenPieces[movedPieceId].getId()) && playerId == 3))   // want to get piece from
+                if ((node.getId().equals(redPieces[movedPieceId].getId()) && playerId == 0)      // here we get the
+                        || (node.getId().equals(bluePieces[movedPieceId].getId()) && playerId == 1)     // correct pieces
+                        || (node.getId().equals(yellowPieces[movedPieceId].getId()) && playerId == 2)   // of the players we
+                        || (node.getId().equals(greenPieces[movedPieceId].getId()) && playerId == 3))   // want to get piece from
                     return node;
             }
         }

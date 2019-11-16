@@ -384,6 +384,7 @@ public class Ludo {
             if (!towersBlocksOpponents(playerTurn, rolled)) {
                 System.out.println("Towers blocks opponent, skipping turn");
                 nextPlayerTurn();
+                return rolled;
             }
 
         }
@@ -624,50 +625,47 @@ public class Ludo {
      */
     private boolean towersBlocksOpponents(int playerID, int diceRolled) {
 
-            for (int i = 0; i < 4; i++){ //Playerid
+        for (int i = 0; i < 4; i++){ //Playerid
 
-                for (int j = 0; j < 4; j++){ //Pieceid
-                    for(int k = 0; k < 4; k++){//Pieceid
+            for (int j = 0; j < 4; j++){ //Pieceid
+                for(int k = 0; k < 4; k++){//Pieceid
 
-                        int pieceid1_local = getPosition(i,j);
-                        int pieceid2_local = getPosition(i,k);
+                    int pieceid1_local = getPosition(i,j);
+                    int pieceid2_local = getPosition(i,k);
 
-                        int pieceid1 = userGridToLudoBoardGrid(i,getPosition(i,j));
-                        int pieceid2 = userGridToLudoBoardGrid(i,getPosition(i,k));
+                    int pieceid1 = userGridToLudoBoardGrid(i,getPosition(i,j));
+                    int pieceid2 = userGridToLudoBoardGrid(i,getPosition(i,k));
 
-                        if(pieceid1 == pieceid2 && j != k && pieceid1_local != 0 && pieceid2_local != 0 && playerID != i){ //any towers?
-                            int falseCounter = 0; // Pieces blocked
-                            int piecesInPlay = 0; // Pieces in play and not at end
-                            for (int l = 0; l < 4; l++){ // My pieces
-                                int myPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,l));
-
-                                if (myPiece != 0 && myPiece != 59) {
-                                    piecesInPlay++;
-                                }
-
+                    if(pieceid1 == pieceid2 && j != k && pieceid1_local != 0 && pieceid2_local != 0 && playerID != i){ //any towers?
+                        for (int l = 0; l < 4; l++){ // My pieces
+                            int myPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,l));
                                 /*if (pieceid1 > myPiece + diceRolled && myPiece != 0){ //Not blocking
                                     return false;
                                 }*/
 
-                                //if (pieceid1 < myPiece+diceRolled && diceRolled == 6) { //In the way but we can go over.
-                                    //return true;
-                                //}
+                            //if (pieceid1 < myPiece+diceRolled && diceRolled == 6) { //In the way but we can go over.
+                            //return true;
+                            //}
 
-                                if (pieceid1 <= myPiece + diceRolled && ((pieceid1 - myPiece) < 6) && (pieceid1 - myPiece > 0)) { //Blocked, cant land on top or after a piece.
-                                   falseCounter++;
+                            if (pieceid1 <= myPiece + diceRolled && ((pieceid1 - myPiece) < 6) && (pieceid1 - myPiece > 0)) { //Blocked, cant land on top or after a piece.
+                                for (int x = 0; x < 4; x++) { // Check if other pieces are in play.
+                                    int myOtherPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,x));
+                                    int myOtherPieceLocal = getPosition(playerID,x);
+                                    if ((myPiece != myOtherPiece && myOtherPieceLocal != 0)) {
+                                        //Other pieces are available. Return true;
+                                        System.out.println("hei");
+                                        return true;
+                                    }
                                 }
+                                System.out.println("Nei for faen");
 
-                                if (falseCounter == piecesInPlay) {
-                                    System.out.println("Heider " + l);
-                                    return false;
-                                }
-
+                                return false;
                             }
-
                         }
                     }
                 }
             }
+        }
 
         return true;
     }
@@ -685,21 +683,21 @@ public class Ludo {
                     int pieceid2 = userGridToLudoBoardGrid(i,getPosition(i,k));
 
                     if(pieceid1 == pieceid2 && j != k && pieceid1_local != 0 && pieceid2_local != 0 && playerID != i){ //any towers?
-                            int myPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,pieceToBeMoved));
+                        int myPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,pieceToBeMoved));
 
-                            /*if (pieceid1 > myPiece + diceRolled && myPiece != 0){ //Not blocking
-                                  return false;
-                              }
+                        if (pieceid1 < myPiece+diceRolled && diceRolled == 6) { //In the way but we can go over.
+                            System.out.println("uhm");
+                            return false;
+                        }
 
-                                 */
-                            if (pieceid1 < myPiece+diceRolled && diceRolled == 6) { //In the way but we can go over.
-                                return false;
-
-                            }
-
-                            if (pieceid1 != myPiece + diceRolled && myPiece + diceRolled >= pieceid1) { //Blocked, cant go past tower unless we roll 6.
+                        System.out.println("we in boys");
+                        for(int playerMove = 0; playerMove != diceRolled; playerMove++) {
+                            System.out.println("We in boys: " + playerMove + ", " + diceRolled + ", " + myPiece + ", " + pieceid1);
+                            if (myPiece + playerMove == pieceid1) {
+                                System.out.println("HEI");
                                 return true;
                             }
+                        }
                     }
                 }
             }

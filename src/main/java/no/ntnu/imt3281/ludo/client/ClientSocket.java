@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import no.ntnu.imt3281.ludo.gui.ChatRoomsListController;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.*;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 import no.ntnu.imt3281.ludo.server.ChatMessage;
@@ -13,7 +12,6 @@ import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class ClientSocket {
@@ -34,21 +32,22 @@ public class ClientSocket {
         CONNECTION_OTHER_ERROR
     }
 
-    LoginResponseListener loginResponseListener = null;
-    RegisterResponseListener registerResponseListener = null;
-    ChatJoinResponseListener chatJoinResponseListener = null;
-    ArrayBlockingQueue<SentMessageResponseListener> sentMessageResponseListeners = new ArrayBlockingQueue<>(100);    // max of 100 chats at once
-    ChatRoomsListResponseListener chatRoomsListResponseListener = null;
-    UsersListResponseListener usersListResponseListener = null;
-    CreateGameResponseListener createGameResponseListener = null;
-    SendGameInvitationsResponseListener sendGameInvitationsResponseListener = null;
-    UserJoinedGameResponseListener userJoinedGameResponseListener = null;
-    ArrayBlockingQueue<UserLeftGameResponseListener> userLeftGameResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
-    ArrayBlockingQueue<GameHasStartedResponseListener> gameHasStartedResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
-    ArrayBlockingQueue<DiceThrowResponseListener> diceThrowResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
-    ArrayBlockingQueue<PieceMovedResponseListener> pieceMovedResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
-    ArrayBlockingQueue<ChatJoinNewUserResponseListener> chatJoinNewUserResponseListeners = new ArrayBlockingQueue<>(100);
-    ArrayBlockingQueue<UserLeftChatRoomResponseListener> userLeftChatRoomResponseListeners = new ArrayBlockingQueue<>(100);
+    private LoginResponseListener loginResponseListener = null;
+    private RegisterResponseListener registerResponseListener = null;
+    private ChatJoinResponseListener chatJoinResponseListener = null;
+    private ArrayBlockingQueue<SentMessageResponseListener> sentMessageResponseListeners = new ArrayBlockingQueue<>(100);    // max of 100 chats at once
+    private ChatRoomsListResponseListener chatRoomsListResponseListener = null;
+    private UsersListResponseListener usersListResponseListener = null;
+    private CreateGameResponseListener createGameResponseListener = null;
+    private SendGameInvitationsResponseListener sendGameInvitationsResponseListener = null;
+    private UserJoinedGameResponseListener userJoinedGameResponseListener = null;
+    private ArrayBlockingQueue<UserLeftGameResponseListener> userLeftGameResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
+    private ArrayBlockingQueue<GameHasStartedResponseListener> gameHasStartedResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
+    private ArrayBlockingQueue<DiceThrowResponseListener> diceThrowResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
+    private ArrayBlockingQueue<PieceMovedResponseListener> pieceMovedResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
+    private ArrayBlockingQueue<ChatJoinNewUserResponseListener> chatJoinNewUserResponseListeners = new ArrayBlockingQueue<>(100);
+    private ArrayBlockingQueue<UserLeftChatRoomResponseListener> userLeftChatRoomResponseListeners = new ArrayBlockingQueue<>(100);
+    private UserWantToViewProfileResponseListener userWantToViewProfileResponseListener = null;
 
     /**
      * Create a connection from client to server
@@ -315,6 +314,11 @@ public class ClientSocket {
                 default:
                     System.out.println("Json not recognized: " + jsonMessage);
                     break;
+                case "UserWantToViewProfileResponse":
+                    //UserWantToViewProfileResponse message16 = UserWantToViewProfileResponse(action, jsonNode.get("userid").asText(),
+                      //      jsonNode.get("displayname").asText(), jsonNode.get("imageString"), )
+                    // todo
+                    break;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -433,5 +437,9 @@ public class ClientSocket {
 
     public void removeUserLeftChatRoomResponseListener(UserLeftChatRoomResponseListener listener){
         userLeftChatRoomResponseListeners.remove(listener);
+    }
+
+    public void addUserWantToViewProfileResponseListener(UserWantToViewProfileResponseListener listener){
+        userWantToViewProfileResponseListener = listener;
     }
 }

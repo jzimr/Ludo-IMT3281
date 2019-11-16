@@ -10,6 +10,15 @@ public class UserWantToViewProfileResponse extends Message{
 
     public UserWantToViewProfileResponse(String action){super(action);}
 
+    public UserWantToViewProfileResponse(String action, String userId, String displayName, String avatarPath, int gamesPlayed, int gamesWon){
+        super(action);
+        this.userId = userId;
+        this.displayName = displayName;
+        this.avatarPath = avatarPath;
+        this.gamesPlayed = gamesPlayed;
+        this.gamesWon = gamesWon;
+    }
+
     public String getUserId() {
         return userId;
     }

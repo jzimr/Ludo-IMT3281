@@ -1,8 +1,10 @@
 package no.ntnu.imt3281.ludo.gui;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -23,13 +25,10 @@ public class LoginController implements RegisterResponseListener {
     private TextField usernameTextInput;
 
     @FXML
-    private TextField passwordTextInput;
+    private PasswordField passwordTextInput;
 
     @FXML
-    private Text errorMessage;
-
-    @FXML
-    public Text successMessage;
+    public Text responseMessage;
 
     @FXML
     private CheckBox rememberMeBox;
@@ -54,8 +53,7 @@ public class LoginController implements RegisterResponseListener {
     @FXML
     void userDoesManualLogin(ActionEvent event) {
         // reset messages
-        errorMessage.setText("");
-        successMessage.setText("");
+        responseMessage.setText("");
 
         String serverAddress = serverAddressTextInput.getText();
         String username = usernameTextInput.getText();
@@ -63,7 +61,7 @@ public class LoginController implements RegisterResponseListener {
 
         // all text fields should be filled out
         if (serverAddress.isEmpty() || password.isEmpty() || username.isEmpty()) {
-            errorMessage.setText("Server address, username and password can't be empty!");
+            setResponseMessage("Server address, username and password can't be empty!", true);
             return;
         }
 
@@ -98,8 +96,7 @@ public class LoginController implements RegisterResponseListener {
     @FXML
     void userDoesRegister(ActionEvent event) {
         // reset messages
-        errorMessage.setText("");
-        successMessage.setText("");
+        responseMessage.setText("");
 
         String serverAddress = serverAddressTextInput.getText();
         String username = usernameTextInput.getText();
@@ -107,7 +104,7 @@ public class LoginController implements RegisterResponseListener {
 
         // all text fields should be filled out
         if (serverAddress.isEmpty() || password.isEmpty() || username.isEmpty()) {
-            errorMessage.setText("Server address, username and password can't be empty!");
+            setResponseMessage("Server address, username and password can't be empty!", true);
             return;
         }
 
@@ -128,18 +125,18 @@ public class LoginController implements RegisterResponseListener {
 
     public void setLoginResponseMessage(String message, boolean isSuccess){
         if(isSuccess){
-            successMessage.setText("Login success");
+            setResponseMessage("Login success", false);
         } else {
-            errorMessage.setText(message);
+            setResponseMessage(message, true);
         }
     }
 
     @Override
     public void registerResponseEvent(RegisterResponse response) {
         if(response.isRegisterStatus()){
-            successMessage.setText("Register success");
+            setResponseMessage("Register success", false);
         } else {
-            errorMessage.setText(response.getResponse());
+            setResponseMessage(response.getResponse(), true);
         }
     }
 
@@ -159,22 +156,33 @@ public class LoginController implements RegisterResponseListener {
         } catch (NumberFormatException e) {
             e.printStackTrace();
             // wrong port probably, notify client
-            errorMessage.setText("The server address is in wrong format. Correct format is <serverIP>:<port>");
+            setResponseMessage("The server address is in wrong format. Correct format is <serverIP>:<port>", true);
             return false;
         }
 
         // Send specific messages to user in case of success
         switch(responseCode){
             case CONNECTION_OTHER_ERROR:
-                errorMessage.setText("Some error happened, could not connect.");
+                setResponseMessage("Some error happened, could not connect.", true);
                 return false;
             case CONNECTION_REFUSED:
-                errorMessage.setText("Could not establish connection to server");
+                setResponseMessage("Could not establish connection to server", true);
                 return false;
             case CONNECTION_SUCCESS:
                 return true;
             default:
                 return false;
         }
+    }
+
+    private void setResponseMessage(String message, boolean isError){
+        Platform.runLater(() -> {
+            if(isError){
+                responseMessage.setStyle("-fx-fill: red");
+            } else {
+                responseMessage.setStyle("-fx-fill: green");
+            }
+            responseMessage.setText(message);
+        });
     }
 }
