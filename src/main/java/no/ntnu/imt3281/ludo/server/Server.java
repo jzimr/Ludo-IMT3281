@@ -308,9 +308,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserDoesGameInvitationAnswer": UserDoesGameInvitationAnswer((UserDoesGameInvitationAnswer) action); break;
 			case "UserLeftGame": UserLeftGame((UserLeftGame) action); break;
 			case "UserDoesPieceMove" : UserDoesPieceMove((UserDoesPieceMove) action); break;
-			case "UserDoesRandomGameSearch":UserDoesRandomGameSearch((UserDoesRandomGameSearch) action);break;
-			case "UserWantToViewProfile": UserWantToViewProfile((UserWantToViewProfile) action); break;
-			case "UserWantToEditProfile": UserWantToEditProfile((UserWantToEditProfile) action); break;
+			case "UserDoesRandomGameSearch" : UserDoesRandomGameSearch((UserDoesRandomGameSearch) action);break;
+			case "UserWantToViewProfile" : UserWantToViewProfile((UserWantToViewProfile) action); break;
+			case "UserWantToEditProfile" : UserWantToEditProfile((UserWantToEditProfile) action); break;
 		}
 
 	}
@@ -1292,7 +1292,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		boolean foundGame = false;
 
 		for (Ludo game : activeLudoGames) {
-			if (game.getStatus().contentEquals("Created")){
+			System.out.println("Status: " + game.getStatus());
+			if (game.getStatus().contentEquals("Initiated") && game.getActivePlayers().length < 4){
 				foundGame = true;
 				game.addPlayer(info.getDisplayName());
 
@@ -1306,6 +1307,18 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					retMsg.setRecipientSessionId(useridToSessionId(userid));
 					synchronized (messagesToSend){
 						messagesToSend.add(retMsg);
+					}
+				}
+
+				if(game.getActivePlayers().length == 4) {
+					for (String name : game.getPlayers()) {
+						Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
+						((GameHasStartedResponse)gameStarted).setGameid(game.getGameid());
+						String userid = db.getUserId(name);
+						gameStarted.setRecipientSessionId(useridToSessionId(userid));
+						synchronized (messagesToSend){
+							messagesToSend.add(gameStarted);
+						}
 					}
 				}
 
