@@ -606,7 +606,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 		ArrayList<String> roomNames = new ArrayList<String>();
 		for(ChatRoom room : activeChatRooms) {
-			roomNames.add(room.getName());
+			if (!room.isGameRoom()) {
+				roomNames.add(room.getName());
+			}
 		}
 
 		String[] arr = new String[roomNames.size()];
@@ -682,9 +684,22 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	private void UserJoinChat(UserJoinChat action) {
 		Message retMsg = new ChatJoinResponse("ChatJoinResponse");
 		retMsg.setRecipientSessionId(useridToSessionId(action.getUserid()));
-		System.out.println("userJoiNChat: " + useridToSessionId(action.getUserid()));
 
 		if (chatRoomExists(action.getChatroomname())) {
+
+			if (chatRoomIsGameOnly(action.getChatroomname())) {
+				UserInfo info = db.getProfile(action.getUserid());
+				if (!userIsAllowedInRoom(action.getChatroomname(), info.getDisplayName())){
+					((ChatJoinResponse)retMsg).setResponse("You are not allowed to join this room");
+					((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
+					((ChatJoinResponse)retMsg).setStatus(false);
+					synchronized (messagesToSend) {
+						messagesToSend.add(retMsg);
+						return; //We dont do anything else here.
+					}
+				}
+			}
+
 			boolean added = addUserToChatroom(action.getChatroomname(), action.getUserid());
 
 			((ChatJoinResponse)retMsg).setStatus(added);
@@ -1086,6 +1101,28 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		return false;
 	}
 
+	private boolean chatRoomIsGameOnly(String chatRoomName){
+		for(ChatRoom room: activeChatRooms) {
+			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())) {
+				return room.isGameRoom();
+			}
+		}
+		return false;
+	}
+
+	private boolean userIsAllowedInRoom(String chatRoomName, String displayname) {
+		for(ChatRoom room: activeChatRooms) {
+			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())) {
+				for(String name: room.getAllowedUsers()){
+					if (name.contentEquals(displayname)){
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
     /**
      * Finds all names matching the search query.
      * @param action
@@ -1166,6 +1203,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				}
 			}
 		}
+
+		//Create a game room.
+		ChatRoom newRoom = new ChatRoom(newGame.getGameid());
+		newRoom.setGameRoom(true);
+		ArrayList<String> names = new ArrayList<>();
+		for (String name: action.getToinvitedisplaynames()) {
+			names.add(name);
+		}
+		newRoom.setAllowedUsers(names);
+		activeChatRooms.add(newRoom);
 	}
 
 	private void UserDoesGameInvitationAnswer(UserDoesGameInvitationAnswer action) {
@@ -1310,6 +1357,14 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					}
 				}
 
+				for(ChatRoom room : activeChatRooms) {
+					if (room.getName().contentEquals(game.getGameid())){
+						ArrayList<String> names = room.getAllowedUsers();
+						names.add(info.getDisplayName());
+						room.setAllowedUsers(names);
+					}
+				}
+
 				if(game.getActivePlayers().length == 4) {
 					for (String name : game.getPlayers()) {
 						Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
@@ -1345,6 +1400,15 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			synchronized (messagesToSend) {
 				messagesToSend.add(retMsg);
 			}
+
+			//Create a game room.
+			ChatRoom newRoom = new ChatRoom(newGame.getGameid());
+			newRoom.setGameRoom(true);
+			ArrayList<String> names = new ArrayList<>();
+			names.add(info.getDisplayName());
+			newRoom.setAllowedUsers(names);
+			activeChatRooms.add(newRoom);
+
 		}
 
 	}

@@ -48,16 +48,17 @@ public class SocketTester {
 
                 //listUserList();
 
-                //createGameRequest();
+                createGameRequest();
+                joinGameChatRoom();
                 //acceptGameInvite();
 
                 //sendChatMessage();
 
                 //removeFromChatRoom();
 
-                sendUserView();
-                sendUserEdit();
-                sendUserView();
+                //sendUserView();
+                //sendUserEdit();
+                //sendUserView();
 
                 //sendChatMessage();
                 //sendChatMessage();
@@ -220,7 +221,7 @@ public class SocketTester {
     }
 
     private void createGameRequest(){
-        String ChatMessage = "{\"action\":\"UserWantsToCreateGame\", \"hostid\": \"2ecc4deb-e320-4fac-9834-2ee0a84edeca\", \"toinvitedisplaynames\": [\"test\"]}";
+        String ChatMessage = "{\"action\":\"UserWantsToCreateGame\", \"hostid\": \"ee86c05b-52fe-44a5-9604-1e0337b53e8c\", \"toinvitedisplaynames\": [\"test\"]}";
 
         try {
             bw.write(ChatMessage);
@@ -286,5 +287,22 @@ public class SocketTester {
             e.printStackTrace();
         }
     }
+
+    private void joinGameChatRoom(){
+        String ChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"ee86c05b-52fe-44a5-9604-1e0337b53e8c\", \"chatroomname\" : \"" + gameid + "\"}";
+
+        try {
+            bw.write(ChatMessage);
+            bw.newLine();
+            bw.flush();
+            System.out.println("Sent message : " + ChatMessage);
+
+            String gotMessage = br.readLine();
+            System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }
