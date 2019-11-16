@@ -9,7 +9,6 @@ import no.ntnu.imt3281.ludo.logic.messages.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.Array;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.*;
@@ -128,7 +127,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 							String msg = c.read();
 							if (msg != null && (msg.contains("UserDoesLogin") || msg.contains("UserDoesRegister"))) {
 								synchronized (objectsToHandle) {
-									c.parseUsername(msg);
+									c.parseSessionid(msg);
 									System.out.println("Connected user : " + c.getUuid() + " " + msg);
 									Message toBeQueued = parser.parseJson(msg,c.getUuid());
 									if (toBeQueued != null) { //Discard if it is null
@@ -137,7 +136,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 										System.out.println("DISCARDED MESSAGE : " + msg);
 									}
 								}
-							} else if (msg != null ) {
+							} else if (msg != null && c.getUuid() != null) {
 								synchronized (objectsToHandle) {
 									Message toBeQueued = parser.parseJson(msg,c.getUuid());
 									if (toBeQueued != null) {

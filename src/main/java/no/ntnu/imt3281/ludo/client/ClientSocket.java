@@ -61,9 +61,27 @@ public class ClientSocket {
             if (port == -1) {
                 port = DEFAULT_PORT;
             }
-            connection = new Socket(serverIP, port);
-            bw = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
-            br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+
+            if (connection == null || !connection.isConnected()) { //First connection
+
+                connection = new Socket(serverIP, port);
+                bw = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
+                br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+            } else if (connection.isConnected() && //If client is connected
+                    (connection.getPort() != port //And either the port or the ip has changed.
+                            || !connection.getInetAddress().toString().substring(1).contentEquals(serverIP))) { //Disconnect old socket
+                                                                                                                // And connect to the new.
+                connection.close();
+                connection = new Socket(serverIP, port);
+                bw = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
+                br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+            }
+            //connection = new Socket(serverIP, port);
+            //bw = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
+            //br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
             listenToServer();
 
@@ -341,6 +359,10 @@ public class ClientSocket {
      */
     public String getDisplayName() {
         return displayName;
+    }
+
+    public boolean isConnected() {
+        return connected;
     }
 
     /**

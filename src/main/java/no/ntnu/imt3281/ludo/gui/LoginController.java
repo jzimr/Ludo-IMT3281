@@ -152,6 +152,9 @@ public class LoginController implements RegisterResponseListener {
         ClientSocket.ConnectionCode responseCode;
 
         try {
+            if (!clientSocket.isConnected()) {
+
+            }
             responseCode = clientSocket.establishConnectionToServer(ip, Integer.parseInt(port));
         } catch (NumberFormatException e) {
             e.printStackTrace();

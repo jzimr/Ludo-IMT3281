@@ -65,7 +65,7 @@ public class Client {
         return uuid;
     }
 
-    public void parseUsername(String json) {
+    public void parseSessionid(String json) {
 
         try {
             JsonNode jsonNode = mapper.readTree(json);
