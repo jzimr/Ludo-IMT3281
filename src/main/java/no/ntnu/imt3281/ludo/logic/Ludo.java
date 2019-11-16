@@ -463,13 +463,13 @@ public class Ludo {
 
         // move anywhere else
         if(from + diceRolled == to){
-            piecesPosition[playerID][pieceToBeMoved] = to;
-            int playerUnder = getOnTopOfOtherPlayer(playerID, pieceToBeMoved);
-
-            if(pieceBlockedByTower(playerID, from, to)) {
+            if(pieceBlockedByTower(playerID, diceRolled, pieceToBeMoved)) {
                 System.out.println("PieceBlockedByTower");
                 return false;
             }
+
+            piecesPosition[playerID][pieceToBeMoved] = to;
+            int playerUnder = getOnTopOfOtherPlayer(playerID, pieceToBeMoved);
 
             // call event listener
             if(pieceListener != null){
@@ -651,7 +651,7 @@ public class Ludo {
                                 for (int x = 0; x < 4; x++) { // Check if other pieces are in play.
                                     int myOtherPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,x));
                                     int myOtherPieceLocal = getPosition(playerID,x);
-                                    if ((myPiece != myOtherPiece && myOtherPieceLocal != 0)) {
+                                    if ((myPiece != myOtherPiece && myOtherPieceLocal != 0) || (diceRolled == 6 && myOtherPieceLocal == 0)) {
                                         //Other pieces are available. Return true;
                                         System.out.println("hei");
                                         return true;
@@ -670,7 +670,7 @@ public class Ludo {
         return true;
     }
 
-    private boolean pieceBlockedByTower(int playerID ,int from, int to) {
+    private boolean pieceBlockedByTower(int playerID, int diceRolled, int pieceToBeMoved) {
         for (int i = 0; i < 4; i++){ //Playerid
 
             for (int j = 0; j < 4; j++){ //Pieceid
@@ -683,15 +683,21 @@ public class Ludo {
                     int pieceid2 = userGridToLudoBoardGrid(i,getPosition(i,k));
 
                     if(pieceid1 == pieceid2 && j != k && pieceid1_local != 0 && pieceid2_local != 0 && playerID != i){ //any towers?
+                        int myPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,pieceToBeMoved));
 
-                        if (pieceid1 < to && diceRolled == 6) { //In the way but we can go over.
-                            System.out.println("uhm");
+                        if (pieceid1 < myPiece+diceRolled && diceRolled == 6) { //In the way but we can go over.
+                            System.out.println("uhm, can move " + myPiece+diceRolled + " over " + pieceid1);
                             return false;
                         }
 
-                        for( int x = from; x <= to; x ++) {
-                            System.out.println(userGridToLudoBoardGrid(playerID,x) + " " + pieceid1);
-                            if(userGridToLudoBoardGrid(playerID,x) == pieceid1) { // We stumbled upon a tower return true (blocked)
+                        System.out.println("we in boys");
+                        for(int playerMove = 0; playerMove != diceRolled; playerMove++) {
+                            System.out.println("Checking for player " + playerID + " if he can move piece " + pieceToBeMoved +
+                                    " from " + myPiece + " to " + (myPiece + playerMove) + " on dice roll " + diceRolled);
+                            //System.out.println("We in boys: " + playerMove + ", " + diceRolled + ", " + myPiece + ", " + pieceid1);
+                            if (myPiece + playerMove == pieceid1) {
+                                System.out.println("Piece " + pieceToBeMoved + " of player " + playerID + " is blocked by tower on pos " +
+                                        pieceid1);
                                 return true;
                             }
                         }
