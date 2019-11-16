@@ -2,6 +2,7 @@ package no.ntnu.imt3281.ludo.gui;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import javafx.application.Platform;
@@ -18,6 +19,7 @@ import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.client.SessionTokenManager;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.*;
 import no.ntnu.imt3281.ludo.logic.Ludo;
+import no.ntnu.imt3281.ludo.logic.PlayerEvent;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
 public class LudoController implements ChatJoinResponseListener, LoginResponseListener, CreateGameResponseListener,
@@ -260,7 +262,9 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     @FXML
     public void aboutHelp(ActionEvent e) {
-        // todo
+        for (Map.Entry<String, GameBoardController> entry : gameBoardControllers.entrySet()) {
+            entry.getValue().testPlayerWon();
+        }
     }
 
 

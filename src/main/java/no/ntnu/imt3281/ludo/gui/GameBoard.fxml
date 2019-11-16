@@ -189,7 +189,7 @@
                            <children>
                               <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: FF0000;">
                                  
-                                 <GridPane.margin>
+                                       <GridPane.margin>
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                  </GridPane.margin>
                                  <children>
@@ -209,7 +209,7 @@
                               </Pane>
                               <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #7070FF;" GridPane.columnIndex="1">
                                  
-                                 <GridPane.margin>
+                                       <GridPane.margin>
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                  </GridPane.margin>
                                  <children>
@@ -265,7 +265,7 @@
                                     <Rectangle fx:id="greenHighlight" arcHeight="5.0" arcWidth="10.0" fill="#2197ff00" height="72.0" stroke="BLACK" strokeType="OUTSIDE" strokeWidth="6.0" visible="false" width="138.0" />
                                  </children>
                                  
-                              </Pane>
+                                    </Pane>
                            </children>
                         </GridPane>
                      </children>
@@ -287,7 +287,8 @@
                               </Button>
                            </children>
                         </HBox>
-                     </children></Pane>
+                     </children>
+                  </Pane>
                   <VBox prefHeight="492.0" prefWidth="295.0">
                      <children>
                         <TextArea fx:id="chatArea" editable="false" prefHeight="465.0" prefWidth="295.0" />
@@ -303,17 +304,18 @@
             </VBox>
          </children>
       </HBox>
-      <Pane fx:id="winWindow" disable="true" prefHeight="722.0" prefWidth="1017.0" visible="false">
+      <Pane fx:id="winWindow" disable="true" prefHeight="722.0" prefWidth="722.0" visible="false">
          <children>
-            <Text fx:id="winText" fill="#9e9090" layoutX="94.0" layoutY="361.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" textOrigin="CENTER" wrappingWidth="829.546875">
-               <font>
-                  <Font name="System Bold" size="48.0" />
-               </font></Text>
-            <ImageView fitHeight="722.0" fitWidth="1017.0" pickOnBounds="true">
+            <ImageView fx:id="winImage" fitHeight="708.0" fitWidth="722.0" layoutX="14.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="@../../../../../images/confetti.gif" />
+                  <Image url="@../../../../../images/winner.png" />
                </image>
             </ImageView>
+            <Text fx:id="winText" fill="GOLD" layoutX="107.0" layoutY="381.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" textOrigin="CENTER" wrappingWidth="521.546875">
+               <font>
+                  <Font name="System Bold" size="36.0" />
+               </font>
+            </Text>
          </children>
       </Pane>
    </children>

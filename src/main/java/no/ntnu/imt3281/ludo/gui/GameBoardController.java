@@ -31,6 +31,7 @@ import no.ntnu.imt3281.ludo.logic.*;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 
 public class GameBoardController implements UserLeftGameResponseListener, GameHasStartedResponseListener, DiceThrowResponseListener,
@@ -132,9 +133,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
     @FXML
     private Pane winWindow;
-
     @FXML
     private Text winText;
+    @FXML
+    private ImageView winImage;
 
     // highlights to show players whose turn it is
     @FXML
@@ -176,20 +178,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         highlights = new Rectangle[]{redHighlight, blueHighlight, yellowHighlight, greenHighlight};
         diceImages = new Image[]{new Image("images/dice1.png"), new Image("images/dice2.png"), new Image("images/dice3.png"),
                 new Image("images/dice4.png"), new Image("images/dice5.png"), new Image("images/dice6.png")};
-
-
-        // we play a JavaFX animation for the winner for about 10 seconds, then automatically continue the game
-        /*
-        throwDiceAnim = new Timeline( // todo fix
-                new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[0])),
-                new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[1])),
-                new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[2])),
-                new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[3])),
-                new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[4])),
-                new KeyFrame(Duration.seconds(0.3), e -> diceThrown.setImage(diceImages[5]))
-        );
-         */
-        //throwDiceAnim.setCycleCount(Timeline.INDEFINITE);
     }
 
     /**
@@ -240,9 +228,9 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             int playerCount = players.length;
 
             // set player texts and save our own pieces
-            for(int i = 0; i < playerCount; i++){
+            for (int i = 0; i < playerCount; i++) {
                 playerNames[i].setText(players[i]);
-                if(ourPlayerId == i){
+                if (ourPlayerId == i) {
                     ourPieces = pieces[i];
                 }
             }
@@ -263,9 +251,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     void throwDiceButton(ActionEvent event) {
         // disable button until we get response from server
         throwTheDice.setDisable(true);
-
-        // play animation while we wait
-        //throwDiceAnim.play();
 
         // send message to server that we want to throw dice
         clientSocket.sendMessageToServer(new UserDoesDiceThrow("UserDoesDiceThrow", ludoGame.activePlayer(), gameId));
@@ -484,7 +469,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
                 // get the piece this event was for
                 Node piece = getNodeFromGridPane(homeGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
-                if(piece == null){  // fixes a nasty bug when moving sometimes
+                if (piece == null) {  // fixes a nasty bug when moving sometimes
                     System.out.println("(GUI) could not move piece because piece == null");
                     return;
                 }
@@ -498,7 +483,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 gridPositionTo = GlobalToGridBoard.globalToGridCoordinations(globalPositionTo);
 
                 Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
-                if(piece == null){   // fixes a nasty bug when moving sometimes
+                if (piece == null) {   // fixes a nasty bug when moving sometimes
                     System.out.println("(GUI) could not move piece because piece == null");
                     return;
                 }
@@ -509,7 +494,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
             } else {                                                                // all other board movements
                 Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
-                if(piece == null){  // fixes a nasty bug when moving sometimes
+                if (piece == null) {  // fixes a nasty bug when moving sometimes
                     System.out.println("(GUI) could not move piece because piece == null");
                     return;
                 }
@@ -545,7 +530,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             highlights[playerId].setVisible(true);
 
             // it's our turn again, enable throwdice button
-            if(event.getPlayerID() == ourPlayerId){
+            if (event.getPlayerID() == ourPlayerId) {
                 System.out.println("Playing: Enable button");
                 throwTheDice.setDisable(false);
             }
@@ -557,27 +542,19 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             highlights[playerId].setVisible(false);
 
             // our turn is done, disabling button
-            if(event.getPlayerID() == ourPlayerId){
+            if (event.getPlayerID() == ourPlayerId) {
                 System.out.println("Waiting: Disable button");
                 throwTheDice.setDisable(true);
             }
         }
 
-        // a player won
+        // a player won, so we disable further movements
         if (event.getPlayerEvent().equals(PlayerEvent.WON)) {
-            //Platform.runLater(() -> {
-            // we play a JavaFX animation for the winner for about 10 seconds
-            Timeline winAnimation = new Timeline(
-                    new KeyFrame(Duration.seconds(10), e -> {
-                        winText.setText(ludoGame.getPlayerName(event.getPlayerID()) + " Won the Game!");
-                        winWindow.setVisible(true);
-                        winWindow.setDisable(false);
-                    }));
-            winAnimation.play();
-            // when finished we continue the game
-            winAnimation.setOnFinished(e -> {
-                winWindow.setVisible(false);
-                winWindow.setDisable(true);
+            Platform.runLater(() -> {
+                winText.setText(players[playerId] + " Won!");
+                winWindow.setVisible(true);
+                winWindow.setDisable(false);
+                throwTheDice.setDisable(true);
             });
         }
     }
