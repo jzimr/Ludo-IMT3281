@@ -272,7 +272,7 @@ public class SocketTester {
     }
 
     private void sendUserView(){
-        String ChatMessage = "{\"action\":\"UserWantToViewProfile\",\"userid\":\"ee86c05b-52fe-44a5-9604-1e0337b53e8c\"}";
+        String ChatMessage = "{\"action\":\"UserWantToViewProfile\",\"displayname\":\"test\"}";
 
         try {
             bw.write(ChatMessage);

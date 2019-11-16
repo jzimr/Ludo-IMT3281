@@ -1350,7 +1350,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 
 	private void UserWantToViewProfile(UserWantToViewProfile action){
-		UserInfo info = db.getProfile(action.getUserid());
+		String userid = db.getUserId(action.getDisplayname());
+		UserInfo info = db.getProfile(userid);
 		Message retMsg;
 		if (info != null){
 			retMsg = new UserWantToViewProfileResponse("UserWantToViewProfileResponse");
@@ -1366,7 +1367,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		} else {
 			retMsg = new ErrorMessageResponse("ErrorMessageResponse");
 			retMsg.setRecipientSessionId(action.getRecipientSessionId());
-			((ErrorMessageResponse)retMsg).setMessage("No user with userid " + action.getUserid());
+			((ErrorMessageResponse)retMsg).setMessage("No user with displayname " + action.getDisplayname());
 			synchronized (messagesToSend){
 				messagesToSend.add(retMsg);
 			}

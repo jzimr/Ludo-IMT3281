@@ -2,18 +2,18 @@ package no.ntnu.imt3281.ludo.logic.messages;
 
 public class UserWantToViewProfile extends Message{
 
-    String userid;
+    String displayname;
 
-    public UserWantToViewProfile(String action, String userid){
+    public UserWantToViewProfile(String action, String displayname){
         super(action);
-        this.userid = userid;
+        this.displayname = displayname;
     }
 
-    public void setUserid(String userid) {
-        this.userid = userid;
+    public void setDisplayname(String displayname) {
+        this.displayname = displayname;
     }
 
-    public String getUserid() {
-        return userid;
+    public String getDisplayname() {
+        return displayname;
     }
 }

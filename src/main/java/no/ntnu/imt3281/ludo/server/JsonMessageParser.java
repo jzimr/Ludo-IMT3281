@@ -102,7 +102,7 @@ public class JsonMessageParser {
                     return msg;
                 }
                 case "UserWantToViewProfile":{
-                    msg = new UserWantToViewProfile(action.get("action").asText(),action.get("userid").asText());
+                    msg = new UserWantToViewProfile(action.get("action").asText(),action.get("displayname").asText());
                     msg.setRecipientSessionId(sessionid);
                     return msg;
                 }
