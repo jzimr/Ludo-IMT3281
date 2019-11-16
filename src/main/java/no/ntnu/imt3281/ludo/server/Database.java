@@ -309,15 +309,28 @@ public class Database {
      * Update the password of the account for a given user
      *
      * @param userId       the unique ID of the user
-     * @param newHashedPwd the hashed password. DO NOT SEND PLAIN PASSWORD! HASH FIRST!
+     * @param nonHashedPwd Non hashed PWD, this function will hash the password.
      */
-    public void updateAccountPassword(String userId, String newHashedPwd) throws SQLException {
+    public void updateAccountPassword(String userId, String nonHashedPwd) throws SQLException {
+
+        SHA512Hasher hasher = new SHA512Hasher();
+
+        // generate a random salt for this account
+        SecureRandom random = new SecureRandom();
+        byte[] salt = new byte[16];
+        random.nextBytes(salt);
+
+        // hash user's password before we insert into database
+        String hashedPwd = hasher.hash(nonHashedPwd, salt);
+
         PreparedStatement stmt = connection.prepareStatement("UPDATE login_info " +
-                "SET pwd_hsh = ? " +
+                "SET pwd_hsh = ? ," +
+                "account_salt = ?" +
                 "WHERE user_id = ?");
 
-        stmt.setString(1, newHashedPwd);
-        stmt.setString(2, userId);
+        stmt.setString(1, hashedPwd);
+        stmt.setBytes(2, salt);
+        stmt.setString(3, userId);
 
         stmt.execute();
     }
@@ -584,7 +597,7 @@ public class Database {
         stmt.execute("CREATE TABLE user_info (" +
                 "user_id varchar(36) NOT NULL," +
                 "display_name varchar(24) NOT NULL," +
-                "avatar_path varchar(120)," +
+                "avatar_path LONG VARCHAR ," +
                 "games_played int NOT NULL," +
                 "games_won int NOT NULL," +
                 // "user_id" should be unique and primary key

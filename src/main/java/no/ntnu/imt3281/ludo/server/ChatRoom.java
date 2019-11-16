@@ -5,9 +5,12 @@ import java.util.ArrayList;
 public class ChatRoom {
 
     String name;
+    boolean gameRoom; //Room that is associated with a game.
     ArrayList<String> connectedUsers = new ArrayList<>(); //ArrayList with user ids.
+    ArrayList<String> allowedUsers = new ArrayList<>(); //People allowed into the room.
 
     ChatRoom(String name) {
+        gameRoom = false;
         this.name = name;
     }
 
@@ -23,5 +26,19 @@ public class ChatRoom {
         return connectedUsers;
     }
 
+    public void setAllowedUsers(ArrayList<String> allowedUsers) {
+        this.allowedUsers = allowedUsers;
+    }
 
+    public ArrayList<String> getAllowedUsers() {
+        return allowedUsers;
+    }
+
+    public void setGameRoom(boolean gameRoom) {
+        this.gameRoom = gameRoom;
+    }
+
+    public boolean isGameRoom() {
+        return gameRoom;
+    }
 }

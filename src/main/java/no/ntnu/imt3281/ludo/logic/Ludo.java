@@ -591,7 +591,7 @@ public class Ludo {
         }
 
         //Update state when all but one players is done
-        if (playersDone == activePlayers() -1) {
+        if (gameWinner != -1) {
             gameState = GAME_STATE_FINISHED;
         }
     }
@@ -648,24 +648,24 @@ public class Ludo {
                             //}
 
                             //if (pieceid1 <= myPiece + diceRolled && ((pieceid1 - myPiece) < 6) && (pieceid1 - myPiece > 0)) { //Blocked, cant land on top or after a piece.
-                                for (int x = 0; x < 4; x++) { // Check if other pieces are in play.
-                                    int myOtherPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,x));
-                                    int myOtherPieceLocal = getPosition(playerID,x); // todo
-                                    System.out.println(myOtherPieceLocal + "!= 0 && " + pieceid1 + " > " + myOtherPiece + " + " + diceRolled);
-                                    System.out.println(myOtherPieceLocal + "!= 0 && ((" + pieceid1 + " - " + myPiece + ") > 6 || (" + pieceid1 + " - " + myPiece + " < 0");
-                                    if (/*myPiece != myOtherPiece && */((myOtherPieceLocal != 0 && myOtherPieceLocal != 59 && myOtherPieceLocal + diceRolled <= 59 && myOtherPieceLocal >= 54)
-                                            || (myOtherPieceLocal != 0 && pieceid1 > myOtherPiece + diceRolled)
-                                            || (myOtherPieceLocal != 0 && ((pieceid1 - myPiece) > 6) || (pieceid1 - myPiece < 0))
-                                            || (diceRolled == 6 && myOtherPieceLocal == 0))) {
-                                        //Other pieces are available. Return true;
-                                        System.out.println("hei");
-                                        return true;
-                                    }
+                            for (int x = 0; x < 4; x++) { // Check if other pieces are in play.
+                                int myOtherPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,x));
+                                int myOtherPieceLocal = getPosition(playerID,x); // todo
+                                System.out.println(myOtherPieceLocal + "!= 0 && " + pieceid1 + " > " + myOtherPiece + " + " + diceRolled);
+                                System.out.println(myOtherPieceLocal + "!= 0 && ((" + pieceid1 + " - " + myPiece + ") > 6 || (" + pieceid1 + " - " + myPiece + " < 0");
+                                if (/*myPiece != myOtherPiece && */((myOtherPieceLocal != 0 && myOtherPieceLocal != 59 && myOtherPieceLocal + diceRolled <= 59 && myOtherPieceLocal >= 54)
+                                        || (myOtherPieceLocal != 0 && pieceid1 > myOtherPiece + diceRolled)
+                                        || (myOtherPieceLocal != 0 && ((pieceid1 - myPiece) > 6) || (pieceid1 - myPiece < 0))
+                                        || (diceRolled == 6 && myOtherPieceLocal == 0))) {
+                                    //Other pieces are available. Return true;
+                                    System.out.println("hei");
+                                    return true;
                                 }
-                                System.out.println("Nei for faen");
-
-                                return false;
                             }
+                            System.out.println("Nei for faen");
+
+                            return false;
+                        }
                         //}
                     }
                 }
