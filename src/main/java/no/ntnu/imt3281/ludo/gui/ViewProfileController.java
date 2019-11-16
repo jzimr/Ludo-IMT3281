@@ -46,28 +46,54 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
     }
 
     @FXML
-    void editDisplayNameButton(ActionEvent event) {
+    void editDisplayNameButton(ActionEvent e) {
         // create a new dialog that contains our name in the field already
-        TextInputDialog dialog = new TextInputDialog(displayNameText.getText());
+        TextInputDialog dialog = new TextInputDialog("Whatever");
 
         dialog.setTitle("Edit Profile");
         dialog.setHeaderText("Enter name");
         dialog.setContentText("New name:");
         dialog.setGraphic(null);
 
+        dialog.getDialogPane().setPrefWidth(400.0);
+
         final Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         okButton.addEventFilter(
                 ActionEvent.ACTION,
-                e -> {
-                    // disable button until we have received answer
-                    okButton.setDisable(true);
+                event -> {
+                    String textInput = dialog.getEditor().getText();
 
+                    // name can't be empty
+                    if(textInput.isEmpty()){
+                        dialog.setContentText("Name can't be empty!");
+                        event.consume();
+                    }
+
+                    // name can't exceed 24 characters
+                    else if(textInput.length() > 24) {
+                        dialog.setContentText("Name can't exceed 24 characters!");
+                        event.consume();
+                    }
+                    // name can't start or end with a space (' ')
+                    else if(textInput.substring(0, 1).equals(" ") || textInput.substring(textInput.length() - 1).equals(" ")){
+                        dialog.setContentText("Name can't start or end with a ' '");
+                        event.consume();
+                    }
+                    // if name remains unchanged
+                    else if(textInput.equals(textInput)){
+                        return;
+                    }
+
+                    // disable button until we have received answer
+                    //okButton.setDisable(true);
                     // send message to server
                     //while wait for response
                     // if response ok == close window
                     // else show another dialog with more info
                 }
         );
+
+        dialog.showAndWait();
     }
 
     // todo add listener method

@@ -261,7 +261,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     @FXML
     public void aboutHelp(ActionEvent e) {
         // todo
-
     }
 
 

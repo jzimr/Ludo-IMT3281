@@ -11,6 +11,7 @@ import no.ntnu.imt3281.ludo.server.ChatMessage;
 import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 
