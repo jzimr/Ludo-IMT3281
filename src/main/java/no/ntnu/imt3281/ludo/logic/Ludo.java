@@ -650,8 +650,11 @@ public class Ludo {
                             if (pieceid1 <= myPiece + diceRolled && ((pieceid1 - myPiece) < 6) && (pieceid1 - myPiece > 0)) { //Blocked, cant land on top or after a piece.
                                 for (int x = 0; x < 4; x++) { // Check if other pieces are in play.
                                     int myOtherPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,x));
-                                    int myOtherPieceLocal = getPosition(playerID,x);
-                                    if ((myPiece != myOtherPiece && myOtherPieceLocal != 0 && pieceid1 > myOtherPiece + diceRolled) || (diceRolled == 6 && myOtherPieceLocal == 0)) {
+                                    int myOtherPieceLocal = getPosition(playerID,x); // todo
+                                    System.out.println("the other piece on " + pieceid1 + " vs my piece " + myOtherPiece + " on roll " + diceRolled);
+                                    if ((myOtherPieceLocal != 59 && myOtherPieceLocal + diceRolled <= 59 && myOtherPieceLocal + diceRolled >= 54 && myOtherPieceLocal != 0)
+                                            || (myPiece != myOtherPiece && myOtherPieceLocal != 0 && pieceid1 > myOtherPiece + diceRolled && (pieceid1 - myPiece) > 6) && (pieceid1 - myPiece > 0)
+                                            || (diceRolled == 6 && myOtherPieceLocal == 0)) {
                                         //Other pieces are available. Return true;
                                         System.out.println("hei");
                                         return true;
