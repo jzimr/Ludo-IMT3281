@@ -310,6 +310,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserDoesPieceMove" : UserDoesPieceMove((UserDoesPieceMove) action); break;
 			case "UserDoesRandomGameSearch":UserDoesRandomGameSearch((UserDoesRandomGameSearch) action);break;
 			case "UserWantToViewProfile": UserWantToViewProfile((UserWantToViewProfile) action); break;
+			case "UserWantToEditProfile": UserWantToEditProfile((UserWantToEditProfile) action); break;
 		}
 
 	}
@@ -477,13 +478,20 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
-				case"UserWantToViewProfileResponse":{
+				case "UserWantToViewProfileResponse":{
 					UserWantToViewProfileResponse message = new UserWantToViewProfileResponse("UserWantToViewProfileResponse");
 					message.setUserId(((UserWantToViewProfileResponse)msg).getUserId());
 					message.setGamesWon(((UserWantToViewProfileResponse)msg).getGamesWon());
 					message.setGamesPlayed(((UserWantToViewProfileResponse)msg).getGamesPlayed());
 					message.setDisplayName(((UserWantToViewProfileResponse)msg).getDisplayName());
 					message.setAvatarPath(((UserWantToViewProfileResponse)msg).getAvatarPath());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "UserWantToEditProfileResponse":{
+					UserWantToEditProfileResponse message = new UserWantToEditProfileResponse("UserWantToEditProfileResponse");
+					message.setResponse(((UserWantToEditProfileResponse)msg).getResponse());
+					message.setChanged(((UserWantToEditProfileResponse)msg).isChanged());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -1354,6 +1362,54 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	private void UserWantToEditProfile(UserWantToEditProfile action) {
+		Message retMsg = new UserWantToEditProfileResponse("UserWantToEditProfileResponse");
+		retMsg.setRecipientSessionId(action.getRecipientSessionId());
+		UserInfo oldInfo = db.getProfile(sessionIdToUserId(action.getRecipientSessionId()));
+		UserInfo newInfo = new UserInfo(action.getUserid(), action.getDisplayname(),action.getImageString(), oldInfo.getGamesPlayed(), oldInfo.getGamesWon());
+
+        boolean profileUpdate = false, passwordUpdate = false;
+
+		try {
+			db.updateProfile(newInfo);
+			profileUpdate = true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		if (!action.getPassword().isEmpty()){
+			try {
+				db.updateAccountPassword(action.getUserid(), action.getPassword());
+				passwordUpdate = true;
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		} else { //Make true anyways.
+			passwordUpdate = true;
+		}
+
+		if (profileUpdate && passwordUpdate) { //Both updated.
+			((UserWantToEditProfileResponse)retMsg).setChanged(true);
+			((UserWantToEditProfileResponse)retMsg).setResponse("Updated the whole profile successfully.");
+
+		} else if (profileUpdate && !passwordUpdate) { //Only profile was updated
+			((UserWantToEditProfileResponse)retMsg).setChanged(true);
+			((UserWantToEditProfileResponse)retMsg).setResponse("Profile was updated successfully. Password update failed.");
+
+		} else if (!profileUpdate && passwordUpdate) { //Only password was updated
+			((UserWantToEditProfileResponse)retMsg).setChanged(true);
+			((UserWantToEditProfileResponse)retMsg).setResponse("Porfile was not updated. Password updated successfully.");
+
+		} else { //Neither was updated.
+			((UserWantToEditProfileResponse)retMsg).setChanged(false);
+			((UserWantToEditProfileResponse)retMsg).setResponse("Something went wrong when updating user information");
+		}
+
+		synchronized (messagesToSend){
+			messagesToSend.add(retMsg);
+		}
+	}
+
 	/**
 	 * Implemented interface DiceListener
 	 * @param diceEvent returns data about dice rolled
@@ -1409,12 +1465,25 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		Message retMsg;
 		Ludo game = event.getLudo();
 		if(event.getPlayerEvent().contentEquals("Won")){
-
+			int playerid = 0; //Represents which player we are looping through. This works since ludo game id
+							  // Have the same order as player names.
 			for (String name : game.getPlayers()){
 				retMsg = new PlayerWonGameResponse("PlayerWonGameResponse");
 				((PlayerWonGameResponse)retMsg).setPlayerwonid(event.getPlayerID());
 				((PlayerWonGameResponse)retMsg).setGameid(game.getGameid());
-				// TODO : Update DB with winner.
+				UserInfo info = db.getProfile(db.getUserId(name));
+				info.setGamesPlayed(info.getGamesPlayed() + 1);
+
+				//ONLY FOR WINNER.
+				if(playerid == event.getPlayerID()) {
+					info.setGamesWon(info.getGamesWon() + 1);
+				}
+
+				try {
+					db.updateProfile(info);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 				retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
 				synchronized (messagesToSend){
 					messagesToSend.add(retMsg);
