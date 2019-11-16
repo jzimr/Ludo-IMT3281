@@ -466,7 +466,7 @@ public class Ludo {
             piecesPosition[playerID][pieceToBeMoved] = to;
             int playerUnder = getOnTopOfOtherPlayer(playerID, pieceToBeMoved);
 
-            if(pieceBlockedByTower(playerID, diceRolled, pieceToBeMoved)) {
+            if(pieceBlockedByTower(playerID, from, to)) {
                 System.out.println("PieceBlockedByTower");
                 return false;
             }
@@ -670,7 +670,7 @@ public class Ludo {
         return true;
     }
 
-    private boolean pieceBlockedByTower(int playerID, int diceRolled, int pieceToBeMoved) {
+    private boolean pieceBlockedByTower(int playerID ,int from, int to) {
         for (int i = 0; i < 4; i++){ //Playerid
 
             for (int j = 0; j < 4; j++){ //Pieceid
@@ -683,18 +683,15 @@ public class Ludo {
                     int pieceid2 = userGridToLudoBoardGrid(i,getPosition(i,k));
 
                     if(pieceid1 == pieceid2 && j != k && pieceid1_local != 0 && pieceid2_local != 0 && playerID != i){ //any towers?
-                        int myPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,pieceToBeMoved));
 
-                        if (pieceid1 < myPiece+diceRolled && diceRolled == 6) { //In the way but we can go over.
+                        if (pieceid1 < to && diceRolled == 6) { //In the way but we can go over.
                             System.out.println("uhm");
                             return false;
                         }
 
-                        System.out.println("we in boys");
-                        for(int playerMove = 0; playerMove != diceRolled; playerMove++) {
-                            System.out.println("We in boys: " + playerMove + ", " + diceRolled + ", " + myPiece + ", " + pieceid1);
-                            if (myPiece + playerMove == pieceid1) {
-                                System.out.println("HEI");
+                        for( int x = from; x <= to; x ++) {
+                            System.out.println(userGridToLudoBoardGrid(playerID,x) + " " + pieceid1);
+                            if(userGridToLudoBoardGrid(playerID,x) == pieceid1) { // We stumbled upon a tower return true (blocked)
                                 return true;
                             }
                         }
