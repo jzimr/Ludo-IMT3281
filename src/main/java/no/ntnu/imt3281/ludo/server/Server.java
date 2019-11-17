@@ -492,7 +492,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					UserWantToEditProfileResponse message = new UserWantToEditProfileResponse("UserWantToEditProfileResponse");
 					message.setResponse(((UserWantToEditProfileResponse)msg).getResponse());
 					message.setChanged(((UserWantToEditProfileResponse)msg).isChanged());
-					message.setDisplayname(((UserWantToEditProfile)msg).getDisplayname());
+					message.setDisplayname(((UserWantToEditProfileResponse)msg).getDisplayname());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
