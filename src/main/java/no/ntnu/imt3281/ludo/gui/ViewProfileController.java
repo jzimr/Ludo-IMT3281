@@ -13,11 +13,13 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.util.Pair;
+import no.ntnu.imt3281.ludo.Exceptions.InvalidImageException;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.client.ImageManager;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.UserWantToEditProfileResponseListener;
 import no.ntnu.imt3281.ludo.logic.messages.UserWantToEditProfile;
 import no.ntnu.imt3281.ludo.logic.messages.UserWantToEditProfileResponse;
+import no.ntnu.imt3281.ludo.logic.messages.UserWantToViewProfile;
 import no.ntnu.imt3281.ludo.logic.messages.UserWantToViewProfileResponse;
 
 import java.io.File;
@@ -61,9 +63,6 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
     public void setup(ClientSocket clientSocket, final UserWantToViewProfileResponse response, boolean isOurProfile) {
         this.clientSocket = clientSocket;
 
-        // register listeners
-        clientSocket.addUserWantToEditProfileResponseListener(this);
-
         // load all the data into the GUI
         Platform.runLater(() -> {
             // if user has set own image, else we use default
@@ -84,6 +83,9 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
 
             // if we view our own profile, we want to be able to edit it
             if (isOurProfile) {
+                // register listener
+                clientSocket.addUserWantToEditProfileResponseListener(this);
+
                 // make buttons visible
                 editDisplayName.setDisable(false);
                 editDisplayName.setVisible(true);
@@ -147,17 +149,29 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Open Resource File");
         File selectedFile = chooser.showOpenDialog(editAvatar.getScene().getWindow());
+
+        // user cancelled and did not select a file
+        if (selectedFile == null)
+            return;
+
         String path = selectedFile.getAbsolutePath();   // get path of the file
 
         // check if user chose an image
         if (!ImageManager.isImage(path)) {
-            // todo notify user of this
-            System.out.println("Chosen file is not an image");
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Chosen file is not an image", ButtonType.OK);
+            alert.showAndWait();
             return;
         }
 
         // we convert image to bytes
-        byte[] image = ImageManager.convertImageToBytes(path);
+        byte[] image = null;
+        try {
+            image = ImageManager.convertImageToBytes(path);
+        } catch (InvalidImageException e) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, e.getMessage(), ButtonType.OK);
+            alert.showAndWait();
+            return;
+        }
 
         // we send message to server
         clientSocket.sendMessageToServer(new UserWantToEditProfile("UserWantToEditProfile", clientSocket.getDisplayName(), image, ""));
@@ -286,29 +300,35 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
 
     @Override
     public void userWantToEditProfileResponseEvent(UserWantToEditProfileResponse response) {
+        // success
+        if (response.isChanged()) {
+            Platform.runLater(() -> {
+                if (displayNameDialog.isShowing()) displayNameDialog.close();
+                if (passwordDialog.isShowing()) passwordDialog.close();
+            });
+
+            // refresh page to view the newly updated profile
+            clientSocket.sendMessageToServer(new UserWantToViewProfile("UserWantToViewProfile", clientSocket.getDisplayName()));
+            return;
+        }
+
+        // else something wrong happened
         Platform.runLater(() -> {
-            // user tried to edit displayname
-            if (displayNameDialog.isShowing()) {
-                if (response.isChanged()) {       // success
-                    displayNameDialog.close();
-                } else {
+            if (!response.isChanged()) {
+
+                // user tried to edit displayname
+                if (displayNameDialog.isShowing()) {
                     final Button okButton = (Button) displayNameDialog.getDialogPane().lookupButton(ButtonType.OK);
                     displayNameDialog.setContentText(response.getResponse());
                     okButton.setDisable(false);
                 }
-            }
 
-            // user tried to edit password
-            if (passwordDialog.isShowing()) {
-                if (response.isChanged()) {     // success
-                    passwordDialog.close();
-                } else {
+                // user tried to edit password
+                if (passwordDialog.isShowing()) {
                     final Button okButton = (Button) passwordDialog.getDialogPane().lookupButton(ButtonType.OK);
                     final Label responseMessage = (Label) ((VBox) passwordDialog.getDialogPane().getContent()).getChildren().get(2);
-                    Platform.runLater(() -> {
-                        responseMessage.setStyle("-fx-fill: red");
-                        responseMessage.setText(response.getResponse());
-                    });
+                    responseMessage.setStyle("-fx-fill: red");
+                    responseMessage.setText(response.getResponse());
                     okButton.setDisable(false);
                 }
             }

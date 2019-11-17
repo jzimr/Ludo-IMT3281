@@ -2,6 +2,7 @@ package no.ntnu.imt3281.ludo.gui;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import javafx.application.Platform;
@@ -47,6 +48,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     private JoinChatRoomController joinChatRoomController = null;
     private SearchForPlayersController searchForPlayersController = null;
     private HashMap<String, GameBoardController> gameBoardControllers = new HashMap<>();  // k = ludoId
+    private HashMap<String, ViewProfileController> viewProfileControllers = new HashMap<>(); // k = userid
 
 
     @FXML
@@ -219,6 +221,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     /**
      * If user wants to join a random game
+     *
      * @param e
      */
     @FXML
@@ -278,7 +281,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     public void aboutHelp(ActionEvent e) {
         //todo
     }
-
 
 
     /**
@@ -403,11 +405,33 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     public void userWantToViewProfileResponseEvent(UserWantToViewProfileResponse response) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("ViewProfile.fxml"));
         loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+        ViewProfileController controller = viewProfileControllers.get(response.getUserId());
 
-        addNewTab(loader, "Profile: " + response.getDisplayName());
-        ViewProfileController controller = loader.getController();
+        // if tab already exists, reload all data inside and focus on it
+        if (controller != null) {
+            controller.setup(clientSocket, response, response.getUserId().equals(clientSocket.getUserId()));    // reload data
+
+            Optional<Tab> foundTab = tabbedPane.getTabs().stream().filter(tab -> tab.getId() != null && tab.getId().equals("Profile-" + response.getUserId())).findFirst();   // find the tab
+            if (!foundTab.isEmpty() && foundTab.isPresent()) {
+                foundTab.get().setText("Profile: " + response.getDisplayName());      // change tab name
+                tabbedPane.getSelectionModel().select(foundTab.get());                // focus to tab
+            } else {    // controller exists, but no tab. We remove controller and we call this function again to start fresh
+                viewProfileControllers.remove(response.getUserId());
+                userWantToViewProfileResponseEvent(response);
+            }
+            return;
+        }
+
+        Tab tab = addNewTab(loader, "Profile: " + response.getDisplayName());
+        // we set the id of the tab
+        tab.setId("Profile-" + response.getUserId());
+        System.out.println(tab.getId());
+        System.out.println("Profile-" + response.getUserId());
+        System.out.println(tab.getId().equals("Profile-" + response.getUserId()));
 
         controller = loader.getController();
         controller.setup(clientSocket, response, response.getUserId().equals(clientSocket.getUserId()));
+        // add to hashmap for later retrieval
+        viewProfileControllers.put(response.getUserId(), controller);
     }
 }

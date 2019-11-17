@@ -1,5 +1,7 @@
 package no.ntnu.imt3281.ludo.client;
 
+import no.ntnu.imt3281.ludo.Exceptions.InvalidImageException;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -36,9 +38,14 @@ public class ImageManager {
         return true;
     }
 
-    public static byte[] convertImageToBytes(String path){
+    public static byte[] convertImageToBytes(String path) throws InvalidImageException {
         BufferedImage image;
         byte[] newFileBytes;
+
+        // Image size can't exceed 2MB
+        if(new File(path).length() > 2000000){
+            throw new InvalidImageException("File size cannot exceed 2MB");
+        }
 
         // first we read image
         try{
@@ -46,24 +53,8 @@ public class ImageManager {
             image = ImageIO.read(new File(path));
         } catch(IOException e){
             e.printStackTrace();
-            return null;
+            throw new InvalidImageException("Something went wrong trying to read the image");
         }
-
-        /*
-        // if image is more than 256x256 pixels, we resize to fit these bounds
-        if(image.getWidth() > 256 || image.getHeight() > 256){
-            int width = image.getWidth();
-            int height = image.getHeight();
-
-            // we create a copy, resize it and then copy it back to the other image variable
-            BufferedImage copyImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-            AffineTransform at = new AffineTransform();
-            at.scale(256.0 / width, 256.0 / height);
-            AffineTransformOp scaleOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
-            image = scaleOp.filter(image, copyImage);
-        }
-
-         */
 
         try{
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -71,26 +62,13 @@ public class ImageManager {
             newFileBytes = bos.toByteArray();
         } catch(IOException e){
             e.printStackTrace();
-            return null;
+            throw new InvalidImageException("Something went wrong trying to read the image");
         }
 
         return newFileBytes;
     }
 
     public static javafx.scene.image.Image convertBytesToImage(byte[] imageData){
-        // we decode string into bytes[]
-        //byte[] imageBytes = Base64.getDecoder().decode(base64);
-        /*
-        BufferedImage img;
-
-        try{
-            img = ImageIO.read(new ByteArrayInputStream(imageBytes));
-        } catch(IOException e){
-            e.printStackTrace();
-            return null;
-        }
-        */
-
         return new javafx.scene.image.Image(new ByteArrayInputStream(imageData));
     }
 }
