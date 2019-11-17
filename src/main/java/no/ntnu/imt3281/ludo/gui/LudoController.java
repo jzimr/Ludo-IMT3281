@@ -413,11 +413,15 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
             Optional<Tab> foundTab = tabbedPane.getTabs().stream().filter(tab -> tab.getId() != null && tab.getId().equals("Profile-" + response.getUserId())).findFirst();   // find the tab
             if (!foundTab.isEmpty() && foundTab.isPresent()) {
-                foundTab.get().setText("Profile: " + response.getDisplayName());      // change tab name
-                tabbedPane.getSelectionModel().select(foundTab.get());                // focus to tab
+                Platform.runLater(() -> {
+                    foundTab.get().setText("Profile: " + response.getDisplayName());      // change tab name
+                    tabbedPane.getSelectionModel().select(foundTab.get());                // focus to tab
+                });
             } else {    // controller exists, but no tab. We remove controller and we call this function again to start fresh
-                viewProfileControllers.remove(response.getUserId());
-                userWantToViewProfileResponseEvent(response);
+                Platform.runLater(() -> {
+                    viewProfileControllers.remove(response.getUserId());
+                    userWantToViewProfileResponseEvent(response);
+                });
             }
             return;
         }
@@ -425,9 +429,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         Tab tab = addNewTab(loader, "Profile: " + response.getDisplayName());
         // we set the id of the tab
         tab.setId("Profile-" + response.getUserId());
-        System.out.println(tab.getId());
-        System.out.println("Profile-" + response.getUserId());
-        System.out.println(tab.getId().equals("Profile-" + response.getUserId()));
 
         controller = loader.getController();
         controller.setup(clientSocket, response, response.getUserId().equals(clientSocket.getUserId()));

@@ -1,9 +1,12 @@
 package no.ntnu.imt3281.ludo.client;
 
+import no.ntnu.imt3281.ludo.gui.ServerListeners.LoginResponseListener;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.RegisterResponseListener;
 import no.ntnu.imt3281.ludo.logic.messages.ClientLogin;
 import no.ntnu.imt3281.ludo.server.Client;
 import no.ntnu.imt3281.ludo.server.Server;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.*;
@@ -26,76 +29,39 @@ public class ClientSocketTest {
 
     private static final int DEFAULT_PORT = 4567;
 
-    private ClientSocket clientSocket;
-    protected Client client;
-    private BufferedWriter bw;
-    private BufferedReader br;
+    private static ClientSocket connection_client_1 = null;
+    private static BufferedWriter bw_client_1;
 
-    /**
-     * This one registers the connection between client -> server
-     */
-    private void serverThread(){
-        Thread server = new Thread(() -> {
-            try {
-                ServerSocket server1 = new ServerSocket(DEFAULT_PORT);
-                while (true) {
-                    Socket s = server1.accept();
-                    try {
-                        client = new Client(s);
-                    } catch (IOException e) {
-                        System.err.println("Unable to create client from "+s.getInetAddress().getHostName());
-                    }
-                }
-            } catch ( IOException e) {
-                e.printStackTrace();
-            }
-        });
+    private static ServerSocket server;
 
-        server.start();
-    }
 
-    @Before
-    public void setupClientAndServer() {
+    @BeforeClass
+    public static void setupClientAndServer() {
         // create a new server we listen to
-        serverThread();
+        connection_client_1 = new ClientSocket();
+        try{
+            server = new ServerSocket(DEFAULT_PORT);
+        } catch(IOException e){
+            e.printStackTrace();
+        }
+
+        connection_client_1 = new ClientSocket();
+        connection_client_1.establishConnectionToServer("0.0.0.0", DEFAULT_PORT);
+
+
+
+
+
+
+
+        //connection_client_1.establishConnectionToServer();
+
 
         // create a new client we want to test
-        clientSocket = new ClientSocket();
+        //clientSocket = new ClientSocket();
 
         // connect to server
-        clientSocket.establishConnectionToServer("0.0.0.0", DEFAULT_PORT);
+        //clientSocket.establishConnectionToServer("0.0.0.0", DEFAULT_PORT);
     }
 
-    @Test
-    public void establishConnectionToServerTest() {
-        try{
-            System.out.println(client.read().toString());
-        } catch(IOException e){
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    public void closeConnectionToServer() {
-        // todo
-    }
-
-    @Test
-    public void sendMessageToServer() {
-        // todo
-        clientSocket.sendMessageToServer(new ClientLogin("UserDoesLoginManual", "Boby", "Boby's Dog"));
-        try{
-            System.out.println(client.read().toString());
-        } catch(IOException e){
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    public void listenToServer() {
-    }
-
-    @Test
-    public void handleMessagesFromServer() {
-    }
 }
