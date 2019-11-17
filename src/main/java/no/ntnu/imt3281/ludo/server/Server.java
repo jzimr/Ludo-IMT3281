@@ -1050,7 +1050,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				if (room.connectedUsers.contains(userid)) {
 					room.connectedUsers.remove(userid);
 
-					if (room.getConnectedUsers().size() == 0) { //Delete it
+					if (room.getConnectedUsers().size() == 0 && !room.getName().toLowerCase().contentEquals("global") ) { //Delete it
 						activeChatRooms.remove(room);
 						try {
 							db.removeChatRoom(room.getName()); //Remove from DB.
