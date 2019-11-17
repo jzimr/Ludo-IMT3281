@@ -110,6 +110,12 @@ public class LoginController implements RegisterResponseListener {
             return;
         }
 
+        // all text fields should be filled out
+        if (password.length() < 8) {
+            setResponseMessage("Password must be at least 8 characters long!", true);
+            return;
+        }
+
         // username can't exceed 24 characters
         if(username.length() > 24){
             setResponseMessage("Username can be max 24 characters long!", true);

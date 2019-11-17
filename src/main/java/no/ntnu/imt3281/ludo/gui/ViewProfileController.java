@@ -3,13 +3,16 @@ package no.ntnu.imt3281.ludo.gui;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import javafx.util.Pair;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.client.ImageManager;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.UserWantToEditProfileResponseListener;
@@ -49,7 +52,7 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
 
     // create a new dialog that contains our name in the field already
     TextInputDialog displayNameDialog;
-    TextInputDialog passwordDialog;
+    Dialog<Pair<String, String>> passwordDialog;
 
     // we save the image in form of bytes as well
     byte[] imageString;
@@ -63,14 +66,12 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
 
         // load all the data into the GUI
         Platform.runLater(() -> {
-            displayNameDialog = new TextInputDialog(clientSocket.getDisplayName());
-            passwordDialog = new TextInputDialog();
             // if user has set own image, else we use default
-            if(response.getImageString() != null){
+            if (response.getImageString() != null) {
                 Image image = ImageManager.convertBytesToImage(response.getImageString());
                 imageString = response.getImageString();
                 // check that it decoded without problems
-                if(image != null){
+                if (image != null) {
                     avatarImage.setImage(image);
                 }
             }
@@ -82,7 +83,7 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
             wonText.setText(String.valueOf(response.getGamesWon()));
 
             // if we view our own profile, we want to be able to edit it
-            if(isOurProfile){
+            if (isOurProfile) {
                 // make buttons visible
                 editDisplayName.setDisable(false);
                 editDisplayName.setVisible(true);
@@ -90,6 +91,52 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
                 editPassword.setVisible(true);
                 editAvatar.setDisable(false);
                 editAvatar.setVisible(true);
+
+                // setup dialog for changing display name
+                displayNameDialog = new TextInputDialog(clientSocket.getDisplayName());
+                displayNameDialog.setTitle("Edit Profile");
+                displayNameDialog.setHeaderText("Enter name");
+                displayNameDialog.setGraphic(null);
+                displayNameDialog.getDialogPane().setPrefWidth(400.0);
+
+                // we create a custom password dialog with two fields
+                passwordDialog = new Dialog();
+                passwordDialog.setTitle("Edit Profile");
+                passwordDialog.setGraphic(null);
+                passwordDialog.getDialogPane().setPrefWidth(400.0);
+
+                // Set the button types.
+                //ButtonType okButton = new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE);
+                passwordDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+                VBox vbox = new VBox();
+                vbox.setPadding(new Insets(10, 80, 5, 80));
+                vbox.setSpacing(10.0);
+
+                PasswordField newPassword = new PasswordField();
+                newPassword.setId("newPassword");
+                newPassword.setPromptText("Enter a new password");
+                PasswordField retypePassword = new PasswordField();
+                retypePassword.setId("retypePassword");
+                retypePassword.setPromptText("Retype password");
+                Text responseMessage = new Text();
+                responseMessage.setStyle("-fx-font-weight: bold");
+
+                vbox.getChildren().addAll(newPassword, retypePassword, responseMessage);
+
+                passwordDialog.getDialogPane().setContent(vbox);
+                // focus on newPassword field on default
+                Platform.runLater(() -> newPassword.requestFocus());
+
+                // Convert the result to a password-pair when the button is clicked
+                /*
+                passwordDialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == okButton) {
+                        return new Pair<>(newPassword.getText(), retypePassword.getText());
+                    }
+                    return null;
+                });
+                 */
             }
         });
     }
@@ -100,15 +147,10 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Open Resource File");
         File selectedFile = chooser.showOpenDialog(editAvatar.getScene().getWindow());
-
-        System.out.println(selectedFile.getAbsolutePath());
-
-        String path = selectedFile.getAbsolutePath();
-
-
+        String path = selectedFile.getAbsolutePath();   // get path of the file
 
         // check if user chose an image
-        if(!ImageManager.isImage(path)){
+        if (!ImageManager.isImage(path)) {
             // todo notify user of this
             System.out.println("Chosen file is not an image");
             return;
@@ -122,19 +164,75 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
     }
 
     @FXML
-    void editPasswordButton(ActionEvent event) {
-        // todo
+    void editPasswordButton(ActionEvent e) {
+        final Button okButton = (Button) passwordDialog.getDialogPane().lookupButton(ButtonType.OK);
+        final PasswordField newPassword = (PasswordField) ((VBox) passwordDialog.getDialogPane().getContent()).getChildren().get(0);
+        final PasswordField retypePassword = (PasswordField) ((VBox) passwordDialog.getDialogPane().getContent()).getChildren().get(1);
+        final Text responseMessage = (Text) ((VBox) passwordDialog.getDialogPane().getContent()).getChildren().get(2);
+
+        okButton.setDisable(false);
+        okButton.addEventFilter(
+                ActionEvent.ACTION,
+                event -> {
+                    String newPasswordText = newPassword.getText();
+                    String retypePasswordText = retypePassword.getText();
+
+                    // name can't be empty
+                    if (newPasswordText.isEmpty() || retypePasswordText.isEmpty()) {
+                        Platform.runLater(() -> {
+                            responseMessage.setStyle("-fx-fill: red");
+                            responseMessage.setText("You need to fill in both fields!");
+                        });
+                        event.consume();
+                        return;
+                    }
+
+                    // password fields do not match
+                    else if (!newPasswordText.equals(retypePasswordText)) {
+                        Platform.runLater(() -> {
+                            responseMessage.setStyle("-fx-fill: red");
+                            responseMessage.setText("Passwords do not match!");
+                        });
+                        event.consume();
+                        return;
+                    }
+
+                    // password must be at least 8 characters
+                    else if (newPasswordText.length() < 8) {
+                        Platform.runLater(() -> {
+                            responseMessage.setStyle("-fx-fill: red");
+                            responseMessage.setText("Password must be at least 8 characters!");
+                        });
+                        event.consume();
+                        return;
+                    }
+
+                    // disable button until we have received answer
+                    okButton.setDisable(true);
+                    Platform.runLater(() -> {
+                        responseMessage.setStyle("-fx-fill: black");
+                        responseMessage.setText("Waiting for server...");
+                    });
+                    // send message to server
+                    clientSocket.sendMessageToServer(new UserWantToEditProfile("UserWantToEditProfile",
+                            clientSocket.getDisplayName(), imageString, newPasswordText));
+                    event.consume();
+                    return;
+
+                    // wait for response from server to verify if we did change displayname or not
+                    //while(true){
+
+                    //}
+                }
+        );
+
+        passwordDialog.showAndWait();
     }
 
     @FXML
     void editDisplayNameButton(ActionEvent e) {
         displayNameDialog.getEditor().setText(clientSocket.getDisplayName());
-        displayNameDialog.setTitle("Edit Profile");
-        displayNameDialog.setHeaderText("Enter name");
         displayNameDialog.setContentText("New name:");
-        displayNameDialog.setGraphic(null);
-
-        displayNameDialog.getDialogPane().setPrefWidth(400.0);
 
         final Button okButton = (Button) displayNameDialog.getDialogPane().lookupButton(ButtonType.OK);
         okButton.setDisable(false);
@@ -147,21 +245,25 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
                     if (textInput.isEmpty()) {
                         displayNameDialog.setContentText("Name can't be empty!");
                         event.consume();
+                        return;
                     }
 
                     // name can't exceed 24 characters
                     else if (textInput.length() > 24) {
                         displayNameDialog.setContentText("Name can't exceed 24 characters!");
                         event.consume();
+                        return;
                     }
                     // name can't start or end with a space (' ')
                     else if (textInput.substring(0, 1).equals(" ") || textInput.substring(textInput.length() - 1).equals(" ")) {
                         displayNameDialog.setContentText("Name can't start or end with a ' '");
                         event.consume();
+                        return;
                     }
                     // if name remains unchanged
                     else if (clientSocket.getDisplayName().equals(textInput)) {
                         event.consume();
+                        return;
                     }
 
                     // disable button until we have received answer
@@ -184,14 +286,29 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
 
     @Override
     public void userWantToEditProfileResponseEvent(UserWantToEditProfileResponse response) {
-        // if user tried to edit displayname
-        Platform.runLater(() ->{
-            if(displayNameDialog.isShowing()){
-                if(response.isChanged()){       // success
+        Platform.runLater(() -> {
+            // user tried to edit displayname
+            if (displayNameDialog.isShowing()) {
+                if (response.isChanged()) {       // success
                     displayNameDialog.close();
                 } else {
                     final Button okButton = (Button) displayNameDialog.getDialogPane().lookupButton(ButtonType.OK);
                     displayNameDialog.setContentText(response.getResponse());
+                    okButton.setDisable(false);
+                }
+            }
+
+            // user tried to edit password
+            if (passwordDialog.isShowing()) {
+                if (response.isChanged()) {     // success
+                    passwordDialog.close();
+                } else {
+                    final Button okButton = (Button) passwordDialog.getDialogPane().lookupButton(ButtonType.OK);
+                    final Label responseMessage = (Label) ((VBox) passwordDialog.getDialogPane().getContent()).getChildren().get(2);
+                    Platform.runLater(() -> {
+                        responseMessage.setStyle("-fx-fill: red");
+                        responseMessage.setText(response.getResponse());
+                    });
                     okButton.setDisable(false);
                 }
             }

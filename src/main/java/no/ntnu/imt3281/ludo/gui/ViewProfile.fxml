@@ -18,7 +18,7 @@
          <children>
             <HBox prefHeight="200.0">
                <children>
-                  <ImageView fx:id="avatarImage" fitHeight="230.0" fitWidth="230.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="ALWAYS">
+                  <ImageView fx:id="avatarImage" fitHeight="230.0" fitWidth="230.0" pickOnBounds="true" HBox.hgrow="ALWAYS">
                      <image>
                         <Image url="@../../../../../images/default-pic.png" />
                      </image>

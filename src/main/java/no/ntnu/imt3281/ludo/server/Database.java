@@ -404,10 +404,15 @@ public class Database {
                 "SET display_name = ?, avatar_path = ?, games_played = ?, games_won = ? " +
                 "WHERE user_id = ?");
 
-        InputStream stream = new ByteArrayInputStream(userInfo.getAvatarImage());
+        // if user has set image, update in db, else set the field to null in db
+        if(userInfo.getAvatarImage() != null){
+            InputStream stream = new ByteArrayInputStream(userInfo.getAvatarImage());
+            stmt.setBinaryStream(2, stream);
+        } else {
+            stmt.setBinaryStream(2, null);
+        }
 
         stmt.setString(1, userInfo.getDisplayName());
-        stmt.setBinaryStream(2, stream);
         stmt.setInt(3, userInfo.getGamesPlayed());
         stmt.setInt(4, userInfo.getGamesWon());
         stmt.setString(5, userInfo.getUserId());
