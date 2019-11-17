@@ -484,7 +484,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setGamesWon(((UserWantToViewProfileResponse)msg).getGamesWon());
 					message.setGamesPlayed(((UserWantToViewProfileResponse)msg).getGamesPlayed());
 					message.setDisplayName(((UserWantToViewProfileResponse)msg).getDisplayName());
-					message.setAvatarPath(((UserWantToViewProfileResponse)msg).getAvatarPath());
+					message.setImageString(((UserWantToViewProfileResponse)msg).getImageString());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -1420,7 +1420,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		if (info != null){
 			retMsg = new UserWantToViewProfileResponse("UserWantToViewProfileResponse");
 			retMsg.setRecipientSessionId(action.getRecipientSessionId());
-			((UserWantToViewProfileResponse)retMsg).setAvatarPath(info.getAvatarPath());
+			((UserWantToViewProfileResponse)retMsg).setImageString(info.getAvatarImage());
 			((UserWantToViewProfileResponse)retMsg).setDisplayName(info.getDisplayName());
 			((UserWantToViewProfileResponse)retMsg).setGamesPlayed(info.getGamesPlayed());
 			((UserWantToViewProfileResponse)retMsg).setGamesWon(info.getGamesWon());

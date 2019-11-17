@@ -31,6 +31,12 @@
                         <MenuItem fx:id="listRooms" mnemonicParsing="false" onAction="#listChatRooms" text="List rooms" />
                     </items>
                   </Menu>
+                  <Menu mnemonicParsing="false" text="Profile">
+                    <items>
+                      <MenuItem fx:id="myProfile" mnemonicParsing="false" onAction="#viewMyProfile" text="My Profile" />
+                        <MenuItem fx:id="otherProfiles" mnemonicParsing="false" onAction="#findProfile" text="Find Profile" />
+                    </items>
+                  </Menu>
                 <Menu mnemonicParsing="false" text="Help">
                   <items>
                     <MenuItem fx:id="about" mnemonicParsing="false" onAction="#aboutHelp" text="About" />

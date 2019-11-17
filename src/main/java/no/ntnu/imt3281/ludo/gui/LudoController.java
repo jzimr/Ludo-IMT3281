@@ -2,7 +2,6 @@ package no.ntnu.imt3281.ludo.gui;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.ResourceBundle;
 
 import javafx.application.Platform;
@@ -18,12 +17,10 @@ import javafx.stage.Stage;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.client.SessionTokenManager;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.*;
-import no.ntnu.imt3281.ludo.logic.Ludo;
-import no.ntnu.imt3281.ludo.logic.PlayerEvent;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
 public class LudoController implements ChatJoinResponseListener, LoginResponseListener, CreateGameResponseListener,
-        SendGameInvitationsResponseListener, UserJoinedGameResponseListener {
+        SendGameInvitationsResponseListener, UserJoinedGameResponseListener, UserWantToViewProfileResponseListener {
 
     @FXML
     private MenuItem random;
@@ -33,6 +30,10 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     private MenuItem joinRoom;
     @FXML
     private MenuItem challengeButton;
+    @FXML
+    private MenuItem myProfile;
+    @FXML
+    private MenuItem otherProfiles;
     @FXML
     private MenuItem about;
 
@@ -90,6 +91,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         clientSocket.addCreateGameResponseListener(this);
         clientSocket.addSendGameInvitationsResponseListener(this);
         clientSocket.addUserJoinedGameResponseListener(this);
+        clientSocket.addUserWantToViewProfileResponseListener(this);
     }
 
     /**
@@ -260,6 +262,18 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         clientSocket.sendMessageToServer(new UserListChatrooms("UserListChatrooms"));
     }
 
+
+    @FXML
+    void findProfile(ActionEvent event) {
+        // todo
+    }
+
+    @FXML
+    void viewMyProfile(ActionEvent event) {
+        // send message to server about viewing our profile
+        clientSocket.sendMessageToServer(new UserWantToViewProfile("UserWantToViewProfile", clientSocket.getDisplayName()));
+    }
+
     @FXML
     public void aboutHelp(ActionEvent e) {
         //todo
@@ -383,5 +397,17 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
             // todo change name of game tab for each game created
             addNewGameTab("Game", response.getGameid(), response.getPlayersinlobby());
         }
+    }
+
+    @Override
+    public void userWantToViewProfileResponseEvent(UserWantToViewProfileResponse response) {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("ViewProfile.fxml"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+
+        addNewTab(loader, "Profile: " + response.getDisplayName());
+        ViewProfileController controller = loader.getController();
+
+        controller = loader.getController();
+        controller.setup(clientSocket, response, response.getUserId().equals(clientSocket.getUserId()));
     }
 }

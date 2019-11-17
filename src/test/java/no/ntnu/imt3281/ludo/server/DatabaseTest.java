@@ -202,12 +202,12 @@ public class DatabaseTest {
 
             // change info for both users
             user1.setDisplayName("Boby");
-            user1.setAvatarPath("someImage.png");
+            user1.setAvatarImage("someImage.png".getBytes());
             user1.setGamesPlayed(10);
             user1.setGamesWon(3);
 
             user2.setDisplayName("Samy");
-            user2.setAvatarPath("someOtherImage.png");
+            user2.setAvatarImage("someOtherImage.png".getBytes());
             user2.setGamesPlayed(6);
             user2.setGamesWon(6);
 
@@ -498,19 +498,25 @@ public class DatabaseTest {
         insertTwoAccounts();
 
         // Boby's and Samy's NEW passwords
-        String pwd1 = "BobyLostHisDog",
-                pwd2 = "SamyLostHisMother";
+        String pwd1 = "BobyLostHisDog";
 
         try{
-            // first update password in database with new hashed passwords
-            testDatabase.updateAccountPassword(user1Id, hasher.hash(pwd1, user1Salt));
-            testDatabase.updateAccountPassword(user2Id, hasher.hash(pwd2, user2Salt));
+            // first update password in database with new password
+            testDatabase.updateAccountPassword(user1Id, pwd1);
 
-            // then check if they match
+            // Get the ID of user 1
             Statement state = testConnection.createStatement();
+            ResultSet rs = state.executeQuery("SELECT * FROM login_info WHERE account_name = 'Boby'");
+
+            // loop over data of user 1 to get user id and hash salt
+            while (rs.next()) {
+                user1Id = rs.getString("user_id");
+                user1display = rs.getString("account_name");
+                user1Salt = rs.getBytes("account_salt");
+            }
 
             // execute SELECT query
-            ResultSet rs = state.executeQuery("SELECT * FROM login_info WHERE user_id = '" + user1Id + "'");
+            rs = state.executeQuery("SELECT * FROM login_info WHERE user_id = '" + user1Id + "'");
 
             // loop over data of user 1
             while (rs.next()) {
@@ -519,18 +525,6 @@ public class DatabaseTest {
                 // check that the passwords are correct using the SHA512Hash class
                 assertTrue(hasher.checkHashedValue(rs.getString("pwd_hsh"), pwd1, user1Salt));
             }
-
-            // execute SELECT query
-            rs = state.executeQuery("SELECT * FROM login_info WHERE user_id = '" + user2Id + "'");
-
-            // loop over data of user 2
-            while (rs.next()) {
-                assertEquals(user2Id, rs.getString("user_id"));
-                assertEquals("Samy", rs.getString("account_name"));
-                // check that the passwords are correct using the SHA512Hash class
-                assertTrue(hasher.checkHashedValue(rs.getString("pwd_hsh"), pwd2, user2Salt));
-            }
-
         } catch(SQLException ex){
             ex.printStackTrace();
             assertTrue(false);
@@ -558,7 +552,7 @@ public class DatabaseTest {
             while (rs.next()) {
                 assertEquals(user1Id, rs.getString("user_id"));
                 assertEquals("Boby", rs.getString("display_name"));
-                assertEquals("someImage.png", rs.getString("avatar_path"));
+                assertEquals("736f6d65496d6167652e706e67", rs.getString("avatar_path"));
                 assertEquals(10, rs.getInt("games_played"));
                 assertEquals(3, rs.getInt("games_won"));
             }
@@ -570,7 +564,7 @@ public class DatabaseTest {
             while (rs.next()) {
                 assertEquals(user2Id, rs.getString("user_id"));
                 assertEquals("Samy", rs.getString("display_name"));
-                assertEquals("someOtherImage.png", rs.getString("avatar_path"));
+                assertEquals("736f6d654f74686572496d6167652e706e67", rs.getString("avatar_path"));
                 assertEquals(6, rs.getInt("games_played"));
                 assertEquals(6, rs.getInt("games_won"));
             }
@@ -595,14 +589,14 @@ public class DatabaseTest {
         // compare data of user1
         assertEquals(user1Id, user1.getUserId());
         assertEquals("Boby", user1.getDisplayName());
-        assertEquals("someImage.png", user1.getAvatarPath());
+        assertEquals("someImage.png", new String(user1.getAvatarImage()));
         assertEquals(10, user1.getGamesPlayed());
         assertEquals(3, user1.getGamesWon());
 
         // compare data of user2
         assertEquals(user2Id, user2.getUserId());
         assertEquals("Samy", user2.getDisplayName());
-        assertEquals("someOtherImage.png", user2.getAvatarPath());
+        assertEquals("someOtherImage.png", new String(user2.getAvatarImage()));
         assertEquals(6, user2.getGamesPlayed());
         assertEquals(6, user2.getGamesWon());
     }
@@ -633,7 +627,7 @@ public class DatabaseTest {
         user2 = testDatabase.getProfile(user2Id);
         assertEquals(user2Id, user2.getUserId());
         assertEquals("Fredy", user2.getDisplayName());
-        assertEquals("someOtherImage.png", user2.getAvatarPath());
+        assertEquals("someOtherImage.png", new String(user2.getAvatarImage()));
         assertEquals(200, user2.getGamesPlayed());
         assertEquals(100, user2.getGamesWon());
     }

@@ -1,9 +1,10 @@
 package no.ntnu.imt3281.ludo.server;
 
-import com.fasterxml.jackson.databind.deser.std.UUIDDeserializer;
 import no.ntnu.imt3281.ludo.logic.SHA512Hasher;
 
-import java.nio.charset.Charset;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.security.SecureRandom;
 import java.sql.*;
 import java.time.Instant;
@@ -111,7 +112,7 @@ public class Database {
         stmt.execute();
 
         // at last insert a new user so he has a profile when he logs in for the first time
-        insertProfile(uniqueId, accountName, "", 0, 0);
+        insertProfile(uniqueId, accountName, null, 0, 0);
     }
 
     /**
@@ -324,8 +325,7 @@ public class Database {
         String hashedPwd = hasher.hash(nonHashedPwd, salt);
 
         PreparedStatement stmt = connection.prepareStatement("UPDATE login_info " +
-                "SET pwd_hsh = ? ," +
-                "account_salt = ?" +
+                "SET pwd_hsh = ?, account_salt = ? " +
                 "WHERE user_id = ?");
 
         stmt.setString(1, hashedPwd);
@@ -343,18 +343,18 @@ public class Database {
      *
      * @param userId      the unique ID of the user
      * @param displayName the name of the user
-     * @param avatarPath  the image file path of the user's avatar
+     * @param avatarImage  the image data of the user
      * @param gamesPlayed number of total games played
      * @param gamesWon    number of total games won
      * @return true if upload was successful, else false
      */
-    protected void insertProfile(String userId, String displayName, String avatarPath, int gamesPlayed, int gamesWon) throws SQLException {
+    protected void insertProfile(String userId, String displayName, byte[] avatarImage, int gamesPlayed, int gamesWon) throws SQLException {
         PreparedStatement stmt = connection.prepareStatement("INSERT INTO user_info" +
                 "(user_id, display_name, avatar_path, games_played, games_won) VALUES (?, ?, ?, ?, ?)");
 
         stmt.setString(1, userId);
         stmt.setString(2, displayName);
-        stmt.setString(3, avatarPath);
+        stmt.setBytes(3, avatarImage);
         stmt.setInt(4, gamesPlayed);
         stmt.setInt(5, gamesWon);
 
@@ -380,7 +380,7 @@ public class Database {
                 userInfo = new UserInfo(
                         rs.getString("user_id"),
                         rs.getString("display_name"),
-                        rs.getString("avatar_path"),
+                        rs.getBytes("avatar_path"),
                         rs.getInt("games_played"),
                         rs.getInt("games_won")
                 );
@@ -404,8 +404,10 @@ public class Database {
                 "SET display_name = ?, avatar_path = ?, games_played = ?, games_won = ? " +
                 "WHERE user_id = ?");
 
+        InputStream stream = new ByteArrayInputStream(userInfo.getAvatarImage());
+
         stmt.setString(1, userInfo.getDisplayName());
-        stmt.setString(2, userInfo.getAvatarPath());
+        stmt.setBinaryStream(2, stream);
         stmt.setInt(3, userInfo.getGamesPlayed());
         stmt.setInt(4, userInfo.getGamesWon());
         stmt.setString(5, userInfo.getUserId());
@@ -597,7 +599,7 @@ public class Database {
         stmt.execute("CREATE TABLE user_info (" +
                 "user_id varchar(36) NOT NULL," +
                 "display_name varchar(24) NOT NULL," +
-                "avatar_path LONG VARCHAR ," +
+                "avatar_path blob(16M) ," +
                 "games_played int NOT NULL," +
                 "games_won int NOT NULL," +
                 // "user_id" should be unique and primary key
@@ -652,7 +654,7 @@ public class Database {
         stmt.execute("CREATE TABLE chat_log (" +
                 "chat_name varchar(32) NOT NULL, " +
                 "user_id varchar(36) NOT NULL," +
-                "chat_message varchar(8000), " +
+                "chat_message varchar(500), " +
                 "timestamp bigint," +
                 // "chat_name" is a foreign key of "room_name" from table "chat_room".
                 // Chat entries will be deleted if the "room_name" is deleted from table "chat_room"

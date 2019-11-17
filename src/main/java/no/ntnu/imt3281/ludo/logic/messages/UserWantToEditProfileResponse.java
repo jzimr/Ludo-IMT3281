@@ -7,6 +7,12 @@ public class UserWantToEditProfileResponse extends Message {
 
     public UserWantToEditProfileResponse(String action){super(action);}
 
+    public UserWantToEditProfileResponse(String action, boolean changed, String response){
+        super(action);
+        this.changed = changed;
+        this.response = response;
+    }
+
     public void setResponse(String response) {
         this.response = response;
     }

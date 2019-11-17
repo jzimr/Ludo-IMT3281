@@ -18,9 +18,9 @@
          <children>
             <HBox prefHeight="200.0">
                <children>
-                  <ImageView fx:id="avatarImage" fitHeight="230.0" fitWidth="230.0" pickOnBounds="true">
+                  <ImageView fx:id="avatarImage" fitHeight="230.0" fitWidth="230.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="ALWAYS">
                      <image>
-                        <Image url="@../../../../../../../../../../Pictures/a0bb2Xv_700b.jpg" />
+                        <Image url="@../../../../../images/default-pic.png" />
                      </image>
                   </ImageView>
                   <VBox prefHeight="200.0" prefWidth="788.0">
@@ -47,6 +47,11 @@
                               <Insets top="20.0" />
                            </VBox.margin>
                         </Label>
+                        <Button fx:id="editPassword" disable="true" mnemonicParsing="false" onAction="#editPasswordButton" prefHeight="25.0" prefWidth="95.0" text="edit password" visible="false">
+                           <VBox.margin>
+                              <Insets top="100.0" />
+                           </VBox.margin>
+                        </Button>
                      </children>
                      <HBox.margin>
                         <Insets left="25.0" />

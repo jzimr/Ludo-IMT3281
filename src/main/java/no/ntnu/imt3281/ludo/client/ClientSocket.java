@@ -11,7 +11,6 @@ import no.ntnu.imt3281.ludo.server.ChatMessage;
 import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -49,6 +48,7 @@ public class ClientSocket {
     private ArrayBlockingQueue<ChatJoinNewUserResponseListener> chatJoinNewUserResponseListeners = new ArrayBlockingQueue<>(100);
     private ArrayBlockingQueue<UserLeftChatRoomResponseListener> userLeftChatRoomResponseListeners = new ArrayBlockingQueue<>(100);
     private UserWantToViewProfileResponseListener userWantToViewProfileResponseListener = null;
+    private UserWantToEditProfileResponseListener userWantToEditProfileResponseListener = null;
 
     /**
      * Create a connection from client to server
@@ -330,13 +330,22 @@ public class ClientSocket {
                             .filter(l -> l != null && l.equalsChatRoomId(message15.getChatroomname())).findFirst().orElse(null);
                     if (listener7 != null) listener7.userLeftChatRoomResponseEvent(message15);
                     break;
+                case "UserWantToViewProfileResponse":
+                    UserWantToViewProfileResponse message16 = new UserWantToViewProfileResponse(action, jsonNode.get("userId").asText(),
+                            jsonNode.get("displayName").asText(), jsonNode.get("imageString").binaryValue(), jsonNode.get("gamesPlayed").asInt(),
+                            jsonNode.get("gamesWon").asInt());
+
+                    // send message to listener
+                    userWantToViewProfileResponseListener.userWantToViewProfileResponseEvent(message16);
+                    break;
+                case "UserWantToEditProfileResponse":
+                    UserWantToEditProfileResponse message17 = new UserWantToEditProfileResponse(action, jsonNode.get("changed").asBoolean(),
+                            jsonNode.get("response").asText());
+
+                    userWantToEditProfileResponseListener.userWantToEditProfileResponseEvent(message17);
+                    break;
                 default:
                     System.out.println("Json not recognized: " + jsonMessage);
-                    break;
-                case "UserWantToViewProfileResponse":
-                    //UserWantToViewProfileResponse message16 = UserWantToViewProfileResponse(action, jsonNode.get("userid").asText(),
-                      //      jsonNode.get("displayname").asText(), jsonNode.get("imageString"), )
-                    // todo
                     break;
             }
         } catch (IOException e) {
@@ -464,5 +473,9 @@ public class ClientSocket {
 
     public void addUserWantToViewProfileResponseListener(UserWantToViewProfileResponseListener listener){
         userWantToViewProfileResponseListener = listener;
+    }
+
+    public void addUserWantToEditProfileResponseListener(UserWantToEditProfileResponseListener listener){
+        userWantToEditProfileResponseListener = listener;
     }
 }

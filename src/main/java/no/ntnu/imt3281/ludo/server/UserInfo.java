@@ -3,14 +3,14 @@ package no.ntnu.imt3281.ludo.server;
 public class UserInfo {
     private final String userId;
     private String displayName;
-    private String avatarPath;
+    private byte[] avatarImage;
     private int gamesPlayed;
     private int gamesWon;
 
-    public UserInfo(String userId, String displayName, String avatarPath, int gamesPlayed, int gamesWon){
+    public UserInfo(String userId, String displayName, byte[] avatarImage, int gamesPlayed, int gamesWon){
         this.userId = userId;
         this.displayName = displayName;
-        this.avatarPath = avatarPath;
+        this.avatarImage = avatarImage;
         this.gamesPlayed = gamesPlayed;
         this.gamesWon = gamesWon;
     }
@@ -27,12 +27,12 @@ public class UserInfo {
         this.displayName = displayName;
     }
 
-    public String getAvatarPath() {
-        return avatarPath;
+    public byte[] getAvatarImage() {
+        return avatarImage;
     }
 
-    public void setAvatarPath(String avatarPath) {
-        this.avatarPath = avatarPath;
+    public void setAvatarImage(byte[] avatarImage) {
+        this.avatarImage = avatarImage;
     }
 
     public int getGamesPlayed() {

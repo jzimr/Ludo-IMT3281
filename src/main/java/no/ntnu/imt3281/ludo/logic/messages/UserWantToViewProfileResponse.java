@@ -4,17 +4,17 @@ public class UserWantToViewProfileResponse extends Message{
 
     private String userId;
     private String displayName;
-    private String avatarPath;
+    private byte[] imageString;
     private int gamesPlayed;
     private int gamesWon;
 
     public UserWantToViewProfileResponse(String action){super(action);}
 
-    public UserWantToViewProfileResponse(String action, String userId, String displayName, String avatarPath, int gamesPlayed, int gamesWon){
+    public UserWantToViewProfileResponse(String action, String userId, String displayName, byte[] imageString, int gamesPlayed, int gamesWon){
         super(action);
         this.userId = userId;
         this.displayName = displayName;
-        this.avatarPath = avatarPath;
+        this.imageString = imageString;
         this.gamesPlayed = gamesPlayed;
         this.gamesWon = gamesWon;
     }
@@ -35,12 +35,12 @@ public class UserWantToViewProfileResponse extends Message{
         this.displayName = displayName;
     }
 
-    public String getAvatarPath() {
-        return avatarPath;
+    public byte[] getImageString() {
+        return imageString;
     }
 
-    public void setAvatarPath(String avatarPath) {
-        this.avatarPath = avatarPath;
+    public void setImageString(byte[] imageString) {
+        this.imageString = imageString;
     }
 
     public int getGamesPlayed() {

@@ -3,10 +3,10 @@ package no.ntnu.imt3281.ludo.logic.messages;
 public class UserWantToEditProfile extends Message {
 
     String displayname;
-    String imagestring;
+    byte[] imagestring;
     String password;
 
-    public UserWantToEditProfile(String action, String displayname, String imagestring, String password){
+    public UserWantToEditProfile(String action, String displayname, byte[] imagestring, String password){
         super(action);
         this.displayname = displayname;
         this.imagestring = imagestring;
@@ -17,20 +17,20 @@ public class UserWantToEditProfile extends Message {
         this.displayname = displayname;
     }
 
-    public void setImageString(String imagestring) {
-        this.imagestring = imagestring;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getDisplayname() {
         return displayname;
     }
 
-    public String getImageString() {
+    public void setImageString(byte[] imagestring) {
+        this.imagestring = imagestring;
+    }
+
+    public byte[] getImageString() {
         return imagestring;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getPassword() {
