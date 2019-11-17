@@ -50,4 +50,9 @@ public class UserInfo {
     public void setGamesWon(int gamesWon) {
         this.gamesWon = gamesWon;
     }
+
+    @Override
+    public String toString() {
+        return this.userId + " " + this.displayName + " ";
+    }
 }

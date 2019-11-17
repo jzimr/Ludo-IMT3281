@@ -492,6 +492,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					UserWantToEditProfileResponse message = new UserWantToEditProfileResponse("UserWantToEditProfileResponse");
 					message.setResponse(((UserWantToEditProfileResponse)msg).getResponse());
 					message.setChanged(((UserWantToEditProfileResponse)msg).isChanged());
+					message.setDisplayname(((UserWantToEditProfile)msg).getDisplayname());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -1470,9 +1471,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		if (profileUpdate && passwordUpdate) { //Both updated.
 			((UserWantToEditProfileResponse)retMsg).setChanged(true);
 			((UserWantToEditProfileResponse)retMsg).setResponse("Updated the whole profile successfully.");
-			((UserWantToEditProfileResponse)retMsg).setDisplayname(action.getDisplayname());
+			((UserWantToEditProfileResponse)retMsg).setDisplayname(newInfo.getDisplayName());
+            System.out.println(newInfo.toString());
 
-		} else if (profileUpdate && !passwordUpdate) { //Only profile was updated
+        } else if (profileUpdate && !passwordUpdate) { //Only profile was updated
 			((UserWantToEditProfileResponse)retMsg).setChanged(true);
 			((UserWantToEditProfileResponse)retMsg).setResponse("Profile was updated successfully. Password update failed.");
 			((UserWantToEditProfileResponse)retMsg).setDisplayname(action.getDisplayname());
