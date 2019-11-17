@@ -311,6 +311,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			case "UserDoesRandomGameSearch" : UserDoesRandomGameSearch((UserDoesRandomGameSearch) action);break;
 			case "UserWantToViewProfile" : UserWantToViewProfile((UserWantToViewProfile) action); break;
 			case "UserWantToEditProfile" : UserWantToEditProfile((UserWantToEditProfile) action); break;
+			case "UserWantsLeaderboard" : UserWantsLeaderboard((UserWantsLeaderboard) action); break;
 		}
 
 	}
@@ -485,6 +486,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setGamesPlayed(((UserWantToViewProfileResponse)msg).getGamesPlayed());
 					message.setDisplayName(((UserWantToViewProfileResponse)msg).getDisplayName());
 					message.setImageString(((UserWantToViewProfileResponse)msg).getImageString());
+					message.setMessage(((UserWantToViewProfileResponse)msg).getMessage());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -493,6 +495,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setResponse(((UserWantToEditProfileResponse)msg).getResponse());
 					message.setChanged(((UserWantToEditProfileResponse)msg).isChanged());
 					message.setDisplayname(((UserWantToEditProfileResponse)msg).getDisplayname());
+					String retString = mapper.writeValueAsString(message);
+					return retString;
+				}
+				case "LeaderboardResponse":{
+					LeaderboardResponse message = new LeaderboardResponse("LeaderboardResponse");
+					message.setToptenplays(((LeaderboardResponse)msg).getToptenplays());
+					message.setToptenwins(((LeaderboardResponse)msg).getToptenwins());
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
@@ -1419,26 +1428,22 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	private void UserWantToViewProfile(UserWantToViewProfile action){
 		UserInfo info = db.getProfilebyDisplayName(action.getDisplayname());
 		Message retMsg;
+		retMsg = new UserWantToViewProfileResponse("UserWantToViewProfileResponse");
+		retMsg.setRecipientSessionId(action.getRecipientSessionId());
 		if (info != null){
-			retMsg = new UserWantToViewProfileResponse("UserWantToViewProfileResponse");
-			retMsg.setRecipientSessionId(action.getRecipientSessionId());
 			((UserWantToViewProfileResponse)retMsg).setImageString(info.getAvatarImage());
 			((UserWantToViewProfileResponse)retMsg).setDisplayName(info.getDisplayName());
 			((UserWantToViewProfileResponse)retMsg).setGamesPlayed(info.getGamesPlayed());
 			((UserWantToViewProfileResponse)retMsg).setGamesWon(info.getGamesWon());
 			((UserWantToViewProfileResponse)retMsg).setUserId(info.getUserId());
-			synchronized (messagesToSend) {
-				messagesToSend.add(retMsg);
-			}
+
 		} else {
-			retMsg = new ErrorMessageResponse("ErrorMessageResponse");
-			retMsg.setRecipientSessionId(action.getRecipientSessionId());
-			((ErrorMessageResponse)retMsg).setMessage("No user with displayname " + action.getDisplayname());
-			synchronized (messagesToSend){
-				messagesToSend.add(retMsg);
-			}
+			((UserWantToViewProfileResponse)retMsg).setMessage("No user with displayname " + action.getDisplayname());
 		}
 
+		synchronized (messagesToSend) {
+			messagesToSend.add(retMsg);
+		}
 
 	}
 
@@ -1489,6 +1494,18 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			((UserWantToEditProfileResponse)retMsg).setResponse("Something went wrong when updating user information");
 			((UserWantToEditProfileResponse)retMsg).setDisplayname(oldInfo.getDisplayName());
 		}
+
+		synchronized (messagesToSend){
+			messagesToSend.add(retMsg);
+		}
+	}
+
+	private void UserWantsLeaderboard(UserWantsLeaderboard action) {
+		Message retMsg = new LeaderboardResponse("LeaderboardResponse");
+		retMsg.setRecipientSessionId(action.getRecipientSessionId());
+		TopTenList toptenlist = db.getTopTenList();
+		((LeaderboardResponse)retMsg).setToptenwins(toptenlist.getWonEntries());
+		((LeaderboardResponse)retMsg).setToptenplays(toptenlist.getPlayedEntries());
 
 		synchronized (messagesToSend){
 			messagesToSend.add(retMsg);

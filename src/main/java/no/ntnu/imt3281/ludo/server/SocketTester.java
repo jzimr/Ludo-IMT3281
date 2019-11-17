@@ -59,6 +59,7 @@ public class SocketTester {
                 sendUserView();
                 sendUserEdit();
                 sendUserView();
+                TopTen();
 
                 //sendChatMessage();
                 //sendChatMessage();
@@ -273,7 +274,7 @@ public class SocketTester {
     }
 
     private void sendUserView(){
-        String ChatMessage = "{\"action\":\"UserWantToViewProfile\",\"displayname\":\"testhei\"}";
+        String ChatMessage = "{\"action\":\"UserWantToViewProfile\",\"displayname\":\"testhei1\"}";
 
         try {
             bw.write(ChatMessage);
@@ -290,6 +291,22 @@ public class SocketTester {
 
     private void joinGameChatRoom(){
         String ChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"ee86c05b-52fe-44a5-9604-1e0337b53e8c\", \"chatroomname\" : \"" + gameid + "\"}";
+
+        try {
+            bw.write(ChatMessage);
+            bw.newLine();
+            bw.flush();
+            System.out.println("Sent message : " + ChatMessage);
+
+            String gotMessage = br.readLine();
+            System.out.println("Recieved: " + gotMessage); //Mainly for debugging purposes
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void TopTen(){
+        String ChatMessage = "{\"action\":\"UserWantsLeaderboard\"}";
 
         try {
             bw.write(ChatMessage);

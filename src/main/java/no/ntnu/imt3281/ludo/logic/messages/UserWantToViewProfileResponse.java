@@ -7,6 +7,7 @@ public class UserWantToViewProfileResponse extends Message{
     private byte[] imageString;
     private int gamesPlayed;
     private int gamesWon;
+    private String message;
 
     public UserWantToViewProfileResponse(String action){super(action);}
 
@@ -59,4 +60,11 @@ public class UserWantToViewProfileResponse extends Message{
         this.gamesWon = gamesWon;
     }
 
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
 }

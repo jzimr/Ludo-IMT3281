@@ -111,6 +111,11 @@ public class JsonMessageParser {
                     msg.setRecipientSessionId(sessionid);
                     return msg;
                 }
+                case "UserWantsLeaderboard":{
+                    msg = new UserWantsLeaderboard(action.get("action").asText());
+                    msg.setRecipientSessionId(sessionid);
+                    return msg;
+                }
                 default: {
                     System.out.println("Unhandled incoming json: " + json);
                     break;
