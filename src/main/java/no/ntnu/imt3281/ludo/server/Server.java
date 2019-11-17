@@ -1193,11 +1193,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		//Send out invitations here:
 		for (int i = 0; i < action.getToinvitedisplaynames().length; i++) {
 			SendGameInvitationsResponse invite = new SendGameInvitationsResponse("SendGameInvitationsResponse");
-			String userid = db.getUserId(action.getToinvitedisplaynames()[i]);
-			if (!userid.isEmpty()){
+			UserInfo userInfo = db.getProfilebyDisplayName(action.getToinvitedisplaynames()[i]);
+			if (userInfo != null){
 				invite.setGameid(newGame.getGameid());
 				invite.setHostdisplayname(info.getDisplayName());
-				invite.setRecipientSessionId(useridToSessionId(userid));
+				invite.setRecipientSessionId(useridToSessionId(userInfo.getUserId()));
 				synchronized (messagesToSend){
 					messagesToSend.add(invite);
 				}
@@ -1235,7 +1235,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				if (game.getGameid().contentEquals(action.getGameid())) {
 					for (String name : game.getPlayers()) {
 						if (name != null){
-							retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+							UserInfo info = db.getProfilebyDisplayName(name);
+							retMsg.setRecipientSessionId(useridToSessionId(info.getUserId()));
 							synchronized (messagesToSend){
 								messagesToSend.add(retMsg);
 							}
@@ -1288,8 +1289,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						if (invite.getOnePlayerAccepted(i)){
 							Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
 							((GameHasStartedResponse)gameStarted).setGameid(invite.getGameid());
-							String userid = db.getUserId(invite.getOnePlayerName(i));
-							gameStarted.setRecipientSessionId(useridToSessionId(userid));
+							UserInfo userInfo = db.getProfilebyDisplayName(invite.getOnePlayerName(i));
+							gameStarted.setRecipientSessionId(useridToSessionId(userInfo.getUserId()));
 
 							synchronized (messagesToSend){
 								messagesToSend.add(gameStarted);
@@ -1322,7 +1323,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				game.removePlayer(info.getDisplayName());
 				for(String name : game.getActivePlayers()){
 					if (!name.contentEquals(info.getDisplayName())){
-						retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+						UserInfo userInfo = db.getProfilebyDisplayName(name);
+						retMsg.setRecipientSessionId(useridToSessionId(userInfo.getUserId()));
 						System.out.println(name);
 						synchronized (messagesToSend){
 							messagesToSend.add(retMsg);
@@ -1350,8 +1352,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				((UserJoinedGameResponse)retMsg).setPlayersinlobby(game.getPlayers());
 
 				for (String name : game.getPlayers()) {
-					String userid = db.getUserId(name);
-					retMsg.setRecipientSessionId(useridToSessionId(userid));
+					UserInfo userInfo = db.getProfilebyDisplayName(name);
+					retMsg.setRecipientSessionId(useridToSessionId(userInfo.getUserId()));
 					synchronized (messagesToSend){
 						messagesToSend.add(retMsg);
 					}
@@ -1369,8 +1371,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					for (String name : game.getPlayers()) {
 						Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
 						((GameHasStartedResponse)gameStarted).setGameid(game.getGameid());
-						String userid = db.getUserId(name);
-						gameStarted.setRecipientSessionId(useridToSessionId(userid));
+						UserInfo userInfo = db.getProfilebyDisplayName(name);
+						gameStarted.setRecipientSessionId(useridToSessionId(userInfo.getUserId()));
 						synchronized (messagesToSend){
 							messagesToSend.add(gameStarted);
 						}
@@ -1414,8 +1416,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 
 	private void UserWantToViewProfile(UserWantToViewProfile action){
-		String userid = db.getUserId(action.getDisplayname());
-		UserInfo info = db.getProfile(userid);
+		UserInfo info = db.getProfilebyDisplayName(action.getDisplayname());
 		Message retMsg;
 		if (info != null){
 			retMsg = new UserWantToViewProfileResponse("UserWantToViewProfileResponse");
@@ -1469,18 +1470,22 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		if (profileUpdate && passwordUpdate) { //Both updated.
 			((UserWantToEditProfileResponse)retMsg).setChanged(true);
 			((UserWantToEditProfileResponse)retMsg).setResponse("Updated the whole profile successfully.");
+			((UserWantToEditProfileResponse)retMsg).setDisplayname(action.getDisplayname());
 
 		} else if (profileUpdate && !passwordUpdate) { //Only profile was updated
 			((UserWantToEditProfileResponse)retMsg).setChanged(true);
 			((UserWantToEditProfileResponse)retMsg).setResponse("Profile was updated successfully. Password update failed.");
+			((UserWantToEditProfileResponse)retMsg).setDisplayname(action.getDisplayname());
 
 		} else if (!profileUpdate && passwordUpdate) { //Only password was updated
 			((UserWantToEditProfileResponse)retMsg).setChanged(true);
-			((UserWantToEditProfileResponse)retMsg).setResponse("Porfile was not updated. Password updated successfully.");
+			((UserWantToEditProfileResponse)retMsg).setResponse("Profile was not updated. Password updated successfully.");
+			((UserWantToEditProfileResponse)retMsg).setDisplayname(oldInfo.getDisplayName());
 
 		} else { //Neither was updated.
 			((UserWantToEditProfileResponse)retMsg).setChanged(false);
 			((UserWantToEditProfileResponse)retMsg).setResponse("Something went wrong when updating user information");
+			((UserWantToEditProfileResponse)retMsg).setDisplayname(oldInfo.getDisplayName());
 		}
 
 		synchronized (messagesToSend){
@@ -1501,7 +1506,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 			((DiceThrowResponse)retMsg).setGameid(game.getGameid());
 			((DiceThrowResponse)retMsg).setDicerolled(diceEvent.getDiceRolled());
-			retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+			UserInfo userInfo = db.getProfilebyDisplayName(name);
+			retMsg.setRecipientSessionId(useridToSessionId(userInfo.getUserId()));
 			synchronized (messagesToSend){
 				messagesToSend.add(retMsg);
 			}
@@ -1526,7 +1532,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			((PieceMovedResponse)retMsg).setMovedto(pieceEvent.getTo());
 			((PieceMovedResponse)retMsg).setPiecemoved(pieceEvent.getPieceMoved());
 			((PieceMovedResponse)retMsg).setPlayerid(pieceEvent.getPlayerID());
-			retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+			UserInfo userInfo = db.getProfilebyDisplayName(name);
+			retMsg.setRecipientSessionId(useridToSessionId(userInfo.getUserId()));
 			synchronized (messagesToSend){
 				messagesToSend.add(retMsg);
 			}
@@ -1549,7 +1556,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				retMsg = new PlayerWonGameResponse("PlayerWonGameResponse");
 				((PlayerWonGameResponse)retMsg).setPlayerwonid(event.getPlayerID());
 				((PlayerWonGameResponse)retMsg).setGameid(game.getGameid());
-				UserInfo info = db.getProfile(db.getUserId(name));
+				UserInfo info = db.getProfilebyDisplayName(name);
 				info.setGamesPlayed(info.getGamesPlayed() + 1);
 
 				//ONLY FOR WINNER.
@@ -1562,7 +1569,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
-				retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+				retMsg.setRecipientSessionId(useridToSessionId(info.getUserId()));
 				synchronized (messagesToSend){
 					messagesToSend.add(retMsg);
 				}
@@ -1574,7 +1581,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				((PlayerStateChangeResponse)retMsg).setGameid(game.getGameid());
 				((PlayerStateChangeResponse)retMsg).setActiveplayerid(event.getPlayerID());
 				((PlayerStateChangeResponse)retMsg).setPlayerstate(event.getPlayerEvent());
-				retMsg.setRecipientSessionId(useridToSessionId(db.getUserId(name)));
+				UserInfo userInfo = db.getProfilebyDisplayName(name);
+				retMsg.setRecipientSessionId(useridToSessionId(userInfo.getUserId()));
 				synchronized (messagesToSend){
 					messagesToSend.add(retMsg);
 				}

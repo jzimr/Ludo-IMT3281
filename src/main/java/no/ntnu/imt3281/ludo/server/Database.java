@@ -394,6 +394,38 @@ public class Database {
     }
 
     /**
+     * Get the user by their display name
+     *
+     * @param displayName display name of the user
+     * @return a data class containing all relevant info about a user
+     */
+    public UserInfo getProfilebyDisplayName(String displayName) {
+        UserInfo userInfo = null;
+        try {
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM user_info " +
+                    "WHERE display_name = ?");
+            stmt.setString(1, displayName);
+            ResultSet rs = stmt.executeQuery();
+
+            // loop over user
+            while (rs.next()) {
+                userInfo = new UserInfo(
+                        rs.getString("user_id"),
+                        rs.getString("display_name"),
+                        rs.getBytes("avatar_path"),
+                        rs.getInt("games_played"),
+                        rs.getInt("games_won")
+                );
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error occured when trying to get user: " + ex.getMessage());
+            return null;
+        }
+
+        return userInfo;
+    }
+
+    /**
      * Update a user in the database with new information
      *
      * @param userInfo the Data class holding all relevant information about a user

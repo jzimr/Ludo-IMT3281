@@ -4,13 +4,15 @@ public class UserWantToEditProfileResponse extends Message {
 
     boolean changed;
     String response;
+    String displayname;
 
     public UserWantToEditProfileResponse(String action){super(action);}
 
-    public UserWantToEditProfileResponse(String action, boolean changed, String response){
+    public UserWantToEditProfileResponse(String action, boolean changed, String response, String displayname){
         super(action);
         this.changed = changed;
         this.response = response;
+        this.displayname = displayname;
     }
 
     public void setResponse(String response) {
@@ -29,4 +31,11 @@ public class UserWantToEditProfileResponse extends Message {
         return changed;
     }
 
+    public void setDisplayname(String displayname) {
+        this.displayname = displayname;
+    }
+
+    public String getDisplayname() {
+        return displayname;
+    }
 }
