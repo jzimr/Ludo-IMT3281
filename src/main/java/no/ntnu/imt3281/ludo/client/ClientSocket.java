@@ -340,7 +340,7 @@ public class ClientSocket {
                     break;
                 case "UserWantToEditProfileResponse":
                     UserWantToEditProfileResponse message17 = new UserWantToEditProfileResponse(action, jsonNode.get("changed").asBoolean(),
-                            jsonNode.get("response").asText());
+                            jsonNode.get("response").asText(),jsonNode.get("displayname").asText());
 
                     userWantToEditProfileResponseListener.userWantToEditProfileResponseEvent(message17);
                     break;
