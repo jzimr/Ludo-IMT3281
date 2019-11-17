@@ -771,6 +771,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	private ChatMessage[] getChatLog(String chatroomname){
 		ArrayList<ChatMessage> arraylist = db.getChatMessages(chatroomname);
+
+		// fixing NullPointerException when no chat history is available
+		if(arraylist == null){
+			return new ChatMessage[]{};
+		}
+
 		ChatMessage[] arr;
 
 		if  (arraylist.size() >= 50) {

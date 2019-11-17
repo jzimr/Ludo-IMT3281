@@ -16,6 +16,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -23,19 +25,18 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
-import no.ntnu.imt3281.ludo.gui.ServerListeners.DiceThrowResponseListener;
-import no.ntnu.imt3281.ludo.gui.ServerListeners.GameHasStartedResponseListener;
-import no.ntnu.imt3281.ludo.gui.ServerListeners.PieceMovedResponseListener;
-import no.ntnu.imt3281.ludo.gui.ServerListeners.UserLeftGameResponseListener;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.*;
 import no.ntnu.imt3281.ludo.logic.*;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 
 public class GameBoardController implements UserLeftGameResponseListener, GameHasStartedResponseListener, DiceThrowResponseListener,
-        PieceMovedResponseListener,
+        PieceMovedResponseListener, SentMessageResponseListener,
         DiceListener, PieceListener, PlayerListener {
 
     @FXML
@@ -129,7 +130,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     private TextField textToSay;
 
     @FXML
-    private Button sendTextButton;
+    private Button sendText;
 
     @FXML
     private Pane winWindow;
@@ -202,6 +203,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         clientSocket.addGameHasStartedResponseListener(this);
         clientSocket.addDiceThrowResponseListener(this);
         clientSocket.addPieceMovedResponseListener(this);
+        clientSocket.addSentMessageResponseListener(this);
+
+        // we send message to server that we want to join the game chat
+        clientSocket.sendMessageToServer(new UserJoinChat("UserJoinChat", gameId, clientSocket.getUserId()));
     }
 
     /**
@@ -326,10 +331,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
     @Override
     public void gameHasStartedResponseEvent(GameHasStartedResponse response) {
-        for(String player : players){
-            
-        }
-
         // enable button  and set highlight for the user whose turn it is (red automatically)
         if (itsMyTurn()) {
             throwTheDice.setDisable(false);
@@ -430,10 +431,12 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             clientSocket.removeGameHasStartedResponseListener(GameBoardController.this);
             clientSocket.removeDiceThrowResponseListener(GameBoardController.this);
             clientSocket.removePieceMovedListener(GameBoardController.this);
+            clientSocket.removeSentMessageResponseListener(GameBoardController.this);
 
             // disconnect user from the game
             clientSocket.sendMessageToServer(new UserLeftGame("UserLeftGame", gameId));
             // todo disconnect from the game chat as well
+            // todo remove from hashmap in LudoConntroller
         }
     };
 
@@ -587,5 +590,75 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             }
         }
         return null;
+    }
+
+    // CHAT FUNCTIONS
+
+    /**
+     * When user pressed "Enter" let him send text message
+     *
+     * @param event
+     */
+    @FXML
+    void onChatKeyPressed(KeyEvent event) {
+        if (event.getCode() == KeyCode.ENTER) {
+            sendMessage();
+        }
+    }
+
+    /**
+     * When user pressed the "Send" button for the chat
+     * @param event
+     */
+    @FXML
+    void sendTextButton(ActionEvent event) {
+        sendMessage();
+    }
+
+    @Override
+    public void sentMessageResponseEvent(SentMessageResponse response) {
+        // convert time to local time
+        LocalDateTime time;
+
+        try {
+            time = LocalDateTime.ofEpochSecond(Long.parseLong(response.getTimestamp()), 0, ZoneOffset.ofHours(0));
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        String timeSent = String.format("%02d:%02d:%02d", time.getHour(), time.getMinute(), time.getSecond());
+        String userSent = response.getdisplayname();
+        String messageSent = response.getChatmessage();
+
+
+        Platform.runLater(() -> {
+            // display user as red
+            chatArea.appendText(timeSent + " - " + userSent + ": " + messageSent + "\t\n");
+        });
+    }
+
+    /**
+     * Send a text message to the server
+     */
+    private void sendMessage() {
+        // don't let users send an empty message
+        if (textToSay.getText().isEmpty()) {
+            return;
+        }
+
+        // construct the message and send it to the server
+        UserSentMessage message = new UserSentMessage("UserSentMessage", clientSocket.getUserId(), gameId,
+                textToSay.getText());
+        clientSocket.sendMessageToServer(message);
+
+        // at last clear the chat input
+        textToSay.clear();
+    }
+
+    @Override
+    public boolean equalsChatRoomId(String chatName) {
+        // we decided that gameId == chatId
+        return gameId.equals(chatName);
     }
 }

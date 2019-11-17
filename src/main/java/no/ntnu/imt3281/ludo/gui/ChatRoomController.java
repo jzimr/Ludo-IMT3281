@@ -147,8 +147,6 @@ public class ChatRoomController implements SentMessageResponseListener, ChatJoin
     @Override
     public void sentMessageResponseEvent(SentMessageResponse response) {
         // convert time to local time
-        System.out.println("yes");
-
         LocalDateTime time;
 
         try {
@@ -177,7 +175,6 @@ public class ChatRoomController implements SentMessageResponseListener, ChatJoin
     public void chatJoinNewUserResponseEvent(ChatJoinNewUserResponse response) {
         Platform.runLater(() -> {
             usersInChatRoom.add(response.getDisplayname());
-            //userList.setItems(usersInChatRoom);
         });
     }
 
@@ -189,7 +186,6 @@ public class ChatRoomController implements SentMessageResponseListener, ChatJoin
     public void userLeftChatRoomResponseEvent(UserLeftChatRoomResponse response) {
         Platform.runLater(() ->  {
             usersInChatRoom.remove(response.getDisplayname());
-            //userList.setItems(usersInChatRoom);
         });
     }
 

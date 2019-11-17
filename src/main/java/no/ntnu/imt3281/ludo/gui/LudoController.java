@@ -365,7 +365,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
      */
     @Override
     public void chatJoinResponseEvent(ChatJoinResponse response) {
-
         // send message as long as the user has the popup window still open
         if (joinChatRoomController != null) {
             // if user could not join chat room, display an error message to user
@@ -378,10 +377,18 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         }
 
 
-        // if success, we add the chat tab to the user's tab pane
+        // if success
         if (response.isStatus()) {
-            // todo change tab colour instead of having a prefix for chat
-            addNewChatTab(response.getChatroomname(), response);
+            GameBoardController gameBoard = gameBoardControllers.get(response.getChatroomname());
+
+            // if the chat has the ID of a gameboard, it means it's a game chat
+            if(gameBoard != null){
+                // todo
+            } else {
+                // else it's a normal chat so we create a new tab for it
+                addNewChatTab(response.getChatroomname(), response);
+            }
+
         }
     }
 
@@ -487,6 +494,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                 Platform.runLater(() -> {
                     final Button okButton = (Button) searchProfileDialog.getDialogPane().lookupButton(ButtonType.OK);
                     final Text responseMessage = (Text) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(1);
+                    responseMessage.setStyle("-fx-fill: red");
                     responseMessage.setText(response.getMessage());
                     okButton.setDisable(false);
                 });

@@ -294,8 +294,8 @@
                         <TextArea fx:id="chatArea" editable="false" prefHeight="465.0" prefWidth="295.0" />
                         <HBox>
                            <children>
-                              <TextField fx:id="textToSay" prefHeight="27.0" prefWidth="228.0" />
-                              <Button fx:id="sendTextButton" mnemonicParsing="false" prefHeight="27.0" prefWidth="67.0" text="%ludogameboard.saybutton" />
+                              <TextField fx:id="textToSay" onKeyPressed="#onChatKeyPressed" prefHeight="27.0" prefWidth="228.0" />
+                              <Button fx:id="sendText" mnemonicParsing="false" onAction="#sendTextButton" prefHeight="27.0" prefWidth="67.0" text="%ludogameboard.saybutton" />
                            </children>
                         </HBox>
                      </children>

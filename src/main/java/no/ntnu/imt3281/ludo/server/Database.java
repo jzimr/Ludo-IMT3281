@@ -36,8 +36,7 @@ public class Database {
                     createChatRoomTable();
                     createChatLogTable();
                 } catch (SQLException ex2) {      // could not create database, we exit.
-                    System.err.println("Could not create database.");
-                    ex.printStackTrace();
+                    ex2.printStackTrace();
                     System.exit(1);
                 }
             } else {                            // Database exists, but could not connect for some reason, we exit.
@@ -559,7 +558,7 @@ public class Database {
      * @return Array of chat messages or null if error/none found
      */
     public ArrayList<ChatMessage> getChatMessages(String chatName) {
-        ArrayList<ChatMessage> chatMessages = new ArrayList<>();
+        ArrayList<ChatMessage> chatMessages = new ArrayList<ChatMessage>();
 
         // get the messages
         try {
@@ -723,7 +722,7 @@ public class Database {
         Statement stmt = connection.createStatement();
 
         stmt.execute("CREATE TABLE chat_room (" +
-                "chat_name varchar(32) NOT NULL," +
+                "chat_name varchar(36) NOT NULL," +
                 // room name should be unique
                 "PRIMARY KEY (chat_name))");
     }
@@ -737,7 +736,7 @@ public class Database {
         Statement stmt = connection.createStatement();
 
         stmt.execute("CREATE TABLE chat_log (" +
-                "chat_name varchar(32) NOT NULL, " +
+                "chat_name varchar(36) NOT NULL, " +
                 "user_id varchar(36) NOT NULL," +
                 "chat_message varchar(500), " +
                 "timestamp bigint," +
