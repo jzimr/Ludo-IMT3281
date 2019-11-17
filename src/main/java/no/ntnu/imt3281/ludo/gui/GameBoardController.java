@@ -326,6 +326,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
     @Override
     public void gameHasStartedResponseEvent(GameHasStartedResponse response) {
+        for(String player : players){
+            
+        }
+
         // enable button  and set highlight for the user whose turn it is (red automatically)
         if (itsMyTurn()) {
             throwTheDice.setDisable(false);

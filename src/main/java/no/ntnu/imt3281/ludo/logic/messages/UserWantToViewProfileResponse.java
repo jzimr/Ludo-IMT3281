@@ -11,13 +11,14 @@ public class UserWantToViewProfileResponse extends Message{
 
     public UserWantToViewProfileResponse(String action){super(action);}
 
-    public UserWantToViewProfileResponse(String action, String userId, String displayName, byte[] imageString, int gamesPlayed, int gamesWon){
+    public UserWantToViewProfileResponse(String action, String userId, String displayName, byte[] imageString, int gamesPlayed, int gamesWon, String message){
         super(action);
         this.userId = userId;
         this.displayName = displayName;
         this.imageString = imageString;
         this.gamesPlayed = gamesPlayed;
         this.gamesWon = gamesWon;
+        this.message = message;
     }
 
     public String getUserId() {

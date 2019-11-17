@@ -1436,6 +1436,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			((UserWantToViewProfileResponse)retMsg).setGamesPlayed(info.getGamesPlayed());
 			((UserWantToViewProfileResponse)retMsg).setGamesWon(info.getGamesWon());
 			((UserWantToViewProfileResponse)retMsg).setUserId(info.getUserId());
+			((UserWantToViewProfileResponse)retMsg).setMessage("");
 
 		} else {
 			((UserWantToViewProfileResponse)retMsg).setMessage("No user with displayname " + action.getDisplayname());

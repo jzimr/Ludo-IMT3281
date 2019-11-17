@@ -333,7 +333,7 @@ public class ClientSocket {
                 case "UserWantToViewProfileResponse":
                     UserWantToViewProfileResponse message16 = new UserWantToViewProfileResponse(action, jsonNode.get("userId").asText(),
                             jsonNode.get("displayName").asText(), jsonNode.get("imageString").binaryValue(), jsonNode.get("gamesPlayed").asInt(),
-                            jsonNode.get("gamesWon").asInt());
+                            jsonNode.get("gamesWon").asInt(), jsonNode.get("message").asText());
 
                     // send message to listener
                     userWantToViewProfileResponseListener.userWantToViewProfileResponseEvent(message16);

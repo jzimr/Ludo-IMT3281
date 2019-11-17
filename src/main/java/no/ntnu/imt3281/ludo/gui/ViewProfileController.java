@@ -129,16 +129,6 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
                 passwordDialog.getDialogPane().setContent(vbox);
                 // focus on newPassword field on default
                 Platform.runLater(() -> newPassword.requestFocus());
-
-                // Convert the result to a password-pair when the button is clicked
-                /*
-                passwordDialog.setResultConverter(dialogButton -> {
-                    if (dialogButton == okButton) {
-                        return new Pair<>(newPassword.getText(), retypePassword.getText());
-                    }
-                    return null;
-                });
-                 */
             }
         });
     }
@@ -326,7 +316,7 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
                 // user tried to edit password
                 if (passwordDialog.isShowing()) {
                     final Button okButton = (Button) passwordDialog.getDialogPane().lookupButton(ButtonType.OK);
-                    final Label responseMessage = (Label) ((VBox) passwordDialog.getDialogPane().getContent()).getChildren().get(2);
+                    final Text responseMessage = (Text) ((VBox) passwordDialog.getDialogPane().getContent()).getChildren().get(2);
                     responseMessage.setStyle("-fx-fill: red");
                     responseMessage.setText(response.getResponse());
                     okButton.setDisable(false);

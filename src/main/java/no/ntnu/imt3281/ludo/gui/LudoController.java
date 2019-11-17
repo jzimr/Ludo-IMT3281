@@ -9,10 +9,13 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
@@ -36,12 +39,16 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     @FXML
     private MenuItem otherProfiles;
     @FXML
+    private MenuItem leaderboard;
+    @FXML
     private MenuItem about;
 
     @FXML
     private TabPane tabbedPane;
 
     private ClientSocket clientSocket;
+
+    private Dialog searchProfileDialog;
 
     // controllers
     private LoginController loginController = null;
@@ -53,6 +60,28 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     @FXML
     public void initialize() {
+        // setup dialog for searching a profile
+        searchProfileDialog = new Dialog();
+        // we create a custom dialog with an input field and a response field
+        searchProfileDialog.setTitle("Search profile");
+        searchProfileDialog.setGraphic(null);
+        searchProfileDialog.getDialogPane().setPrefWidth(400.0);
+        // Set the button types.
+        searchProfileDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        VBox vbox = new VBox();
+        vbox.setPadding(new Insets(10, 80, 5, 80));
+        vbox.setSpacing(10.0);
+        TextField enterProfile = new TextField();
+        enterProfile.setId("enterProfile");
+        enterProfile.setPromptText("Enter name of profile");
+        Text responseMessage = new Text();
+        responseMessage.setStyle("-fx-font-weight: bold");
+        vbox.getChildren().addAll(enterProfile, responseMessage);
+        searchProfileDialog.getDialogPane().setContent(vbox);
+        // focus on enterprofile field on default
+        Platform.runLater(() -> enterProfile.requestFocus());
+
+
         tabbedPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("Login.fxml"));
@@ -267,14 +296,56 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
 
     @FXML
-    void findProfile(ActionEvent event) {
-        // todo
+    void findProfile(ActionEvent e) {
+        final Button okButton = (Button) searchProfileDialog.getDialogPane().lookupButton(ButtonType.OK);
+        final TextField searchProfile = (TextField) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(0);
+        final Text responseMessage = (Text) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(1);
+
+        // we reset the fields
+        searchProfile.setText("");
+        responseMessage.setText("");
+
+        okButton.setDisable(false);
+        okButton.addEventFilter(
+                ActionEvent.ACTION,
+                event -> {
+                    String searchProfileText = searchProfile.getText();
+
+                    // name can't be empty
+                    if (searchProfileText.isEmpty()) {
+                        Platform.runLater(() -> {
+                            responseMessage.setStyle("-fx-fill: red");
+                            responseMessage.setText("Profile name can't be empty!");
+                        });
+                        event.consume();
+                        return;
+                    }
+
+                    // disable button until we have received answer
+                    okButton.setDisable(true);
+                    Platform.runLater(() -> {
+                        responseMessage.setStyle("-fx-fill: black");
+                        responseMessage.setText("Waiting for server...");
+                    });
+                    // send message to server
+                    clientSocket.sendMessageToServer(new UserWantToViewProfile("UserWantToViewProfile", searchProfileText));
+                    event.consume();
+                    return;
+                }
+        );
+        // we show and wait
+        searchProfileDialog.showAndWait();
     }
 
     @FXML
     void viewMyProfile(ActionEvent event) {
         // send message to server about viewing our profile
         clientSocket.sendMessageToServer(new UserWantToViewProfile("UserWantToViewProfile", clientSocket.getDisplayName()));
+    }
+
+    @FXML
+    void showLeaderboard(ActionEvent event) {
+
     }
 
     @FXML
@@ -407,6 +478,25 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
         ViewProfileController controller = viewProfileControllers.get(response.getUserId());
 
+        System.out.println(response.getMessage());
+
+        // user is searching for a profile
+        if (searchProfileDialog.isShowing()) {
+            // profile does not exist
+            if (response.getMessage() != null && !response.getMessage().isEmpty()) {
+                Platform.runLater(() -> {
+                    final Button okButton = (Button) searchProfileDialog.getDialogPane().lookupButton(ButtonType.OK);
+                    final Text responseMessage = (Text) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(1);
+                    responseMessage.setText(response.getMessage());
+                    okButton.setDisable(false);
+                });
+                return;
+            }
+
+            // else success, we close the dialog
+            Platform.runLater(() -> searchProfileDialog.close());
+        }
+
         // if tab already exists, reload all data inside and focus on it
         if (controller != null) {
             controller.setup(clientSocket, response, response.getUserId().equals(clientSocket.getUserId()));    // reload data
@@ -431,7 +521,9 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         tab.setId("Profile-" + response.getUserId());
 
         controller = loader.getController();
-        controller.setup(clientSocket, response, response.getUserId().equals(clientSocket.getUserId()));
+        controller.setup(clientSocket, response, response.getUserId().
+
+                equals(clientSocket.getUserId()));
         // add to hashmap for later retrieval
         viewProfileControllers.put(response.getUserId(), controller);
     }

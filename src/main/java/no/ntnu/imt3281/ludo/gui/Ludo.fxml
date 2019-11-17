@@ -31,10 +31,11 @@
                         <MenuItem fx:id="listRooms" mnemonicParsing="false" onAction="#listChatRooms" text="List rooms" />
                     </items>
                   </Menu>
-                  <Menu mnemonicParsing="false" text="Profile">
+                  <Menu mnemonicParsing="false" text="Community">
                     <items>
                       <MenuItem fx:id="myProfile" mnemonicParsing="false" onAction="#viewMyProfile" text="My Profile" />
                         <MenuItem fx:id="otherProfiles" mnemonicParsing="false" onAction="#findProfile" text="Find Profile" />
+                        <MenuItem fx:id="leaderboard" mnemonicParsing="false" onAction="#showLeaderboard" text="Leaderboards" />
                     </items>
                   </Menu>
                 <Menu mnemonicParsing="false" text="Help">
