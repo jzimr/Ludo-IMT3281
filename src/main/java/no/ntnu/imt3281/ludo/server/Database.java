@@ -587,6 +587,55 @@ public class Database {
     }
 
     /**
+     * Search through database to get the top ten players who've played the most and won the most
+     * @return a data class with arrays containing the top plays and wins
+     */
+    public TopTenList getTopTenList() {
+        TopTenList topTenList;
+        ArrayList<TopTenList.PlayedEntry> playedEntries = new ArrayList<>();
+        ArrayList<TopTenList.WonEntry> wonEntries = new ArrayList<>();
+
+        try {
+            // get the top ten plays
+            PreparedStatement stmt = connection.prepareStatement("SELECT * FROM user_info " +
+                    "ORDER BY games_played DESC " +
+                    "FETCH FIRST 10 ROWS ONLY");
+            ResultSet rs = stmt.executeQuery();
+
+            // loop over all data and add each entry into our arraylist
+            while (rs.next()) {
+                playedEntries.add(new TopTenList.PlayedEntry(
+                        rs.getString("display_name"),
+                        rs.getInt("games_played"))
+                );
+            }
+
+            // get the top ten wins
+            stmt = connection.prepareStatement("SELECT * FROM user_info " +
+                    "ORDER BY games_won DESC " +
+                    "FETCH FIRST 10 ROWS ONLY");
+            rs = stmt.executeQuery();
+
+            // loop over all data and add each entry into our arraylist
+            while (rs.next()) {
+                wonEntries.add(new TopTenList.WonEntry(
+                        rs.getString("display_name"),
+                        rs.getInt("games_won"))
+                );
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error occured when trying to get top ten list: " + ex.getMessage());
+            ex.printStackTrace();
+            return null;
+        }
+
+        // everything went gucci
+        topTenList = new TopTenList(playedEntries.toArray(TopTenList.PlayedEntry[]::new), wonEntries.toArray(TopTenList.WonEntry[]::new));
+        return topTenList;
+    };
+
+
+    /**
      * Creates the global chatroom
      * @throws SQLException
      */
@@ -596,7 +645,6 @@ public class Database {
             insertChatRoom("Global");
         }
     }
-
 
     /**
      * Used for setting up Database for test environment

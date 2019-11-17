@@ -808,6 +808,40 @@ public class DatabaseTest {
     }
 
     /**
+     * Test to see if we can get the top 10 entries of the playerbase
+     */
+    @Test
+    public void getTopTenListTest(){
+        // we add two users
+        insertTwoAccounts();
+
+        TopTenList topTen = testDatabase.getTopTenList();
+
+        /*
+        The list should be sorted as follows:
+        - Most Plays:
+            1. Boby
+            2. Samy
+        - Most Wins:
+            1. Samy
+            2. Boby
+         */
+        assertEquals("Boby", topTen.getPlayedEntries()[0].getPlayerName());
+        assertEquals(10, topTen.getPlayedEntries()[0].getPlayedCount());
+        assertEquals("Samy", topTen.getPlayedEntries()[1].getPlayerName());
+        assertEquals(6, topTen.getPlayedEntries()[1].getPlayedCount());
+
+        assertEquals("Samy", topTen.getWonEntries()[0].getPlayerName());
+        assertEquals(6, topTen.getWonEntries()[0].getWonCount());
+        assertEquals("Boby", topTen.getWonEntries()[1].getPlayerName());
+        assertEquals(3, topTen.getWonEntries()[1].getWonCount());
+
+        // we should only have two entries total for plays and wins
+        assertEquals(2, topTen.getPlayedEntries().length);
+        assertEquals(2, topTen.getWonEntries().length);
+    }
+
+    /**
      * Test if creation of a global chatroom was successful
      */
     @Test
