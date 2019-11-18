@@ -428,7 +428,9 @@ public class ClientSocket {
     }
 
     public void addSentMessageResponseListener(SentMessageResponseListener listener) {
-        sentMessageResponseListeners.add(listener);
+        if(!sentMessageResponseListeners.contains(listener)){
+            sentMessageResponseListeners.add(listener);
+        }
     }
 
     public void removeSentMessageResponseListener(SentMessageResponseListener listener) {
@@ -464,7 +466,9 @@ public class ClientSocket {
     }
 
     public void addGameHasStartedResponseListener(GameHasStartedResponseListener listener) {
-        gameHasStartedResponseListeners.add(listener);
+        if(!gameHasStartedResponseListeners.contains(listener)){
+            gameHasStartedResponseListeners.add(listener);
+        }
     }
 
     public void removeGameHasStartedResponseListener(GameHasStartedResponseListener listener) {
@@ -472,7 +476,9 @@ public class ClientSocket {
     }
 
     public void addDiceThrowResponseListener(DiceThrowResponseListener listener) {
-        diceThrowResponseListeners.add(listener);
+        if(!diceThrowResponseListeners.contains(listener)){
+            diceThrowResponseListeners.add(listener);
+        }
     }
 
     public void removeDiceThrowResponseListener(DiceThrowResponseListener listener) {
@@ -480,7 +486,9 @@ public class ClientSocket {
     }
 
     public void addPieceMovedResponseListener(PieceMovedResponseListener listener){
-        pieceMovedResponseListeners.add(listener);
+        if(!pieceMovedResponseListeners.contains(listener)){
+            pieceMovedResponseListeners.add(listener);
+        }
     }
 
     public void removePieceMovedListener(PieceMovedResponseListener listener){
@@ -488,7 +496,9 @@ public class ClientSocket {
     }
 
     public void addChatJoinNewUserResponseListener(ChatJoinNewUserResponseListener listener){
-        chatJoinNewUserResponseListeners.add(listener);
+        if(!chatJoinNewUserResponseListeners.contains(listener)){
+            chatJoinNewUserResponseListeners.add(listener);
+        }
     }
 
     public void removeChatJoinNewUserResponseListener(ChatJoinNewUserResponseListener listener){
@@ -496,7 +506,9 @@ public class ClientSocket {
     }
 
     public void addUserLeftChatRoomResponseListener(UserLeftChatRoomResponseListener listener){
-        userLeftChatRoomResponseListeners.add(listener);
+        if(!userLeftChatRoomResponseListeners.contains(listener)){
+            userLeftChatRoomResponseListeners.add(listener);
+        }
     }
 
     public void removeUserLeftChatRoomResponseListener(UserLeftChatRoomResponseListener listener){
@@ -504,7 +516,9 @@ public class ClientSocket {
     }
 
     public void addUserWantToViewProfileResponseListener(UserWantToViewProfileResponseListener listener){
-        userWantToViewProfileResponseListeners.add(listener);
+        if(!userWantToViewProfileResponseListeners.contains(listener)){
+            userWantToViewProfileResponseListeners.add(listener);
+        }
     }
 
     public void removeUserWantToViewProfileResponseListener(UserWantToViewProfileResponseListener listener){

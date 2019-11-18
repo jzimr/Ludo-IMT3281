@@ -438,6 +438,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             clientSocket.removeDiceThrowResponseListener(GameBoardController.this);
             clientSocket.removePieceMovedListener(GameBoardController.this);
             clientSocket.removeSentMessageResponseListener(GameBoardController.this);
+            clientSocket.removeUserWantToViewProfileResponseListener(GameBoardController.this);
 
             // disconnect user from the game
             clientSocket.sendMessageToServer(new UserLeftGame("UserLeftGame", gameId));

@@ -3,7 +3,6 @@ package no.ntnu.imt3281.ludo.gui;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.ResourceBundle;
 
 import javafx.application.Platform;
@@ -123,7 +122,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         clientSocket.addCreateGameResponseListener(this);
         clientSocket.addSendGameInvitationsResponseListener(this);
         clientSocket.addUserJoinedGameResponseListener(this);
-        clientSocket.addUserWantToViewProfileResponseListener(this);
     }
 
     /**
@@ -329,6 +327,10 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                         // don't let client edit as long as we're waiting for the server
                         responseMessage.setDisable(true);
                     });
+
+                    // we register the listener so we get the profile from the server
+                    clientSocket.addUserWantToViewProfileResponseListener(this);
+
                     // send message to server
                     clientSocket.sendMessageToServer(new UserWantToViewProfile("UserWantToViewProfile", searchProfileText));
                     event.consume();
@@ -341,6 +343,9 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     @FXML
     void viewMyProfile(ActionEvent event) {
+        // we register the listener so we get the profile from the server
+        clientSocket.addUserWantToViewProfileResponseListener(this);
+
         // send message to server about viewing our profile
         clientSocket.sendMessageToServer(new UserWantToViewProfile("UserWantToViewProfile", clientSocket.getDisplayName()));
     }
@@ -494,6 +499,9 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         FXMLLoader loader = new FXMLLoader(getClass().getResource("ViewProfile.fxml"));
         loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
         ViewProfileController controller = viewProfileControllers.get(response.getUserId());
+
+        // we remove the listener from the server again
+        clientSocket.removeUserWantToViewProfileResponseListener(this);
 
         // user is searching for a profile
         if (searchProfileDialog.isShowing()) {
