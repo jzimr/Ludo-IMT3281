@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+
+<AnchorPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="no.ntnu.imt3281.ludo.gui.LeaderboardController">
+   <children>
+      <VBox prefHeight="722.0" prefWidth="1017.0">
+         <children>
+            <HBox alignment="CENTER" prefHeight="83.0" prefWidth="1017.0">
+               <children>
+                  <Label text="Top Ten Wins">
+                     <font>
+                        <Font name="System Bold" size="30.0" />
+                     </font>
+                  </Label>
+                  <Label text="Top Ten Plays">
+                     <font>
+                        <Font name="System Bold" size="30.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets left="300.0" />
+                     </HBox.margin>
+                  </Label>
+               </children>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" prefHeight="66.0" prefWidth="1017.0">
+               <children>
+                  <Label text="Place">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin>
+                  </Label>
+                  <Label text="Name">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets left="60.0" />
+                     </HBox.margin>
+                  </Label>
+                  <Label text="Wins">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets left="200.0" />
+                     </HBox.margin>
+                  </Label>
+                  <Label text="Place">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets left="80.0" />
+                     </HBox.margin>
+                  </Label>
+                  <Label text="Name">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets left="60.0" />
+                     </HBox.margin>
+                  </Label>
+                  <Label text="Plays">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets left="200.0" />
+                     </HBox.margin>
+                  </Label>
+               </children>
+            </HBox>
+            <SplitPane fx:id="splitPane" dividerPositions="0.5, 0.5" pickOnBounds="false" prefHeight="638.0" prefWidth="1017.0">
+              <items>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                     <children>
+                        <ListView fx:id="topWinsList" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                     </children>
+                  </AnchorPane>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="648.0" prefWidth="504.0" />
+                  <ListView fx:id="topPlaysList" />
+              </items>
+            </SplitPane>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

@@ -25,7 +25,7 @@ public class ChatRoomsListController implements ChatRoomsListResponseListener {
                 super.updateItem(item, empty);
                 if (item != null) {
                     setText(item);
-                    setFont(Font.font(16));
+                    setFont(Font.font(20));
                 }
             }
         });

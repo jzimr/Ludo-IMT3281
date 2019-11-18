@@ -43,7 +43,7 @@
                         <Font size="14.0" />
                      </font>
                   </Label>
-                  <TextField fx:id="usernameTextInput" prefHeight="30.0" prefWidth="200.0">
+                  <TextField fx:id="usernameTextInput" onKeyPressed="#onEnterLogin" prefHeight="30.0" prefWidth="200.0">
                      <font>
                         <Font size="14.0" />
                      </font>
@@ -57,7 +57,7 @@
                         <Font size="14.0" />
                      </font>
                   </Label>
-                  <PasswordField fx:id="passwordTextInput" prefHeight="30.0" prefWidth="200.0">
+                  <PasswordField fx:id="passwordTextInput" onKeyPressed="#onEnterLogin" prefHeight="30.0" prefWidth="200.0">
                      <font>
                         <Font size="14.0" />
                      </font>

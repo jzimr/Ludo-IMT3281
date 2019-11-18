@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -45,6 +46,17 @@ public class LoginController implements RegisterResponseListener {
 
         // set listeners
         clientSocket.addRegisterResponseListener(this);
+    }
+
+    /**
+     * When user presses "Enter" on either username or password field to login
+     * @param event
+     */
+    @FXML
+    void onEnterLogin(KeyEvent event) {
+        if(event.getCode() == KeyCode.ENTER){
+            userDoesManualLogin(null);
+        }
     }
 
     /**
@@ -117,7 +129,7 @@ public class LoginController implements RegisterResponseListener {
         }
 
         // username can't exceed 24 characters
-        if(username.length() > 24){
+        if(username.length() >= 24){
             setResponseMessage("Username can be max 24 characters long!", true);
             return;
         }

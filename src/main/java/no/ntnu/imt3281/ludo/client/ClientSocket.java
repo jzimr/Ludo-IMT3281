@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.*;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 import no.ntnu.imt3281.ludo.server.ChatMessage;
+import no.ntnu.imt3281.ludo.server.TopTenList;
 
 import java.io.*;
 import java.net.ConnectException;
@@ -49,6 +50,7 @@ public class ClientSocket {
     private ArrayBlockingQueue<UserLeftChatRoomResponseListener> userLeftChatRoomResponseListeners = new ArrayBlockingQueue<>(100);
     private UserWantToViewProfileResponseListener userWantToViewProfileResponseListener = null;
     private UserWantToEditProfileResponseListener userWantToEditProfileResponseListener = null;
+    private LeaderboardResponseListener leaderboardResponseListener = null;
 
     /**
      * Create a connection from client to server
@@ -93,7 +95,6 @@ public class ClientSocket {
             return ConnectionCode.CONNECTION_REFUSED;
         } catch (IOException e) {
             e.printStackTrace();
-            // todo throw message to user
             return ConnectionCode.CONNECTION_OTHER_ERROR;
         }
     }
@@ -133,7 +134,6 @@ public class ClientSocket {
             bw.flush();
         } catch (IOException e) {
             e.printStackTrace();
-            // todo send message to user
         }
     }
 
@@ -147,7 +147,6 @@ public class ClientSocket {
                     if (connected) {
                         try {
                             final String inMessage = br.readLine();
-                            // todo trenger denne en queue?
                             handleMessagesFromServer(inMessage);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -344,8 +343,33 @@ public class ClientSocket {
 
                     // update our displayname in case of name change
                     displayName = message17.getDisplayname();
-
                     userWantToEditProfileResponseListener.userWantToEditProfileResponseEvent(message17);
+                    break;
+                case "LeaderboardResponse":
+                    // we get the PlayedEntry[] list from the jackson node
+                    ArrayNode topPlayedNode = (ArrayNode) jsonNode.get("toptenplays");
+                    TopTenList.PlayedEntry[] topPlayedList = new TopTenList.PlayedEntry[topPlayedNode.size()];
+                    for (int i = 0; i < topPlayedNode.size(); i++) {
+                        TopTenList.PlayedEntry playedEntry = new TopTenList.PlayedEntry(
+                                topPlayedNode.get(i).get("playerName").asText(),
+                                topPlayedNode.get(i).get("playedCount").asInt(),
+                                topPlayedNode.get(i).get("place").asInt());
+                        topPlayedList[i] = playedEntry;
+                    }
+
+                    // we get the WonEntry[] list from the jackson node
+                    ArrayNode topWonNode = (ArrayNode) jsonNode.get("toptenwins");
+                    TopTenList.WonEntry[] topWonList = new TopTenList.WonEntry[topWonNode.size()];
+                    for (int i = 0; i < topWonNode.size(); i++) {
+                        TopTenList.WonEntry wonEntry = new TopTenList.WonEntry(
+                                topWonNode.get(i).get("playerName").asText(),
+                                topWonNode.get(i).get("wonCount").asInt(),
+                                topWonNode.get(i).get("place").asInt());
+                        topWonList[i] = wonEntry;
+                    }
+
+                    LeaderboardResponse message18 = new LeaderboardResponse(action, topPlayedList, topWonList);
+                    leaderboardResponseListener.leaderboardResponseEvent(message18);
                     break;
                 default:
                     System.out.println("Json not recognized: " + jsonMessage);
@@ -480,5 +504,9 @@ public class ClientSocket {
 
     public void addUserWantToEditProfileResponseListener(UserWantToEditProfileResponseListener listener){
         userWantToEditProfileResponseListener = listener;
+    }
+
+    public void addLeaderboardResponseListener(LeaderboardResponseListener listener){
+        leaderboardResponseListener = listener;
     }
 }
