@@ -1526,8 +1526,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
         boolean profileUpdate = false, passwordUpdate = false;
 
 		try {
-			db.updateProfile(newInfo);
-			profileUpdate = true;
+			if(!db.displaynameExists(newInfo.getDisplayName())){
+				db.updateProfile(newInfo);
+				profileUpdate = true;
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -1539,8 +1541,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-		} else { //Make true anyways.
-			passwordUpdate = true;
 		}
 
 		if (profileUpdate && passwordUpdate) { //Both updated.
@@ -1551,7 +1551,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
         } else if (profileUpdate && !passwordUpdate) { //Only profile was updated
 			((UserWantToEditProfileResponse)retMsg).setChanged(true);
-			((UserWantToEditProfileResponse)retMsg).setResponse("Profile was updated successfully. Password update failed.");
+			((UserWantToEditProfileResponse)retMsg).setResponse("Profile was updated successfully. Password was not updated.");
 			((UserWantToEditProfileResponse)retMsg).setDisplayname(action.getDisplayname());
 
 		} else if (!profileUpdate && passwordUpdate) { //Only password was updated

@@ -424,6 +424,22 @@ public class Database {
         return userInfo;
     }
 
+    public boolean displaynameExists(String displayname) throws SQLException {
+        // create connection to database
+        PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) AS name_count FROM user_info " +
+                "WHERE display_name = ?");
+        stmt.setString(1, displayname);
+        ResultSet rs = stmt.executeQuery();
+
+        rs.next();
+        // get the total count of rooms with name 'name_count' (1 if it exists, 0 else)
+        int count = rs.getInt("name_count");
+        rs.close();
+
+        // check if sessionID is valid
+        return count > 0;
+    }
+
     /**
      * Update a user in the database with new information
      *
