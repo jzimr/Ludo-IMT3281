@@ -692,6 +692,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 
 	private void UserJoinChat(UserJoinChat action) {
+		//Security check.
+		boolean secCheckPass = securityCheck(action.getUserid(),action.getRecipientSessionId());
+		if(!secCheckPass){
+			System.out.println("Warning: " + action.getUserid() + " tried to Join a Chat, but " + action.getRecipientSessionId() + " does not match...");
+			return;
+		}
+
 		Message retMsg = new ChatJoinResponse("ChatJoinResponse");
 		retMsg.setRecipientSessionId(useridToSessionId(action.getUserid()));
 
@@ -836,6 +843,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 * @param action
 	 */
 	private void UserSentMessage(UserSentMessage action) {
+		//Security check.
+		boolean secCheckPass = securityCheck(action.getUserid(),action.getRecipientSessionId());
+		if(!secCheckPass){
+			System.out.println("Warning: " + action.getUserid() + " tried to Join a Chat, but " + action.getRecipientSessionId() + " does not match...");
+			return;
+		}
+
 		Message retMsg = new SentMessageResponse("SentMessageResponse");
 
 		boolean isConnected, roomExists;
@@ -1144,6 +1158,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
      * @param action
      */
 	private void UserWantsUsersList(UserWantsUsersList action){
+		//Security check.
+		boolean secCheckPass = securityCheck(action.getUserid(),action.getRecipientSessionId());
+		if(!secCheckPass){
+			System.out.println("Warning: " + action.getUserid() + " tried to Join a Chat, but " + action.getRecipientSessionId() + " does not match...");
+			return;
+		}
 
 	    Message retMsg = new UsersListResponse("UsersListResponse");
 	    retMsg.setRecipientSessionId(action.getRecipientSessionId());
@@ -1176,6 +1196,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
     }
 
     private void UserWantsToCreateGame(UserWantsToCreateGame action){
+		//Security check.
+		boolean secCheckPass = securityCheck(action.getHostid(),action.getRecipientSessionId());
+		if(!secCheckPass){
+			System.out.println("Warning: " + action.getHostid() + " tried to Join a Chat, but " + action.getRecipientSessionId() + " does not match...");
+			return;
+		}
+
 		Message retMsg = new CreateGameResponse("CreateGameResponse");
 		retMsg.setRecipientSessionId(useridToSessionId(action.getHostid()));
 
@@ -1227,6 +1254,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		for (String name: action.getToinvitedisplaynames()) {
 			names.add(name);
 		}
+		names.add(info.getDisplayName());
 		newRoom.setAllowedUsers(names);
 		activeChatRooms.add(newRoom);
 		try {
@@ -1237,6 +1265,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 
 	private void UserDoesGameInvitationAnswer(UserDoesGameInvitationAnswer action) {
+		//Security check.
+		boolean secCheckPass = securityCheck(action.getUserid(),action.getRecipientSessionId());
+		if(!secCheckPass){
+			System.out.println("Warning: " + action.getUserid() + " tried to Join a Chat, but " + action.getRecipientSessionId() + " does not match...");
+			return;
+		}
+
 		Message retMsg;
 		System.out.println(action);
 		if (action.isAccepted()) { //User accepted. Add them to the game
@@ -1357,6 +1392,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 
 	private void UserDoesRandomGameSearch(UserDoesRandomGameSearch action){
+		//Security check.
+		boolean secCheckPass = securityCheck(action.getUserid(),action.getRecipientSessionId());
+		if(!secCheckPass){
+			System.out.println("Warning: " + action.getUserid() + " tried to Join a Chat, but " + action.getRecipientSessionId() + " does not match...");
+			return;
+		}
+
 		UserInfo info = db.getProfile(action.getUserid());
 
 		boolean foundGame = false;
@@ -1465,9 +1507,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 
 	private void UserWantToEditProfile(UserWantToEditProfile action) {
+		UserInfo oldInfo = db.getProfile(sessionIdToUserId(action.getRecipientSessionId()));
+		//Security check.
+		boolean secCheckPass = securityCheck(oldInfo.getUserId(),action.getRecipientSessionId());
+		if(!secCheckPass){
+			System.out.println("Warning: " + oldInfo.getUserId() + " tried to Join a Chat, but " + action.getRecipientSessionId() + " does not match...");
+			return;
+		}
+
 		Message retMsg = new UserWantToEditProfileResponse("UserWantToEditProfileResponse");
 		retMsg.setRecipientSessionId(action.getRecipientSessionId());
-		UserInfo oldInfo = db.getProfile(sessionIdToUserId(action.getRecipientSessionId()));
 		UserInfo newInfo = new UserInfo(sessionIdToUserId(action.getRecipientSessionId()), action.getDisplayname(),action.getImageString(), oldInfo.getGamesPlayed(), oldInfo.getGamesWon());
 
         boolean profileUpdate = false, passwordUpdate = false;
@@ -1527,6 +1576,19 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		synchronized (messagesToSend){
 			messagesToSend.add(retMsg);
 		}
+	}
+
+	/**
+	 * Checks if the userid and sessionid is the same client.
+	 * Discards message if false.
+	 * @param sessionid
+	 * @param userid
+	 * @return true if everything is fine, false is something missmatch.
+	 */
+	private boolean securityCheck(String userid, String sessionid) {
+		System.out.println(userid + " " + sessionid);
+		String sessUserId = sessionIdToUserId(sessionid);
+		return (sessUserId.contentEquals(userid));
 	}
 
 	/**

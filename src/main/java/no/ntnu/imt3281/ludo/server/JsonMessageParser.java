@@ -48,7 +48,7 @@ public class JsonMessageParser {
                 }
                 case "UserSentMessage": {
                     msg = new UserSentMessage(action.get("action").asText(), action.get("userid").asText(), action.get("chatroomname").asText(), action.get("chatmessage").asText());
-                    //msg.setRecipientSessionId(sessionid);
+                    msg.setRecipientSessionId(sessionid);
                     return msg;
                 }
                 case "UserLeftChatRoom":{
@@ -74,6 +74,7 @@ public class JsonMessageParser {
                     }
                     System.out.println("UserWantsToCreateGame size " + toInv.size());
                     msg = new UserWantsToCreateGame(action.get("action").asText(), action.get("hostid").asText(),arr);
+                    msg.setRecipientSessionId(sessionid);
                     return msg;
                 }
                 case "UserDoesGameInvitationAnswer":{
