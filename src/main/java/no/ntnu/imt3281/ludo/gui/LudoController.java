@@ -3,6 +3,7 @@ package no.ntnu.imt3281.ludo.gui;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.ResourceBundle;
 
 import javafx.application.Platform;
@@ -325,6 +326,8 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                     Platform.runLater(() -> {
                         responseMessage.setStyle("-fx-fill: black");
                         responseMessage.setText("Waiting for server...");
+                        // don't let client edit as long as we're waiting for the server
+                        responseMessage.setDisable(true);
                     });
                     // send message to server
                     clientSocket.sendMessageToServer(new UserWantToViewProfile("UserWantToViewProfile", searchProfileText));
@@ -390,7 +393,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
             GameBoardController gameBoard = gameBoardControllers.get(response.getChatroomname());
 
             // if the chat has the ID of a gameboard, it means it's a game chat
-            if(gameBoard != null){
+            if (gameBoard != null) {
                 // todo
             } else {
                 // else it's a normal chat so we create a new tab for it
@@ -492,18 +495,18 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
         ViewProfileController controller = viewProfileControllers.get(response.getUserId());
 
-        System.out.println(response.getMessage());
-
         // user is searching for a profile
         if (searchProfileDialog.isShowing()) {
             // profile does not exist
             if (response.getMessage() != null && !response.getMessage().isEmpty()) {
                 Platform.runLater(() -> {
                     final Button okButton = (Button) searchProfileDialog.getDialogPane().lookupButton(ButtonType.OK);
+                    final TextField searchProfile = (TextField) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(0);
                     final Text responseMessage = (Text) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(1);
                     responseMessage.setStyle("-fx-fill: red");
                     responseMessage.setText(response.getMessage());
                     okButton.setDisable(false);
+                    searchProfile.setDisable(false);
                 });
                 return;
             }
@@ -541,5 +544,24 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                 equals(clientSocket.getUserId()));
         // add to hashmap for later retrieval
         viewProfileControllers.put(response.getUserId(), controller);
+    }
+
+    /**
+     * If client searched for the particular profile, return true, else false
+     *
+     * @param displayname the displayname searched for by the client
+     * @return
+     */
+    @Override
+    public boolean waitingForProfile(String displayname) {
+        // if we are wanting to get a specific profile OR we want to view our own profile, return true
+        if (searchProfileDialog.isShowing()) {
+            final TextField searchProfile = (TextField) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(0);
+            return searchProfile.getText().equals(displayname);
+        } else if (clientSocket.getDisplayName().equals(displayname)) {
+            return true;
+        }
+        // else false
+        return false;
     }
 }

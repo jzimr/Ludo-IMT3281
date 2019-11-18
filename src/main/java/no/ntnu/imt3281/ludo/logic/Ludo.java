@@ -223,9 +223,10 @@ public class Ludo {
             playerListener.playerStateChanged(new PlayerEvent(this, getPlayerID(playerName), PlayerEvent.LEFTGAME));
         }
 
-        //if (playerTurn)
-        //Skip that players turn
-        nextPlayerTurn();
+        // if it's this player's turn, skip it
+        if (activePlayer() == getPlayerID(playerName)){
+            nextPlayerTurn();
+        }
     }
 
     /**
@@ -242,8 +243,10 @@ public class Ludo {
             playerListener.playerStateChanged(new PlayerEvent(this, playerId, PlayerEvent.LEFTGAME));
         }
 
-        //Skip that players turn
-        nextPlayerTurn();
+        // if it's this player's turn, skip it
+        if (activePlayer() == playerId){
+            nextPlayerTurn();
+        }
     }
 
     /**

@@ -48,7 +48,7 @@ public class ClientSocket {
     private ArrayBlockingQueue<PieceMovedResponseListener> pieceMovedResponseListeners = new ArrayBlockingQueue<>(100); // max of 100 listeners at once
     private ArrayBlockingQueue<ChatJoinNewUserResponseListener> chatJoinNewUserResponseListeners = new ArrayBlockingQueue<>(100);
     private ArrayBlockingQueue<UserLeftChatRoomResponseListener> userLeftChatRoomResponseListeners = new ArrayBlockingQueue<>(100);
-    private UserWantToViewProfileResponseListener userWantToViewProfileResponseListener = null;
+    private ArrayBlockingQueue<UserWantToViewProfileResponseListener> userWantToViewProfileResponseListeners = new ArrayBlockingQueue<>(100);
     private UserWantToEditProfileResponseListener userWantToEditProfileResponseListener = null;
     private LeaderboardResponseListener leaderboardResponseListener = null;
 
@@ -335,7 +335,12 @@ public class ClientSocket {
                             jsonNode.get("gamesWon").asInt(), jsonNode.get("message").asText());
 
                     // send message to listener
-                    userWantToViewProfileResponseListener.userWantToViewProfileResponseEvent(message16);
+                    for(UserWantToViewProfileResponseListener listener8 : userWantToViewProfileResponseListeners){
+                        // if listener still exists and it waits to get a particular profile from the server
+                        if(listener8 != null && listener8.waitingForProfile(message16.getDisplayName())) {
+                            listener8.userWantToViewProfileResponseEvent(message16);
+                        }
+                    }
                     break;
                 case "UserWantToEditProfileResponse":
                     UserWantToEditProfileResponse message17 = new UserWantToEditProfileResponse(action, jsonNode.get("changed").asBoolean(),
@@ -499,7 +504,11 @@ public class ClientSocket {
     }
 
     public void addUserWantToViewProfileResponseListener(UserWantToViewProfileResponseListener listener){
-        userWantToViewProfileResponseListener = listener;
+        userWantToViewProfileResponseListeners.add(listener);
+    }
+
+    public void removeUserWantToViewProfileResponseListener(UserWantToViewProfileResponseListener listener){
+        userWantToViewProfileResponseListeners.remove(listener);
     }
 
     public void addUserWantToEditProfileResponseListener(UserWantToEditProfileResponseListener listener){

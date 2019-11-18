@@ -25,6 +25,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
+import no.ntnu.imt3281.ludo.client.ImageManager;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.*;
 import no.ntnu.imt3281.ludo.logic.*;
 import no.ntnu.imt3281.ludo.logic.messages.*;
@@ -36,7 +37,7 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 
 public class GameBoardController implements UserLeftGameResponseListener, GameHasStartedResponseListener, DiceThrowResponseListener,
-        PieceMovedResponseListener, SentMessageResponseListener,
+        PieceMovedResponseListener, SentMessageResponseListener, UserWantToViewProfileResponseListener,
         DiceListener, PieceListener, PlayerListener {
 
     @FXML
@@ -155,7 +156,8 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     private String[] players = new String[]{};
 
     private Label[] playerNames;        // array that holds all players' labels. Indexing is done by Ludo players (RED, BLUE, YELLOW, GREEN)
-    private ImageView[] redPieces;
+    private ImageView[] playersActive;  // array that holds all player's profile image. Indexing done as above
+    private ImageView[] redPieces;      // array of all reds' pieces
     private ImageView[] bluePieces;
     private ImageView[] yellowPieces;
     private ImageView[] greenPieces;
@@ -171,6 +173,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     @FXML
     public void initialize() {
         playerNames = new Label[]{player1Name, player2Name, player3Name, player4Name};
+        playersActive = new ImageView[]{player1Active, player2Active, player3Active, player4Active};
         redPieces = new ImageView[]{redPiece0, redPiece1, redPiece2, redPiece3};
         bluePieces = new ImageView[]{bluePiece0, bluePiece1, bluePiece2, bluePiece3};
         yellowPieces = new ImageView[]{yellowPiece0, yellowPiece1, yellowPiece2, yellowPiece3};
@@ -182,7 +185,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
         // make all playernames empty
         for(Label player : playerNames)
-            player.setText("");
+            player.setText("...");
     }
 
     /**
@@ -198,7 +201,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         ludoGame = new Ludo();
 
         // add ludo listeners
-        ludoGame.addDiceListener(this);
+        ludoGame.addDiceListener( this);
         ludoGame.addPieceListener(this);
         ludoGame.addPlayerListener(this);
 
@@ -219,15 +222,15 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
      * @param players the players in the game
      */
     public void setPlayers(String[] players) {
-        // for each player that has not been added yet
+        // for each player that has not been added yet:
+        // add it to our list and get their profile picture
         for (int i = this.players.length; i < players.length; i++) {
             ludoGame.addPlayer(players[i]);
+            clientSocket.sendMessageToServer(new UserWantToViewProfile("UserWantToViewProfile", players[i]));
         }
 
         // get our id of the ludogame
         ourPlayerId = ludoGame.getPlayerID(clientSocket.getDisplayName());
-        System.out.println(ourPlayerId);
-
 
         // update our list here
         this.players = players;
@@ -526,6 +529,8 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     public void playerStateChanged(PlayerEvent event) {
         final int playerId = event.getPlayerID();
 
+        System.out.println("Got player change event " + event.getPlayerEvent() + " on player " + event.getPlayerID());
+
         // user left game, let's disable his GUI for all other players
         if (event.getPlayerEvent().equals(PlayerEvent.LEFTGAME)) {
             Platform.runLater(() -> {
@@ -538,7 +543,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         }
 
         // when its another player's turn
-        if (event.getPlayerEvent().equals(PlayerEvent.PLAYING)) {
+        else if (event.getPlayerEvent().equals(PlayerEvent.PLAYING)) {
             // highlight whose turn it is
             highlights[playerId].setVisible(true);
 
@@ -550,7 +555,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         }
 
         // when a player is done with his turn
-        if (event.getPlayerEvent().equals(PlayerEvent.WAITING)) {
+        else if (event.getPlayerEvent().equals(PlayerEvent.WAITING)) {
             // highlight whose turn it is
             highlights[playerId].setVisible(false);
 
@@ -562,7 +567,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         }
 
         // a player won, so we disable further movements
-        if (event.getPlayerEvent().equals(PlayerEvent.WON)) {
+        else if (event.getPlayerEvent().equals(PlayerEvent.WON)) {
             Platform.runLater(() -> {
                 winText.setText(players[playerId] + " Won!");
                 winWindow.setVisible(true);
@@ -663,7 +668,23 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
     @Override
     public boolean equalsChatRoomId(String chatName) {
-        // we decided that gameId == chatId
+        // we decided that the chatId for a game is the gameId
         return gameId.equals(chatName);
+    }
+
+    @Override
+    public void userWantToViewProfileResponseEvent(UserWantToViewProfileResponse response) {
+        // go through all players and set the imageview representing a player
+        for(int i = 0; i < players.length; i++){
+            if(players[i].equals(response.getDisplayName())){
+                // we convert the image bytes to an image and set it in the GUI
+                playersActive[i].setImage(ImageManager.convertBytesToImage(response.getImageString()));
+            }
+        }
+    }
+
+    @Override
+    public boolean waitingForProfile(String displayname) {
+        return Arrays.stream(players).anyMatch(p -> p.equals(displayname));
     }
 }
