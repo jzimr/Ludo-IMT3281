@@ -203,10 +203,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				try {
 					Client client = disconnectedClients.take();
 					synchronized (clients) {
-						//Todo: Remove player from all chat rooms and games.
-						removeClientsFromModules(client.getUserId());
 						System.out.println("Removed client " + client.getUserId());
 						clients.remove(client);
+						removeClientsFromModules(client.getUserId());
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -251,7 +250,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 * @param userId
 	 */
 	private void removeClientsFromModules(String userId){
-		//TODO: Remove from game
 		//Remove user from chat rooms.
 		ArrayList<ChatRoom> rooms = (ArrayList<ChatRoom>) activeChatRooms.clone();
 			for(ChatRoom room : rooms){
@@ -1266,6 +1264,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+
 	}
 
 	private void UserDoesGameInvitationAnswer(UserDoesGameInvitationAnswer action) {
@@ -1678,7 +1677,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			}
 
 		} else {
-			System.out.println(game.getActivePlayers().length);
 			for (String name : game.getActivePlayers()){
 				retMsg = new PlayerStateChangeResponse("PlayerStateChangeResponse");
 				((PlayerStateChangeResponse)retMsg).setGameid(game.getGameid());
