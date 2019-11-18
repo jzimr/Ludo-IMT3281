@@ -1229,6 +1229,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 		newRoom.setAllowedUsers(names);
 		activeChatRooms.add(newRoom);
+		try {
+			db.insertChatRoom(newGame.getGameid());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void UserDoesGameInvitationAnswer(UserDoesGameInvitationAnswer action) {
@@ -1426,6 +1431,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			names.add(info.getDisplayName());
 			newRoom.setAllowedUsers(names);
 			activeChatRooms.add(newRoom);
+			try {
+				db.insertChatRoom(newGame.getGameid());
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 
 		}
 
