@@ -170,7 +170,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					Iterator<Client> iterator = clients.iterator();
 					while (iterator.hasNext()) {
 						Client c = iterator.next();
-						if (c.getUuid() != null && msg.getRecipientSessionId().contentEquals(c.getUuid())) {
+						if ((c.getUuid() != null && msg.getRecipientSessionId() != null) && msg.getRecipientSessionId().contentEquals(c.getUuid())) {
 							try {
 								String converted = convertToCorrectJson(msg);
 								System.out.println("Session id: " + c.getUuid() + " " + converted);
@@ -252,9 +252,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	private void removeClientsFromModules(String userId){
 		//TODO: Remove from game
-
-		//TODO: Send message that the user left to chat channels.
-
 		//Remove user from chat rooms.
 		ArrayList<ChatRoom> rooms = (ArrayList<ChatRoom>) activeChatRooms.clone();
 			for(ChatRoom room : rooms){
@@ -264,9 +261,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					removeUserFromChatroom(room.getName(), userId);
 					System.out.println("We removed a boy");
 				}
-
 			}
 
+		//Remove user from ludo games.
+		ArrayList<Ludo> games = (ArrayList<Ludo>) activeLudoGames.clone();
+			UserInfo info = db.getProfile(userId);
+			for(Ludo game : games) {
+				if(game.getPlayerID(info.getDisplayName()) != -1) { //User is in this game.
+					game.removePlayer(info.getDisplayName());
+				}
+			}
 	}
 
 	/**
@@ -1650,7 +1654,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		if(event.getPlayerEvent().contentEquals("Won")){
 			int playerid = 0; //Represents which player we are looping through. This works since ludo game id
 							  // Have the same order as player names.
-			for (String name : game.getPlayers()){
+			for (String name : game.getActivePlayers()){
 				retMsg = new PlayerWonGameResponse("PlayerWonGameResponse");
 				((PlayerWonGameResponse)retMsg).setPlayerwonid(event.getPlayerID());
 				((PlayerWonGameResponse)retMsg).setGameid(game.getGameid());
@@ -1674,7 +1678,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			}
 
 		} else {
-			for (String name : game.getPlayers()){
+			System.out.println(game.getActivePlayers().length);
+			for (String name : game.getActivePlayers()){
 				retMsg = new PlayerStateChangeResponse("PlayerStateChangeResponse");
 				((PlayerStateChangeResponse)retMsg).setGameid(game.getGameid());
 				((PlayerStateChangeResponse)retMsg).setActiveplayerid(event.getPlayerID());
