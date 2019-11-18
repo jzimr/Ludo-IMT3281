@@ -267,6 +267,25 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			for(Ludo game : games) {
 				if(game.getPlayerID(info.getDisplayName()) != -1) { //User is in this game.
 					game.removePlayer(info.getDisplayName());
+
+					UserLeftGameResponse retMsg = new UserLeftGameResponse("UserLeftGameResponse");
+					retMsg.setDisplayname(info.getDisplayName());
+					retMsg.setGameid(game.getGameid());
+
+					game.removePlayer(info.getDisplayName());
+					for(String name : game.getActivePlayers()){
+						if (!name.contentEquals(info.getDisplayName())){
+							UserInfo userInfo = db.getProfilebyDisplayName(name);
+							retMsg.setRecipientSessionId(useridToSessionId(userInfo.getUserId()));
+							System.out.println(name);
+							synchronized (messagesToSend){
+								messagesToSend.add(retMsg);
+							}
+						}
+					}
+
+
+
 				}
 			}
 	}
