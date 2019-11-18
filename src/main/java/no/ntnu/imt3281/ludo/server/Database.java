@@ -618,10 +618,12 @@ public class Database {
             ResultSet rs = stmt.executeQuery();
 
             // loop over all data and add each entry into our arraylist
+            int counter = 1;
             while (rs.next()) {
                 playedEntries.add(new TopTenList.PlayedEntry(
                         rs.getString("display_name"),
-                        rs.getInt("games_played"))
+                        rs.getInt("games_played"),
+                        counter++)
                 );
             }
 
@@ -632,10 +634,12 @@ public class Database {
             rs = stmt.executeQuery();
 
             // loop over all data and add each entry into our arraylist
+            counter = 1;
             while (rs.next()) {
                 wonEntries.add(new TopTenList.WonEntry(
                         rs.getString("display_name"),
-                        rs.getInt("games_won"))
+                        rs.getInt("games_won"),
+                        counter++)
                 );
             }
         } catch (SQLException ex) {

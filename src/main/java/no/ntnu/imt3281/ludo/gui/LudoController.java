@@ -218,7 +218,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
             });
             return tab;
         } catch (IOException e1) {
-            // TODO Auto-generated catch block
             e1.printStackTrace();
             return null;
         }
@@ -345,7 +344,16 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     @FXML
     void showLeaderboard(ActionEvent event) {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("Leaderboard.fxml"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
 
+        Tab leaderboardTab = addNewTab(loader, "Leaderboard");
+
+        LeaderboardController leaderboardController = loader.getController();
+        leaderboardController.setup(clientSocket);
+
+        // notify server that we want to get the list of available chatrooms
+        clientSocket.sendMessageToServer(new UserWantsLeaderboard("UserWantsLeaderboard"));
     }
 
     @FXML
@@ -392,7 +400,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         }
     }
 
-    // todo ikke set X på login tab
 
     /**
      * When user has logged in successfully

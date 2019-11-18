@@ -179,6 +179,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         highlights = new Rectangle[]{redHighlight, blueHighlight, yellowHighlight, greenHighlight};
         diceImages = new Image[]{new Image("images/dice1.png"), new Image("images/dice2.png"), new Image("images/dice3.png"),
                 new Image("images/dice4.png"), new Image("images/dice5.png"), new Image("images/dice6.png")};
+
+        // make all playernames empty
+        for(Label player : playerNames)
+            player.setText("");
     }
 
     /**
@@ -326,7 +330,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     public void userLeftGameResponseEvent(UserLeftGameResponse response) {
         // remove from ludo logic
         ludoGame.removePlayer(response.getDisplayname());
-        // todo handle chat as well
     }
 
     @Override
@@ -435,7 +438,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
             // disconnect user from the game
             clientSocket.sendMessageToServer(new UserLeftGame("UserLeftGame", gameId));
-            // todo disconnect from the game chat as well
+            clientSocket.sendMessageToServer(new UserLeftChatRoom("UserLeftChatRoom", clientSocket.getUserId(), gameId));
             // todo remove from hashmap in LudoConntroller
         }
     };
@@ -490,10 +493,13 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 gridPositionTo = GlobalToGridBoard.globalToGridCoordinations(globalPositionTo);
 
                 Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
+                // todo delete rest as well if all goes well
+                /*
                 if (piece == null) {   // fixes a nasty bug when moving sometimes
                     System.out.println("(GUI) could not move piece because piece == null");
                     return;
                 }
+                 */
 
                 movingGrid.getChildren().remove(piece);                     // remove from parent
                 homeGrid.getChildren().add(piece);                          // add to new parent
@@ -630,7 +636,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         String timeSent = String.format("%02d:%02d:%02d", time.getHour(), time.getMinute(), time.getSecond());
         String userSent = response.getdisplayname();
         String messageSent = response.getChatmessage();
-
 
         Platform.runLater(() -> {
             // display user as red

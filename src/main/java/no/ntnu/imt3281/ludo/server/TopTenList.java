@@ -6,11 +6,13 @@ package no.ntnu.imt3281.ludo.server;
 public class TopTenList {
     public static class PlayedEntry{
         private String playerName;  // displayname
-        private int playedCount;
+        private int playedCount;    // amount of played ludo games
+        private int place;          // which place is he in the leaderboard
 
-        public PlayedEntry(String playerName, int playedCount){
+        public PlayedEntry(String playerName, int playedCount, int place){
             this.playerName = playerName;
             this.playedCount = playedCount;
+            this.place = place;
         }
 
         public String getPlayerName() {
@@ -20,14 +22,20 @@ public class TopTenList {
         public int getPlayedCount() {
             return playedCount;
         }
+
+        public int getPlace() {
+            return place;
+        }
     }
     public static class WonEntry{
         private String playerName;  // displayname
-        private int wonCount;
+        private int wonCount;       // amount of won ludo games
+        private int place;          // which place is he in the leaderboard
 
-        public WonEntry(String playerName, int wonCount){
+        public WonEntry(String playerName, int wonCount, int place){
             this.playerName = playerName;
             this.wonCount = wonCount;
+            this.place = place;
         }
 
         public String getPlayerName() {
@@ -36,6 +44,10 @@ public class TopTenList {
 
         public int getWonCount() {
             return wonCount;
+        }
+
+        public int getPlace() {
+            return place;
         }
     }
 

@@ -9,6 +9,11 @@ public class LeaderboardResponse extends Message {
 
     public LeaderboardResponse(String action){super(action);}
 
+    public LeaderboardResponse(String action, TopTenList.PlayedEntry[] toptenplays, TopTenList.WonEntry[] toptenwins){
+        super(action);
+        this.toptenplays = toptenplays;
+        this.toptenwins = toptenwins;
+    }
 
     public void setToptenplays(TopTenList.PlayedEntry[] toptenplays) {
         this.toptenplays = toptenplays;

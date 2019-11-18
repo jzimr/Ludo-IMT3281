@@ -828,13 +828,17 @@ public class DatabaseTest {
          */
         assertEquals("Boby", topTen.getPlayedEntries()[0].getPlayerName());
         assertEquals(10, topTen.getPlayedEntries()[0].getPlayedCount());
+        assertEquals(1, topTen.getPlayedEntries()[0].getPlace());
         assertEquals("Samy", topTen.getPlayedEntries()[1].getPlayerName());
         assertEquals(6, topTen.getPlayedEntries()[1].getPlayedCount());
+        assertEquals(2, topTen.getPlayedEntries()[1].getPlace());
 
         assertEquals("Samy", topTen.getWonEntries()[0].getPlayerName());
         assertEquals(6, topTen.getWonEntries()[0].getWonCount());
+        assertEquals(1, topTen.getWonEntries()[0].getPlace());
         assertEquals("Boby", topTen.getWonEntries()[1].getPlayerName());
         assertEquals(3, topTen.getWonEntries()[1].getWonCount());
+        assertEquals(2, topTen.getWonEntries()[1].getPlace());
 
         // we should only have two entries total for plays and wins
         assertEquals(2, topTen.getPlayedEntries().length);
