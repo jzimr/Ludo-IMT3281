@@ -266,7 +266,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					UserInfo info = db.getProfile(userId);
 					announceRemovalToUsersInChatRoom(info, room.getName());
 					removeUserFromChatroom(room.getName(), userId);
-					System.out.println("We removed a boy");
 				}
 			}
 
@@ -542,7 +541,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 * @param action
 	 */
 	private void UserDoesLoginManual(ClientLogin action){
-
 		LoginResponse retMsg = new LoginResponse("LoginResponse");
 		retMsg.setRecipientSessionId(action.getRecipientSessionId());
 		try {

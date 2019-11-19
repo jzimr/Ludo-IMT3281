@@ -16,7 +16,7 @@
                 <Menu mnemonicParsing="false" text="File">
                   <items>
                         <MenuItem fx:id="connect" mnemonicParsing="false" onAction="#connectToServer" text="Connect" />
-                    <MenuItem mnemonicParsing="false" text="Close" />
+                    <MenuItem fx:id="close_btn" mnemonicParsing="false" onAction="#closeClient" text="Close" />
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Game">
