@@ -40,6 +40,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		new Server(false); //Create a new server instance.
 	}
 
+	/**
+	 * Server constructor.
+	 * @param testing
+	 * True means the server is used for tests. A test db is then used. This also disables pinging the clients.
+	 * False is the standard way of running the server.
+	 */
 	public Server(boolean testing){
 		startServerThread();
 		startListener();
@@ -66,6 +72,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	/**
+	 * Function for stopping the server.
+	 */
 	public void stopServer(){
 		stopping = true;
 	}
@@ -375,12 +384,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
-				case "UserHasConnectedResponse" : {
-					UserHasConnectedResponse message = new UserHasConnectedResponse("UserHasConnectedResponse");
-					message.setUserid(((UserHasConnectedResponse)msg).getUserid());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
-				}
 				case "ChatJoinNewUserResponse" : {
 					ChatJoinNewUserResponse message = new ChatJoinNewUserResponse("ChatJoinNewUserResponse");
 					message.setDisplayname(((ChatJoinNewUserResponse)msg).getDisplayname());
@@ -486,14 +489,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					String retString = mapper.writeValueAsString(message);
 					return retString;
 				}
-				case "PlayerStateChangeResponse":{
-					PlayerStateChangeResponse message = new PlayerStateChangeResponse("PlayerStateChangeResponse");
-					message.setPlayerstate(((PlayerStateChangeResponse)msg).getPlayerstate());
-					message.setActiveplayerid(((PlayerStateChangeResponse)msg).getActiveplayerid());
-					message.setGameid(((PlayerStateChangeResponse)msg).getGameid());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
-				}
 				case "GameHasStartedResponse":{
 					GameHasStartedResponse message = new GameHasStartedResponse("GameHasStartedResponse");
 					message.setGameid(((GameHasStartedResponse)msg).getGameid());
@@ -572,8 +567,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					db.insertSessionToken(action.getRecipientSessionId(), userid);
 				}
 
-				//Announce to users that the client has connected.
-				AnnounceUserLoggedOn(action);
 
 			} else {
 				retMsg.setResponse("Username and/or password are incorrect");
@@ -626,11 +619,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			messagesToSend.add(retMsg);
 		}
 
-		if (retMsg.isLoginStatus()){
-			AnnounceUserLoggedOn(action);
-		}
 	}
 
+	/**
+	 * When a user wants to list all chat rooms.
+	 * @param action
+	 */
 	private void UserListChatrooms(UserListChatrooms action) {
 		ChatRoomsListResponse retMsg = new ChatRoomsListResponse("ChatRoomsListResponse");
 		retMsg.setRecipientSessionId(action.getRecipientSessionId());
@@ -655,29 +649,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 
 	}
-
-	/**
-	 * When a new user logs into to the game server we announce their presence to all other clients.
-	 * @param action
-	 */
-	private void AnnounceUserLoggedOn(Message action){
-		Iterator<Client> iterator = clients.iterator();
-		while(iterator.hasNext()){
-			Client c = iterator.next();
-
-			Message retMsg = new UserHasConnectedResponse("UserHasConnectedResponse");
-			retMsg.setRecipientSessionId(c.getUuid());
-			((UserHasConnectedResponse) retMsg).setUserid(( sessionIdToUserId(action.getRecipientSessionId())));
-
-			//No need to announce to the originator of the message.
-			if (!c.getUuid().contentEquals(retMsg.getRecipientSessionId())){
-				synchronized (messagesToSend) {
-					messagesToSend.add(retMsg);
-				}
-			}
-		}
-	}
-
 	/**
 	 * Logic for when a client want to register an account.
 	 * @param action
@@ -711,7 +682,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
-
+	/**
+	 * When a user wants to join a chat room
+	 * @param action
+	 */
 	private void UserJoinChat(UserJoinChat action) {
 		//Security check.
 		boolean secCheckPass = securityCheck(action.getUserid(),action.getRecipientSessionId());
@@ -797,6 +771,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	/**
+	 *
+	 * @param chatroomname
+	 * @return Array of chat messages in a chat room.
+	 */
 	private ChatMessage[] getChatLog(String chatroomname){
 		ArrayList<ChatMessage> arraylist = db.getChatMessages(chatroomname);
 
@@ -1670,15 +1649,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 */
 	@Override
 	public void playerStateChanged(PlayerEvent event) {
-		Message retMsg;
 		Ludo game = event.getLudo();
 		if(event.getPlayerEvent().contentEquals("Won")){
 			int playerid = 0; //Represents which player we are looping through. This works since ludo game id
 							  // Have the same order as player names.
 			for (String name : game.getActivePlayers()){
-				retMsg = new PlayerWonGameResponse("PlayerWonGameResponse");
-				((PlayerWonGameResponse)retMsg).setPlayerwonid(event.getPlayerID());
-				((PlayerWonGameResponse)retMsg).setGameid(game.getGameid());
 				UserInfo info = db.getProfilebyDisplayName(name);
 				info.setGamesPlayed(info.getGamesPlayed() + 1);
 
@@ -1692,27 +1667,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
-				retMsg.setRecipientSessionId(useridToSessionId(info.getUserId()));
-				synchronized (messagesToSend){
-					messagesToSend.add(retMsg);
-				}
-			}
 
-		} else {
-			for (String name : game.getActivePlayers()){
-				retMsg = new PlayerStateChangeResponse("PlayerStateChangeResponse");
-				((PlayerStateChangeResponse)retMsg).setGameid(game.getGameid());
-				((PlayerStateChangeResponse)retMsg).setActiveplayerid(event.getPlayerID());
-				((PlayerStateChangeResponse)retMsg).setPlayerstate(event.getPlayerEvent());
-				UserInfo userInfo = db.getProfilebyDisplayName(name);
-				retMsg.setRecipientSessionId(useridToSessionId(userInfo.getUserId()));
-				synchronized (messagesToSend){
-					messagesToSend.add(retMsg);
-				}
+				playerid++;
 			}
 		}
-
-
 	}
 
 

@@ -42,7 +42,7 @@ public class SocketTester {
                 sendLogin();
                 //sendAutoLogin();
 
-                //joinChatRoom();
+                joinChatRoom();
 
                 //listChatRooms();
 
@@ -56,10 +56,10 @@ public class SocketTester {
 
                 //removeFromChatRoom();
 
-                sendUserView();
-                sendUserEdit();
-                sendUserView();
-                TopTen();
+                //sendUserView();
+                //sendUserEdit();
+                //sendUserView();
+                //TopTen();
 
                 //sendChatMessage();
                 //sendChatMessage();
@@ -131,7 +131,7 @@ public class SocketTester {
     }
 
     private void joinChatRoom(){
-        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"2ecc4deb-e320-4fac-9834-2ee0a84edeca\", \"chatroomname\" : \"Global\"}";
+        String JoinChatMessage = "{\"action\" : \"UserJoinChat\", \"userid\" : \"\", \"chatroomname\" : null}";
         try {
             bw.write(JoinChatMessage);
             bw.newLine();

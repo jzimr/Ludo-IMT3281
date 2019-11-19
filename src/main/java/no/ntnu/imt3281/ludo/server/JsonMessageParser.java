@@ -125,6 +125,8 @@ public class JsonMessageParser {
 
         } catch (IOException e) {
             e.printStackTrace();
+        } catch(NullPointerException e) {
+            System.out.println(e.getMessage());
         }
         return null;
     }
