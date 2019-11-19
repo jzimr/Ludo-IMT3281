@@ -637,31 +637,26 @@ public class Ludo {
                     int pieceid2 = userGridToLudoBoardGrid(i,getPosition(i,k));
 
                     if(pieceid1 == pieceid2 && j != k && pieceid1_local != 0 && pieceid2_local != 0 && playerID != i){ //any towers?
-                        for (int l = 0; l < 4; l++){ // My pieces
-                            int myPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,l));
-                                /*if (pieceid1 > myPiece + diceRolled && myPiece != 0){ //Not blocking
-                                    return false;
-                                }*/
-
-                            //if (pieceid1 < myPiece+diceRolled && diceRolled == 6) { //In the way but we can go over.
-                            //return true;
-                            //}
 
                             //if (pieceid1 <= myPiece + diceRolled && ((pieceid1 - myPiece) < 6) && (pieceid1 - myPiece > 0)) { //Blocked, cant land on top or after a piece.
                             for (int x = 0; x < 4; x++) { // Check if other pieces are in play.
                                 int myOtherPiece = userGridToLudoBoardGrid(playerID,getPosition(playerID,x));
                                 int myOtherPieceLocal = getPosition(playerID,x); // todo
+                                System.out.println(myOtherPieceLocal + "!= 0 && " + pieceid1 + " > " + myOtherPiece + " + " + diceRolled);
+                                System.out.println(myOtherPieceLocal + "!= 0 && ((" + pieceid1 + " - " +myOtherPiece + ") > 6 && (" + pieceid1 + " - " + myOtherPiece + " < 0");
                                 if (/*myPiece != myOtherPiece && */((myOtherPieceLocal != 0 && myOtherPieceLocal != 59 && myOtherPieceLocal + diceRolled <= 59 && myOtherPieceLocal >= 54)
                                         || (myOtherPieceLocal != 0 && pieceid1 > myOtherPiece + diceRolled)
-                                        || (myOtherPieceLocal != 0 && ((pieceid1 - myPiece) > 6) || (pieceid1 - myPiece < 0))
+                                        || (myOtherPieceLocal != 0 && (((pieceid1 - myOtherPiece) > 6) || (pieceid1 - myOtherPiece < 0)) && myOtherPieceLocal + diceRolled <= 59)
                                         || (diceRolled == 6 && myOtherPieceLocal == 0))) {
                                     //Other pieces are available. Return true;
+                                    System.out.println("hei");
                                     return true;
                                 }
                             }
+                            System.out.println("Nei for faen");
 
                             return false;
-                        }
+
                         //}
                     }
                 }
