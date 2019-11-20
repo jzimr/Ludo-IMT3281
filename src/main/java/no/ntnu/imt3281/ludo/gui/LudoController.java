@@ -380,7 +380,11 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     @FXML
     public void aboutHelp(ActionEvent e) {
-        //todo
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("About Ludo");
+        alert.setHeaderText("About Ludo");
+        alert.setContentText("Ludo Version 1.0\nCreated by : Jan Zimmer (493594) & André Gunhildberget (493561) - 2019");
+        alert.show();
     }
 
 
