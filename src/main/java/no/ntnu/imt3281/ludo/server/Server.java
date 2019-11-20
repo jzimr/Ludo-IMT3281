@@ -546,7 +546,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 				default: {
 					System.out.println(msg);
-					return "{\"ERROR\":\"something went wrong\"}";
+					return "{\"ERROR\":\"server.genericError\"}";
 				}
 			}
 
@@ -571,7 +571,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			retMsg.setLoginStatus(status);
 
 			if(retMsg.isLoginStatus()){ //If login was successful we set the userid on the client.
-				retMsg.setResponse("OK");
+				retMsg.setResponse("server.loginOk");
 
 				String userid = db.getUserId(action.getUsername());
 				if (!alreadyLogged(userid)){
@@ -589,16 +589,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						db.insertSessionToken(action.getRecipientSessionId(), userid);
 					}
 				} else {
-					retMsg.setResponse("User already logged in. Please log out before trying again.");
+					retMsg.setResponse("server.loginAlready");
 					retMsg.setLoginStatus(false);
 				}
 
 			} else {
-				retMsg.setResponse("Username and/or password are incorrect");
+				retMsg.setResponse("server.loginFail");
 			}
 
 		} catch (SQLException e) {
-			retMsg.setResponse("Internal Server Error");
+			retMsg.setResponse("server.internalError");
 			retMsg.setLoginStatus(false);
 			e.printStackTrace();
 		}
@@ -622,7 +622,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			boolean status = db.checkIfLoginValid(action.getRecipientSessionId());
 			retMsg.setLoginStatus(status);
 			if(status) {
-				retMsg.setResponse("Login was successful");
+				retMsg.setResponse("server.loginOk");
 				String userid = db.getUserIdBySession(retMsg.getRecipientSessionId());
 				if (!alreadyLogged(userid)){
 					retMsg.setUserid(userid);
@@ -630,17 +630,17 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					UserInfo info = db.getProfile(userid);
 					retMsg.setDisplayname(info.getDisplayName());
 				} else {
-					retMsg.setResponse("User already logged in. Please log out before trying again.");
+					retMsg.setResponse("server.loginAlready");
 					retMsg.setLoginStatus(false);
 				}
 
 			} else {
-				retMsg.setResponse("Session token are invalid. Try again");
+				retMsg.setResponse("server.invalidToken");
 			}
 
 		} catch (SQLException e) {
 			retMsg.setLoginStatus(false);
-			retMsg.setResponse("Internal server error");
+			retMsg.setResponse("server.internalError");
 			e.printStackTrace();
 		}
 
@@ -694,15 +694,15 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			if (!usernameExists) {
 				db.insertAccount(action.getUsername(), action.getPassword());
 				((RegisterResponse)retMsg).setRegisterStatus(true);
-				((RegisterResponse)retMsg).setResponse("Registration successful");
+				((RegisterResponse)retMsg).setResponse("server.registerOk");
 			} else {
 				((RegisterResponse)retMsg).setRegisterStatus(false);
-				((RegisterResponse)retMsg).setResponse("User with username " + action.getUsername() + " already exists");
+				((RegisterResponse)retMsg).setResponse("server.registerFail");
 			}
 
 		} catch (SQLException e) {
 			((RegisterResponse)retMsg).setRegisterStatus(false);
-			((RegisterResponse)retMsg).setResponse("Internal server error");
+			((RegisterResponse)retMsg).setResponse("server.internalError");
 			e.printStackTrace();
 		}
 		synchronized (messagesToSend) {
@@ -731,7 +731,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			if (chatRoomIsGameOnly(action.getChatroomname())) {
 				UserInfo info = db.getProfile(action.getUserid());
 				if (!userIsAllowedInRoom(action.getChatroomname(), info.getDisplayName())){
-					((ChatJoinResponse)retMsg).setResponse("You are not allowed to join this room");
+					((ChatJoinResponse)retMsg).setResponse("server.roomNotAllowed");
 					((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
 					((ChatJoinResponse)retMsg).setStatus(false);
 					synchronized (messagesToSend) {
@@ -747,7 +747,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
 
 			if (added) {
-				((ChatJoinResponse)retMsg).setResponse("Joined room successfully");
+				((ChatJoinResponse)retMsg).setResponse("server.roomJoinOk");
 
 				((ChatJoinResponse)retMsg).setUsersinroom(getUsersInChatRoom(action.getChatroomname()));
 				((ChatJoinResponse)retMsg).setChatlog(getChatLog(action.getChatroomname()));
@@ -756,7 +756,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				announceToUsersInChatRoom(retMsg, action.getChatroomname());
 
 			} else {
-				((ChatJoinResponse)retMsg).setResponse("Attempt to join room was unsuccessful");
+				((ChatJoinResponse)retMsg).setResponse("server.roomJoinFail");
 			}
 
 		} else { //Create chatroom and join it.
@@ -770,7 +770,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					activeChatRooms.add(room);
 
 					((ChatJoinResponse)retMsg).setStatus(true);
-					((ChatJoinResponse)retMsg).setResponse("Room created and joined successfully");
+					((ChatJoinResponse)retMsg).setResponse("server.roomCreateOk");
 					((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
 
 					//Announce the users presence to others in the chat room.
@@ -781,14 +781,14 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 				} else {
 					((ChatJoinResponse)retMsg).setStatus(false);
-					((ChatJoinResponse)retMsg).setResponse("Creating room failed. Try again");
+					((ChatJoinResponse)retMsg).setResponse("server.roomCreateFail");
 					((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
 				}
 
 			} catch (SQLException e) {
 				e.printStackTrace();
 				((ChatJoinResponse)retMsg).setStatus(false);
-				((ChatJoinResponse)retMsg).setResponse("Internal server error");
+				((ChatJoinResponse)retMsg).setResponse("server.internalError");
 				((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
 			}
 
@@ -852,13 +852,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			} else {
 				retMsg = new ErrorMessageResponse("ErrorMessageResponse");
 				retMsg.setRecipientSessionId(recipientId);
-				((ErrorMessageResponse)retMsg).setMessage("Could not remove you from the chat room");
+				((ErrorMessageResponse)retMsg).setMessage("server.roomLeaveFail");
 			}
 
 		} else {
 			retMsg = new ErrorMessageResponse("ErrorMessageResponse");
 			retMsg.setRecipientSessionId(recipientId);
-			((ErrorMessageResponse)retMsg).setMessage("You are not in the requested chat room");
+			((ErrorMessageResponse)retMsg).setMessage("server.roomLeaveError");
 		}
 
 		synchronized (messagesToSend) {
@@ -903,11 +903,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		} else { //If the chatroom is non existent give the user a error message.
 			retMsg = new ErrorMessageResponse("ErrorMessageResponse");
 			if (!isConnected) {
-				((ErrorMessageResponse)retMsg).setMessage("You are not connected to this chat room");
+				((ErrorMessageResponse)retMsg).setMessage("server.messageNotInRoom");
 			}
 
 			if (!roomExists) {
-				((ErrorMessageResponse)retMsg).setMessage("No chatroom named " + action.getChatroomname() + " exists");
+				((ErrorMessageResponse)retMsg).setMessage("server.messageNoRoom");
 			}
 
 			retMsg.setRecipientSessionId(useridToSessionId(action.getUserid()));
@@ -1250,7 +1250,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		activeLudoGames.add(newGame);
 
 		((CreateGameResponse)retMsg).setJoinstatus(true);
-		((CreateGameResponse)retMsg).setResponse("Joined game successfully");
+		((CreateGameResponse)retMsg).setResponse("server.gameJoinOk");
 		((CreateGameResponse)retMsg).setGameid(newGame.getGameid());
 
 		System.out.println("Active ludo games " + activeLudoGames.size());
@@ -1493,7 +1493,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			activeLudoGames.add(newGame);
 
 			((CreateGameResponse)retMsg).setJoinstatus(true);
-			((CreateGameResponse)retMsg).setResponse("Joined game successfully");
+			((CreateGameResponse)retMsg).setResponse("server.gameJoinOk");
 			((CreateGameResponse)retMsg).setGameid(newGame.getGameid());
 			synchronized (messagesToSend) {
 				messagesToSend.add(retMsg);
@@ -1530,7 +1530,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			((UserWantToViewProfileResponse)retMsg).setMessage("");
 
 		} else {
-			((UserWantToViewProfileResponse)retMsg).setMessage("No user with displayname " + action.getDisplayname());
+			((UserWantToViewProfileResponse)retMsg).setMessage("server.userViewProfileFail");
 		}
 
 		synchronized (messagesToSend) {
@@ -1577,23 +1577,23 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 		if (profileUpdate && passwordUpdate) { //Both updated.
 			((UserWantToEditProfileResponse)retMsg).setChanged(true);
-			((UserWantToEditProfileResponse)retMsg).setResponse("Updated the whole profile successfully.");
+			((UserWantToEditProfileResponse)retMsg).setResponse("server.userEditProfileOK");
 			((UserWantToEditProfileResponse)retMsg).setDisplayname(newInfo.getDisplayName());
             System.out.println(newInfo.toString());
 
         } else if (profileUpdate && !passwordUpdate) { //Only profile was updated
 			((UserWantToEditProfileResponse)retMsg).setChanged(true);
-			((UserWantToEditProfileResponse)retMsg).setResponse("Profile was updated successfully. Password was not updated.");
+			((UserWantToEditProfileResponse)retMsg).setResponse("server.userEditProfileNoPW");
 			((UserWantToEditProfileResponse)retMsg).setDisplayname(action.getDisplayname());
 
 		} else if (!profileUpdate && passwordUpdate) { //Only password was updated
 			((UserWantToEditProfileResponse)retMsg).setChanged(true);
-			((UserWantToEditProfileResponse)retMsg).setResponse("Profile was not updated. Password updated successfully.");
+			((UserWantToEditProfileResponse)retMsg).setResponse("server.userEditProfileOnlyPW");
 			((UserWantToEditProfileResponse)retMsg).setDisplayname(oldInfo.getDisplayName());
 
 		} else { //Neither was updated.
 			((UserWantToEditProfileResponse)retMsg).setChanged(false);
-			((UserWantToEditProfileResponse)retMsg).setResponse("Something went wrong when updating user information");
+			((UserWantToEditProfileResponse)retMsg).setResponse("server.userEditProfileFail");
 			((UserWantToEditProfileResponse)retMsg).setDisplayname(oldInfo.getDisplayName());
 		}
 
