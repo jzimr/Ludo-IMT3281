@@ -16,7 +16,7 @@
                 <Menu mnemonicParsing="false" text="%toolbar.file">
                   <items>
                         <MenuItem fx:id="connect" mnemonicParsing="false" onAction="#connectToServer" text="%toolbar.connect" />
-                    <MenuItem mnemonicParsing="false" text="%toolbar.close" />
+                    <MenuItem fx:id="close_btn" mnemonicParsing="false" onAction="#closeClient" text="%toolbar.close" />
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="%toolbar.game">

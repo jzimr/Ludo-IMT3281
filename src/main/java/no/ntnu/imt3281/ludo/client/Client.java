@@ -24,7 +24,8 @@ public class Client extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            Locale locale = new Locale("NO", "no");
+            //Locale locale = new Locale("NO", "no");
+            Locale locale = Locale.getDefault();
             ResourceBundle bundle = ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game", locale);
             AnchorPane root = FXMLLoader.load(getClass().getResource("../gui/Ludo.fxml"), bundle);
             Scene scene = new Scene(root);
