@@ -20,22 +20,26 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	final private int SERVER_PORT = 4567; //Server Port
-	Database db; //Database
+	private Database db; //Database
 
-	ArrayList<Ludo> activeLudoGames = new ArrayList<>(); //ArrayList of active games.
-	ArrayList<ChatRoom> activeChatRooms = new ArrayList<>(); //ArrayList of chat rooms.
-	ArrayList<Invitations> pendingInvites = new ArrayList<>(); //ArrayList of pending invites.
+	private ArrayList<Ludo> activeLudoGames = new ArrayList<>(); //ArrayList of active games.
+	private ArrayList<ChatRoom> activeChatRooms = new ArrayList<>(); //ArrayList of chat rooms.
+	private ArrayList<Invitations> pendingInvites = new ArrayList<>(); //ArrayList of pending invites.
 
-	LinkedList<Client> clients = new LinkedList<>(); //LinkedList containing clients
+	private final LinkedList<Client> clients = new LinkedList<>(); //LinkedList containing clients
 
-	boolean stopping = false; //Boolean to stop the server
+	private boolean stopping = false; //Boolean to stop the server
 
-	ArrayBlockingQueue<Message> objectsToHandle = new ArrayBlockingQueue<>(100); //Queue for incoming messages
+	private final ArrayBlockingQueue<Message> objectsToHandle = new ArrayBlockingQueue<>(100); //Queue for incoming messages
 
-	ArrayBlockingQueue<Message> messagesToSend = new ArrayBlockingQueue<>(100); //Queue for outbound messages
+	private final ArrayBlockingQueue<Message> messagesToSend = new ArrayBlockingQueue<>(100); //Queue for outbound messages
 
-	ArrayBlockingQueue<Client> disconnectedClients = new ArrayBlockingQueue<>(1000); //Queue for clients that is to be disconnected.
+	private final ArrayBlockingQueue<Client> disconnectedClients = new ArrayBlockingQueue<>(1000); //Queue for clients that is to be disconnected.
 
+	/**
+	 * Main function of the server.
+	 * @param args arguments passed via cli
+	 */
 	public static void main(String[] args) {
 		new Server(false); //Create a new server instance.
 	}
@@ -75,7 +79,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	/**
 	 * Function for stopping the server.
 	 */
-	public void stopServer(){
+	void stopServer(){
 		stopping = true;
 	}
 
@@ -257,7 +261,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * This function removes a client from all chatrooms + games.
-	 * @param userId
+	 * @param userId String containing the user id of the user we want to remove from chat and games.
 	 */
 	private void removeClientsFromModules(String userId){
 		//Remove user from chat rooms.
@@ -343,7 +347,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	/**
 	 * Determines what function is to be called by checking what action a message
 	 * that comes from a client is.
-	 * @param action
+	 * @param action Message received from user
 	 */
 	private void handleAction(Message action){
 		switch (action.getAction()) {
@@ -371,7 +375,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	/**
 	 * This function converts from messages the server got and handled to a format
 	 * the user can expect to receive.
-	 * @param msg
+	 * @param msg Message we want to convert to a String
 	 * @return String json message
 	 */
 	private String convertToCorrectJson(Message msg) {
@@ -389,29 +393,25 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setResponse(((LoginResponse) msg).getResponse());
 					message.setUserid(((LoginResponse) msg).getUserid());
 					message.setDisplayname(((LoginResponse)msg).getDisplayname());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "RegisterResponse": {
 					RegisterResponse message = new RegisterResponse("RegisterResponse");
 					message.setRegisterStatus(( (RegisterResponse) msg) .isRegisterStatus());
 					message.setResponse(((RegisterResponse) msg).getResponse());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "DiceThrowResponse" : {
 					DiceThrowResponse message = new DiceThrowResponse("DiceThrowResponse");
 					message.setDicerolled(((DiceThrowResponse)msg).getDicerolled());
 					message.setGameid(((DiceThrowResponse)msg).getGameid());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "ChatJoinNewUserResponse" : {
 					ChatJoinNewUserResponse message = new ChatJoinNewUserResponse("ChatJoinNewUserResponse");
 					message.setDisplayname(((ChatJoinNewUserResponse)msg).getDisplayname());
 					message.setChatroomname(((ChatJoinNewUserResponse)msg).getChatroomname());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "ChatJoinResponse" : {
 					ChatJoinResponse message = new ChatJoinResponse("ChatJoinResponse");
@@ -420,8 +420,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setChatroomname(((ChatJoinResponse)msg).getChatroomname());
 					message.setUsersinroom(((ChatJoinResponse)msg).getUsersinroom());
 					message.setChatlog(((ChatJoinResponse)msg).getChatlog());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "SentMessageResponse": {
 					SentMessageResponse message = new SentMessageResponse("SentMessageResponse");
@@ -429,70 +428,60 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setChatroomname(((SentMessageResponse)msg).getChatroomname());
 					message.setChatmessage(((SentMessageResponse)msg).getChatmessage());
 					message.setTimestamp(((SentMessageResponse)msg).getTimestamp());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "UserLeftChatRoomResponse": {
 					UserLeftChatRoomResponse message = new UserLeftChatRoomResponse("UserLeftChatRoomResponse");
 					message.setDisplayname(((UserLeftChatRoomResponse)msg).getDisplayname());
 					message.setChatroomname(((UserLeftChatRoomResponse)msg).getChatroomname());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "ErrorMessageResponse" : {
 					ErrorMessageResponse message = new ErrorMessageResponse("ErrorMessageResponse");
 					message.setMessage(((ErrorMessageResponse)msg).getMessage());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "ChatRoomsListResponse" : {
 					ChatRoomsListResponse message = new ChatRoomsListResponse("ChatRoomsListResponse");
 					message.setChatRoom(((ChatRoomsListResponse)msg).getChatRoom());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
                 case "UsersListResponse" : {
                     UsersListResponse message = new UsersListResponse("UsersListResponse");
                     message.setDisplaynames(((UsersListResponse)msg).getDisplaynames());
-                    String retString = mapper.writeValueAsString(message);
-                    return retString;
+					return mapper.writeValueAsString(message);
                 }
 				case "CreateGameResponse": {
 					CreateGameResponse message = new CreateGameResponse("CreateGameResponse");
 					message.setGameid(((CreateGameResponse)msg).getGameid());
 					message.setJoinstatus(((CreateGameResponse)msg).isJoinstatus());
 					message.setResponse(((CreateGameResponse)msg).getResponse());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "SendGameInvitationsResponse": {
 					SendGameInvitationsResponse message = new SendGameInvitationsResponse("SendGameInvitationsResponse");
 					message.setHostdisplayname(((SendGameInvitationsResponse)msg).getHostdisplayname());
 					message.setGameid(((SendGameInvitationsResponse)msg).getGameid());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "UserJoinedGameResponse": {
 					UserJoinedGameResponse message = new UserJoinedGameResponse("UserJoinedGameResponse");
 					message.setPlayersinlobby(((UserJoinedGameResponse)msg).getPlayersinlobby());
 					message.setUserid(((UserJoinedGameResponse)msg).getUserid());
 					message.setGameid(((UserJoinedGameResponse)msg).getGameid());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "UserDeclinedGameInvitationResponse":{
 					UserDeclinedGameInvitationResponse message = new UserDeclinedGameInvitationResponse("UserDeclinedGameInvitationResponse");
 					message.setUserid(((UserDeclinedGameInvitationResponse)msg).getUserid());
 					message.setGameid(((UserDeclinedGameInvitationResponse)msg).getGameid());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "UserLeftGameResponse":{
 					UserLeftGameResponse message = new UserLeftGameResponse("UserLeftGameResponse");
 					message.setGameid(((UserLeftGameResponse)msg).getGameid());
 					message.setDisplayname(((UserLeftGameResponse)msg).getDisplayname());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "PieceMovedResponse": {
 					PieceMovedResponse message = new PieceMovedResponse("PieceMovedResponse");
@@ -501,21 +490,18 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setMovedto(((PieceMovedResponse)msg).getMovedto());
 					message.setMovedfrom(((PieceMovedResponse)msg).getMovedfrom());
 					message.setGameid(((PieceMovedResponse)msg).getGameid());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "PlayerWonGameResponse":{
 					PlayerWonGameResponse message = new PlayerWonGameResponse("PlayerWonGameResponse");
 					message.setPlayerwonid(((PlayerWonGameResponse)msg).getPlayerwonid());
 					message.setGameid(((PlayerWonGameResponse)msg).getGameid());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "GameHasStartedResponse":{
 					GameHasStartedResponse message = new GameHasStartedResponse("GameHasStartedResponse");
 					message.setGameid(((GameHasStartedResponse)msg).getGameid());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "UserWantToViewProfileResponse":{
 					UserWantToViewProfileResponse message = new UserWantToViewProfileResponse("UserWantToViewProfileResponse");
@@ -525,23 +511,20 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					message.setDisplayName(((UserWantToViewProfileResponse)msg).getDisplayName());
 					message.setImageString(((UserWantToViewProfileResponse)msg).getImageString());
 					message.setMessage(((UserWantToViewProfileResponse)msg).getMessage());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "UserWantToEditProfileResponse":{
 					UserWantToEditProfileResponse message = new UserWantToEditProfileResponse("UserWantToEditProfileResponse");
 					message.setResponse(((UserWantToEditProfileResponse)msg).getResponse());
 					message.setChanged(((UserWantToEditProfileResponse)msg).isChanged());
 					message.setDisplayname(((UserWantToEditProfileResponse)msg).getDisplayname());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 				case "LeaderboardResponse":{
 					LeaderboardResponse message = new LeaderboardResponse("LeaderboardResponse");
 					message.setToptenplays(((LeaderboardResponse)msg).getToptenplays());
 					message.setToptenwins(((LeaderboardResponse)msg).getToptenwins());
-					String retString = mapper.writeValueAsString(message);
-					return retString;
+					return mapper.writeValueAsString(message);
 				}
 
 				default: {
@@ -550,8 +533,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				}
 			}
 
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -561,7 +542,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * When the user logs in without using the remember me function.
-	 * @param action
+	 * @param action ClientLogin message from user
 	 */
 	private void UserDoesLoginManual(ClientLogin action){
 		LoginResponse retMsg = new LoginResponse("LoginResponse");
@@ -611,7 +592,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * When a user logs in automatically using a remember me function.
-	 * @param action
+	 * @param action ClientLogin message from user
 	 */
 	private void UserDoesLoginAuto(ClientLogin action){
 
@@ -652,7 +633,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * When a user wants to list all chat rooms.
-	 * @param action
+	 * @param action UserListChatrooms message from user
 	 */
 	private void UserListChatrooms(UserListChatrooms action) {
 		ChatRoomsListResponse retMsg = new ChatRoomsListResponse("ChatRoomsListResponse");
@@ -671,7 +652,6 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 
 		retMsg.setChatRoom(arr);
-		System.out.println(arr.toString());
 
 		synchronized (messagesToSend) {
 			messagesToSend.add(retMsg);
@@ -680,11 +660,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 	/**
 	 * Logic for when a client want to register an account.
-	 * @param action
+	 * @param action ClientRegister message from user
 	 */
 	private void UserDoesRegister(ClientRegister action){
 
-		Message retMsg = new RegisterResponse("RegisterResponse");
+		RegisterResponse retMsg = new RegisterResponse("RegisterResponse");
 		retMsg.setRecipientSessionId(action.getRecipientSessionId());
 
 		/* Check if the username already exists */
@@ -693,16 +673,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			boolean usernameExists = db.doesAccountNameExist(action.getUsername());
 			if (!usernameExists) {
 				db.insertAccount(action.getUsername(), action.getPassword());
-				((RegisterResponse)retMsg).setRegisterStatus(true);
-				((RegisterResponse)retMsg).setResponse("server.registerOk");
+				retMsg.setRegisterStatus(true);
+				retMsg.setResponse("server.registerOk");
 			} else {
-				((RegisterResponse)retMsg).setRegisterStatus(false);
-				((RegisterResponse)retMsg).setResponse("server.registerFail");
+				retMsg.setRegisterStatus(false);
+				retMsg.setResponse("server.registerFail");
 			}
 
 		} catch (SQLException e) {
-			((RegisterResponse)retMsg).setRegisterStatus(false);
-			((RegisterResponse)retMsg).setResponse("server.internalError");
+			retMsg.setRegisterStatus(false);
+			retMsg.setResponse("server.internalError");
 			e.printStackTrace();
 		}
 		synchronized (messagesToSend) {
@@ -713,7 +693,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * When a user wants to join a chat room
-	 * @param action
+	 * @param action UserJoinChat message from user
 	 */
 	private void UserJoinChat(UserJoinChat action) {
 		//Security check.
@@ -723,7 +703,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			return;
 		}
 
-		Message retMsg = new ChatJoinResponse("ChatJoinResponse");
+		ChatJoinResponse retMsg = new ChatJoinResponse("ChatJoinResponse");
 		retMsg.setRecipientSessionId(useridToSessionId(action.getUserid()));
 
 		if (chatRoomExists(action.getChatroomname())) {
@@ -731,9 +711,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			if (chatRoomIsGameOnly(action.getChatroomname())) {
 				UserInfo info = db.getProfile(action.getUserid());
 				if (!userIsAllowedInRoom(action.getChatroomname(), info.getDisplayName())){
-					((ChatJoinResponse)retMsg).setResponse("server.roomNotAllowed");
-					((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
-					((ChatJoinResponse)retMsg).setStatus(false);
+					retMsg.setResponse("server.roomNotAllowed");
+					retMsg.setChatroomname(action.getChatroomname());
+					retMsg.setStatus(false);
 					synchronized (messagesToSend) {
 						messagesToSend.add(retMsg);
 						return; //We dont do anything else here.
@@ -743,20 +723,20 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 			boolean added = addUserToChatroom(action.getChatroomname(), action.getUserid());
 
-			((ChatJoinResponse)retMsg).setStatus(added);
-			((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
+			retMsg.setStatus(added);
+			retMsg.setChatroomname(action.getChatroomname());
 
 			if (added) {
-				((ChatJoinResponse)retMsg).setResponse("server.roomJoinOk");
+				retMsg.setResponse("server.roomJoinOk");
 
-				((ChatJoinResponse)retMsg).setUsersinroom(getUsersInChatRoom(action.getChatroomname()));
-				((ChatJoinResponse)retMsg).setChatlog(getChatLog(action.getChatroomname()));
+				retMsg.setUsersinroom(getUsersInChatRoom(action.getChatroomname()));
+				retMsg.setChatlog(getChatLog(action.getChatroomname()));
 
 				//Announce the users presence to others in the chat room.
 				announceToUsersInChatRoom(retMsg, action.getChatroomname());
 
 			} else {
-				((ChatJoinResponse)retMsg).setResponse("server.roomJoinFail");
+				retMsg.setResponse("server.roomJoinFail");
 			}
 
 		} else { //Create chatroom and join it.
@@ -769,27 +749,27 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					room.getConnectedUsers().add(action.getUserid());
 					activeChatRooms.add(room);
 
-					((ChatJoinResponse)retMsg).setStatus(true);
-					((ChatJoinResponse)retMsg).setResponse("server.roomCreateOk");
-					((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
+					retMsg.setStatus(true);
+					retMsg.setResponse("server.roomCreateOk");
+					retMsg.setChatroomname(action.getChatroomname());
 
 					//Announce the users presence to others in the chat room.
 					announceToUsersInChatRoom(retMsg, action.getChatroomname());
 
-					((ChatJoinResponse)retMsg).setUsersinroom(getUsersInChatRoom(action.getChatroomname()));
-					((ChatJoinResponse)retMsg).setChatlog(getChatLog(action.getChatroomname()));
+					retMsg.setUsersinroom(getUsersInChatRoom(action.getChatroomname()));
+					retMsg.setChatlog(getChatLog(action.getChatroomname()));
 
 				} else {
-					((ChatJoinResponse)retMsg).setStatus(false);
-					((ChatJoinResponse)retMsg).setResponse("server.roomCreateFail");
-					((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
+					retMsg.setStatus(false);
+					retMsg.setResponse("server.roomCreateFail");
+					retMsg.setChatroomname(action.getChatroomname());
 				}
 
 			} catch (SQLException e) {
 				e.printStackTrace();
-				((ChatJoinResponse)retMsg).setStatus(false);
-				((ChatJoinResponse)retMsg).setResponse("server.internalError");
-				((ChatJoinResponse)retMsg).setChatroomname(action.getChatroomname());
+				retMsg.setStatus(false);
+				retMsg.setResponse("server.internalError");
+				retMsg.setChatroomname(action.getChatroomname());
 			}
 
 		}
@@ -802,7 +782,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 *
-	 * @param chatroomname
+	 * @param chatroomname String with the name of the chatroom
 	 * @return Array of chat messages in a chat room.
 	 */
 	private ChatMessage[] getChatLog(String chatroomname){
@@ -831,6 +811,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		return arr;
 	}
 
+	/**
+	 * When a user leaves a chat room
+	 * @param action UserLeftChatRoom message from user
+	 */
 	private void UserLeftChatRoom(UserLeftChatRoom action){
 		Message retMsg;
 		String recipientId = useridToSessionId(action.getUserid());
@@ -869,7 +853,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * When a user wants to send a message to a chat room.
-	 * @param action
+	 * @param action UserSentMessage message from user
 	 */
 	private void UserSentMessage(UserSentMessage action) {
 		//Security check.
@@ -920,6 +904,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	/**
+	 * When a user throws a dice.
+	 * @param action UserDoesDiceThrow from user
+	 */
 	private void UserDoesDiceThrow(UserDoesDiceThrow action){
 		for(Ludo game : activeLudoGames) {
 			if (game.getGameid().contentEquals(action.getGameid())) {
@@ -928,6 +916,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 	}
 
+	/**
+	 * When a user does a piece move.
+	 * @param action UserDoesPieceMove from user
+	 */
 	private void UserDoesPieceMove(UserDoesPieceMove action){
 		for (Ludo game : activeLudoGames) {
 			if (game.getGameid().contentEquals(action.getGameid())){
@@ -938,8 +930,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * Converts session UUID to userid
-	 * @param sessionId
-	 * @return userid
+	 * @param sessionId String containing session id we want to convert to user id
+	 * @return userid user id associated with the session id
 	 */
 	private String sessionIdToUserId(String sessionId){
 		Iterator<Client> c = clients.iterator();
@@ -955,8 +947,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * Converts userid to sessionid
-	 * @param userid
-	 * @return sessionid
+	 * @param userid String containing user id we want to convert to session id
+	 * @return sessionid session id associated with the user id
 	 */
 	private String useridToSessionId(String userid){
 		Iterator<Client> c = clients.iterator();
@@ -972,8 +964,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * Sets userid to client
-	 * @param sessionId
-	 * @param userid
+	 * @param sessionId String containing session id.
+	 * @param userid String containing user id.
 	 */
 	private void setUseridToClient(String sessionId , String userid){
 		Iterator<Client> c = clients.iterator();
@@ -988,9 +980,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * Adds a user to the chatroom
-	 * @param chatRoomName
-	 * @param userid
-	 * @return
+	 * @param chatRoomName String containing chatRoomName
+	 * @param userid String containing user id
+	 * @return true if user was added to chat room, false if not
 	 */
 	private boolean addUserToChatroom(String chatRoomName, String userid){
 		for(ChatRoom room : activeChatRooms) {
@@ -1006,6 +998,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		return false;
 	}
 
+	/**
+	 * Is the user in a specific chat room
+	 * @param chatRoomName String containing chat room name
+	 * @param userid String containing user id
+	 * @return true if a user is in the requested chat room, false if user is not in requested chat room.
+	 */
 	private boolean userIsInChatroom(String chatRoomName, String userid) {
 		for(ChatRoom room : activeChatRooms) {
 			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())) {
@@ -1019,6 +1017,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		return false;
 	}
 
+	/**
+	 * Get a string array of display names.
+	 * @param chatRoomName String containing chat room name
+	 * @return string array of display names in a chat room
+	 */
 	private String[] getUsersInChatRoom(String chatRoomName){
 		String[] arr = new String[0];
 		ArrayList<String> arrayList = null;
@@ -1046,17 +1049,18 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	/**
 	 * Send chat message to a chat room
 	 * @param action Message object
+	 * @param chatroom String containing chat room name
 	 */
 	private void sendMessageToChatRoom(Message action, String chatroom){
 
 		for (ChatRoom room : activeChatRooms) { //Loop over chat rooms
 			if (room.getName().contentEquals(chatroom)){ // Find correct chat room
 				for(String UserId : room.getConnectedUsers()){ //Get all active users
-					Message sentMessageResponse = new SentMessageResponse("SentMessageResponse");
-					((SentMessageResponse)sentMessageResponse).setChatmessage(((SentMessageResponse)action).getChatmessage());
-					((SentMessageResponse)sentMessageResponse).setChatroomname(chatroom);
-					((SentMessageResponse)sentMessageResponse).setdisplayname(((SentMessageResponse)action).getdisplayname());
-					((SentMessageResponse)sentMessageResponse).setTimestamp(((SentMessageResponse)action).getTimestamp());
+					SentMessageResponse sentMessageResponse = new SentMessageResponse("SentMessageResponse");
+					sentMessageResponse.setChatmessage(((SentMessageResponse)action).getChatmessage());
+					sentMessageResponse.setChatroomname(chatroom);
+					sentMessageResponse.setdisplayname(((SentMessageResponse)action).getdisplayname());
+					sentMessageResponse.setTimestamp(((SentMessageResponse)action).getTimestamp());
 					sentMessageResponse.setRecipientSessionId(useridToSessionId(UserId));
 
 					synchronized (messagesToSend) {
@@ -1071,8 +1075,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * Announces that a user has entered their chat room
-	 * @param action
-	 * @param chatroomname
+	 * @param action Message object
+	 * @param chatroomname String containing chat room name
 	 */
 	private void announceToUsersInChatRoom(Message action, String chatroomname){
 
@@ -1082,9 +1086,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			if (room.getName().contentEquals(chatroomname)){ // Find correct chat room
 				for(String UserId : room.getConnectedUsers()){ //Get all active users
 					if (!UserId.contentEquals(sessionIdToUserId(action.getRecipientSessionId()))) {
-						Message chatJoinNewUserResponse = new ChatJoinNewUserResponse("ChatJoinNewUserResponse");
-						((ChatJoinNewUserResponse)chatJoinNewUserResponse).setDisplayname(info.getDisplayName());
-						((ChatJoinNewUserResponse)chatJoinNewUserResponse).setChatroomname(room.getName());
+						ChatJoinNewUserResponse chatJoinNewUserResponse = new ChatJoinNewUserResponse("ChatJoinNewUserResponse");
+						chatJoinNewUserResponse.setDisplayname(info.getDisplayName());
+						chatJoinNewUserResponse.setChatroomname(room.getName());
 						chatJoinNewUserResponse.setRecipientSessionId(useridToSessionId(UserId));
 
 						synchronized (messagesToSend) {
@@ -1099,9 +1103,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * Removes a user from a chatroom
-	 * @param chatRoomName
-	 * @param userid
-	 * @return
+	 * @param chatRoomName String containing chat room name
+	 * @param userid String containing user id
+	 * @return true if user was removed from chat room, false if not
 	 */
 	private boolean removeUserFromChatroom(String chatRoomName, String userid) {
 		for(ChatRoom room : activeChatRooms) {
@@ -1129,17 +1133,17 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	/**
 	 * Announce the removal of a user in a chat room to other users in the same chat room
-	 * @param info
-	 * @param chatroomname
+	 * @param info UserInfo object containing info about the user that is to be announced
+	 * @param chatroomname String containing chat room name
 	 */
 	private void announceRemovalToUsersInChatRoom(UserInfo info, String chatroomname){
 
 		for (ChatRoom room : activeChatRooms) { //Loop over chat rooms
 			if (room.getName().contentEquals(chatroomname)){ // Find correct chat room
 				for(String UserId : room.getConnectedUsers()){ //Get all active users
-						Message userLeftChatRoomResponse = new UserLeftChatRoomResponse("UserLeftChatRoomResponse");
-						((UserLeftChatRoomResponse)userLeftChatRoomResponse).setDisplayname(info.getDisplayName());
-						((UserLeftChatRoomResponse)userLeftChatRoomResponse).setChatroomname(chatroomname);
+						UserLeftChatRoomResponse userLeftChatRoomResponse = new UserLeftChatRoomResponse("UserLeftChatRoomResponse");
+						userLeftChatRoomResponse.setDisplayname(info.getDisplayName());
+						userLeftChatRoomResponse.setChatroomname(chatroomname);
 						String sessionid = useridToSessionId(UserId);
 						if (sessionid != null ) {
 							userLeftChatRoomResponse.setRecipientSessionId(useridToSessionId(UserId));
@@ -1154,6 +1158,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 	}
 
+	/**
+	 * Does a chat room exist
+	 * @param chatRoomName String containing chat room name
+	 * @return true if chat room with given name returns, false if chat room does not exist
+	 */
 	private boolean chatRoomExists(String chatRoomName){
 		for(ChatRoom room: activeChatRooms) {
 			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())) {
@@ -1163,6 +1172,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		return false;
 	}
 
+	/**
+	 * Check if a chat room is a game rood.
+	 * @param chatRoomName String containing chat room name
+	 * @return True if it is a game room, false if not.
+	 */
 	private boolean chatRoomIsGameOnly(String chatRoomName){
 		for(ChatRoom room: activeChatRooms) {
 			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())) {
@@ -1172,6 +1186,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		return false;
 	}
 
+	/**
+	 * Check if a user is allowed to join a chat room. (Only used for game rooms)
+	 * @param chatRoomName String containing chat room name
+	 * @param displayname String containing display name
+	 * @return true if allowed, false if not.
+	 */
 	private boolean userIsAllowedInRoom(String chatRoomName, String displayname) {
 		for(ChatRoom room: activeChatRooms) {
 			if (room.getName().toLowerCase().contentEquals(chatRoomName.toLowerCase())) {
@@ -1187,7 +1207,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
     /**
      * Finds all names matching the search query.
-     * @param action
+     * @param action UserWantUserList message from user
      */
 	private void UserWantsUsersList(UserWantsUsersList action){
 		//Security check.
@@ -1227,7 +1247,11 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
     }
 
-    private void UserWantsToCreateGame(UserWantsToCreateGame action){
+	/**
+	 * When a user wants to create a game.
+	 * @param action UserWantsToCreateGame message from user
+	 */
+	private void UserWantsToCreateGame(UserWantsToCreateGame action){
 		//Security check.
 		boolean secCheckPass = securityCheck(action.getHostid(),action.getRecipientSessionId());
 		if(!secCheckPass){
@@ -1235,7 +1259,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			return;
 		}
 
-		Message retMsg = new CreateGameResponse("CreateGameResponse");
+		CreateGameResponse retMsg = new CreateGameResponse("CreateGameResponse");
 		retMsg.setRecipientSessionId(useridToSessionId(action.getHostid()));
 
 		Ludo newGame = new Ludo();
@@ -1249,9 +1273,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		newGame.addPlayerListener(this);
 		activeLudoGames.add(newGame);
 
-		((CreateGameResponse)retMsg).setJoinstatus(true);
-		((CreateGameResponse)retMsg).setResponse("server.gameJoinOk");
-		((CreateGameResponse)retMsg).setGameid(newGame.getGameid());
+		retMsg.setJoinstatus(true);
+		retMsg.setResponse("server.gameJoinOk");
+		retMsg.setGameid(newGame.getGameid());
 
 		System.out.println("Active ludo games " + activeLudoGames.size());
 
@@ -1283,9 +1307,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		ChatRoom newRoom = new ChatRoom(newGame.getGameid());
 		newRoom.setGameRoom(true);
 		ArrayList<String> names = new ArrayList<>();
-		for (String name: action.getToinvitedisplaynames()) {
-			names.add(name);
-		}
+		names.addAll(Arrays.asList(action.getToinvitedisplaynames()));
 		names.add(info.getDisplayName());
 		newRoom.setAllowedUsers(names);
 		activeChatRooms.add(newRoom);
@@ -1297,6 +1319,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	/**
+	 * When a user answers a game invite.
+	 * @param action UserDoesGameInvitationAnswer message from user
+	 */
 	private void UserDoesGameInvitationAnswer(UserDoesGameInvitationAnswer action) {
 		//Security check.
 		boolean secCheckPass = securityCheck(action.getUserid(),action.getRecipientSessionId());
@@ -1368,6 +1394,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		checkIfEveryoneAnsweredInvite(action);
 	}
 
+	/**
+	 * Checks if all invited users have answered the invite.
+	 * @param action UserDoesGameInvitationAnswer message from user
+	 */
 	private void checkIfEveryoneAnsweredInvite(UserDoesGameInvitationAnswer action){
 		for (Invitations invite : pendingInvites) {
 			if (invite.getGameid().contentEquals(action.getGameid())){
@@ -1376,8 +1406,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				if (invite.isEveryoneAccepted()){
 					for (int i = 0; i < invite.getPlayers().length; i++){
 						if (invite.getOnePlayerAccepted(i)){
-							Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
-							((GameHasStartedResponse)gameStarted).setGameid(invite.getGameid());
+							GameHasStartedResponse gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
+							gameStarted.setGameid(invite.getGameid());
 							UserInfo userInfo = db.getProfilebyDisplayName(invite.getOnePlayerName(i));
 							gameStarted.setRecipientSessionId(useridToSessionId(userInfo.getUserId()));
 
@@ -1389,8 +1419,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 					}
 					//pendingInvites.remove(invite);
 					for (Ludo game : activeLudoGames) {
-						Message gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
-						((GameHasStartedResponse)gameStarted).setGameid(invite.getGameid());
+						GameHasStartedResponse gameStarted = new GameHasStartedResponse("GameHasStartedResponse");
+						gameStarted.setGameid(invite.getGameid());
 						gameStarted.setRecipientSessionId(useridToSessionId(game.getHostid()));
 						messagesToSend.add(gameStarted);
 					}
@@ -1400,6 +1430,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 	}
 
+	/**
+	 * When a user leaves a game.
+	 * @param action UserLeftGame message from user
+	 */
 	private void UserLeftGame(UserLeftGame action){
 
 		UserLeftGameResponse retMsg = new UserLeftGameResponse("UserLeftGameResponse");
@@ -1424,6 +1458,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 	}
 
+	/**
+	 * When a user wants to search for a random game. Creates new if no games are available. Joins game if there are available games.
+	 * @param action UserDoesRandomGameSearch message from user
+	 */
 	private void UserDoesRandomGameSearch(UserDoesRandomGameSearch action){
 		//Security check.
 		boolean secCheckPass = securityCheck(action.getUserid(),action.getRecipientSessionId());
@@ -1442,10 +1480,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				foundGame = true;
 				game.addPlayer(info.getDisplayName());
 
-				Message retMsg = new UserJoinedGameResponse("UserJoinedGameResponse");
-				((UserJoinedGameResponse)retMsg).setGameid(game.getGameid());
-				((UserJoinedGameResponse)retMsg).setUserid(action.getUserid());
-				((UserJoinedGameResponse)retMsg).setPlayersinlobby(game.getPlayers());
+				UserJoinedGameResponse retMsg = new UserJoinedGameResponse("UserJoinedGameResponse");
+				retMsg.setGameid(game.getGameid());
+				retMsg.setUserid(action.getUserid());
+				retMsg.setPlayersinlobby(game.getPlayers());
 
 				for (String name : game.getPlayers()) {
 					UserInfo userInfo = db.getProfilebyDisplayName(name);
@@ -1479,7 +1517,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 
 		if (!foundGame) {
-			Message retMsg = new CreateGameResponse("CreateGameResponse");
+			CreateGameResponse retMsg = new CreateGameResponse("CreateGameResponse");
 			retMsg.setRecipientSessionId(action.recipientSessionId);
 
 			Ludo newGame = new Ludo();
@@ -1492,9 +1530,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			newGame.addPlayerListener(this);
 			activeLudoGames.add(newGame);
 
-			((CreateGameResponse)retMsg).setJoinstatus(true);
-			((CreateGameResponse)retMsg).setResponse("server.gameJoinOk");
-			((CreateGameResponse)retMsg).setGameid(newGame.getGameid());
+			retMsg.setJoinstatus(true);
+			retMsg.setResponse("server.gameJoinOk");
+			retMsg.setGameid(newGame.getGameid());
 			synchronized (messagesToSend) {
 				messagesToSend.add(retMsg);
 			}
@@ -1516,21 +1554,25 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	/**
+	 * When a user wants to view a users profile
+	 * @param action UserWantToViewProfile message from user
+	 */
 	private void UserWantToViewProfile(UserWantToViewProfile action){
 		UserInfo info = db.getProfilebyDisplayName(action.getDisplayname());
-		Message retMsg;
+		UserWantToViewProfileResponse retMsg;
 		retMsg = new UserWantToViewProfileResponse("UserWantToViewProfileResponse");
 		retMsg.setRecipientSessionId(action.getRecipientSessionId());
 		if (info != null){
-			((UserWantToViewProfileResponse)retMsg).setImageString(info.getAvatarImage());
-			((UserWantToViewProfileResponse)retMsg).setDisplayName(info.getDisplayName());
-			((UserWantToViewProfileResponse)retMsg).setGamesPlayed(info.getGamesPlayed());
-			((UserWantToViewProfileResponse)retMsg).setGamesWon(info.getGamesWon());
-			((UserWantToViewProfileResponse)retMsg).setUserId(info.getUserId());
-			((UserWantToViewProfileResponse)retMsg).setMessage("");
+			retMsg.setImageString(info.getAvatarImage());
+			retMsg.setDisplayName(info.getDisplayName());
+			retMsg.setGamesPlayed(info.getGamesPlayed());
+			retMsg.setGamesWon(info.getGamesWon());
+			retMsg.setUserId(info.getUserId());
+			retMsg.setMessage("");
 
 		} else {
-			((UserWantToViewProfileResponse)retMsg).setMessage("server.userViewProfileFail");
+			retMsg.setMessage("server.userViewProfileFail");
 		}
 
 		synchronized (messagesToSend) {
@@ -1539,6 +1581,10 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 	}
 
+	/**
+	 * When a user wants to edit their profile.
+	 * @param action UserWantToEditProfile message from user
+	 */
 	private void UserWantToEditProfile(UserWantToEditProfile action) {
 		UserInfo oldInfo = db.getProfile(sessionIdToUserId(action.getRecipientSessionId()));
 		//Security check.
@@ -1548,7 +1594,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			return;
 		}
 
-		Message retMsg = new UserWantToEditProfileResponse("UserWantToEditProfileResponse");
+		UserWantToEditProfileResponse retMsg = new UserWantToEditProfileResponse("UserWantToEditProfileResponse");
 		retMsg.setRecipientSessionId(action.getRecipientSessionId());
 		UserInfo newInfo = new UserInfo(sessionIdToUserId(action.getRecipientSessionId()), action.getDisplayname(),action.getImageString(), oldInfo.getGamesPlayed(), oldInfo.getGamesWon());
 
@@ -1576,25 +1622,25 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 
 		if (profileUpdate && passwordUpdate) { //Both updated.
-			((UserWantToEditProfileResponse)retMsg).setChanged(true);
-			((UserWantToEditProfileResponse)retMsg).setResponse("server.userEditProfileOK");
-			((UserWantToEditProfileResponse)retMsg).setDisplayname(newInfo.getDisplayName());
+			retMsg.setChanged(true);
+			retMsg.setResponse("server.userEditProfileOK");
+			retMsg.setDisplayname(newInfo.getDisplayName());
             System.out.println(newInfo.toString());
 
         } else if (profileUpdate && !passwordUpdate) { //Only profile was updated
-			((UserWantToEditProfileResponse)retMsg).setChanged(true);
-			((UserWantToEditProfileResponse)retMsg).setResponse("server.userEditProfileNoPW");
-			((UserWantToEditProfileResponse)retMsg).setDisplayname(action.getDisplayname());
+			retMsg.setChanged(true);
+			retMsg.setResponse("server.userEditProfileNoPW");
+			retMsg.setDisplayname(action.getDisplayname());
 
 		} else if (!profileUpdate && passwordUpdate) { //Only password was updated
-			((UserWantToEditProfileResponse)retMsg).setChanged(true);
-			((UserWantToEditProfileResponse)retMsg).setResponse("server.userEditProfileOnlyPW");
-			((UserWantToEditProfileResponse)retMsg).setDisplayname(oldInfo.getDisplayName());
+			retMsg.setChanged(true);
+			retMsg.setResponse("server.userEditProfileOnlyPW");
+			retMsg.setDisplayname(oldInfo.getDisplayName());
 
 		} else { //Neither was updated.
-			((UserWantToEditProfileResponse)retMsg).setChanged(false);
-			((UserWantToEditProfileResponse)retMsg).setResponse("server.userEditProfileFail");
-			((UserWantToEditProfileResponse)retMsg).setDisplayname(oldInfo.getDisplayName());
+			retMsg.setChanged(false);
+			retMsg.setResponse("server.userEditProfileFail");
+			retMsg.setDisplayname(oldInfo.getDisplayName());
 		}
 
 		synchronized (messagesToSend){
@@ -1602,12 +1648,16 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		}
 	}
 
+	/**
+	 * When a user wants to view the leaderboard.
+	 * @param action UserWantsLeaderboard message from user
+	 */
 	private void UserWantsLeaderboard(UserWantsLeaderboard action) {
-		Message retMsg = new LeaderboardResponse("LeaderboardResponse");
+		LeaderboardResponse retMsg = new LeaderboardResponse("LeaderboardResponse");
 		retMsg.setRecipientSessionId(action.getRecipientSessionId());
 		TopTenList toptenlist = db.getTopTenList();
-		((LeaderboardResponse)retMsg).setToptenwins(toptenlist.getWonEntries());
-		((LeaderboardResponse)retMsg).setToptenplays(toptenlist.getPlayedEntries());
+		retMsg.setToptenwins(toptenlist.getWonEntries());
+		retMsg.setToptenplays(toptenlist.getPlayedEntries());
 
 		synchronized (messagesToSend){
 			messagesToSend.add(retMsg);
@@ -1617,8 +1667,8 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	/**
 	 * Checks if the userid and sessionid is the same client.
 	 * Discards message if false.
-	 * @param sessionid
-	 * @param userid
+	 * @param sessionid String containing user id
+	 * @param userid String containing session id
 	 * @return true if everything is fine, false is something missmatch.
 	 */
 	private boolean securityCheck(String userid, String sessionid) {
@@ -1659,13 +1709,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		Ludo game = pieceEvent.getLudoGame();
 		for (String name : game.getPlayers()){
 
-			Message retMsg = new PieceMovedResponse("PieceMovedResponse");
+			PieceMovedResponse retMsg = new PieceMovedResponse("PieceMovedResponse");
 
-			((PieceMovedResponse)retMsg).setGameid(game.getGameid());
-			((PieceMovedResponse)retMsg).setMovedfrom(pieceEvent.getFrom());
-			((PieceMovedResponse)retMsg).setMovedto(pieceEvent.getTo());
-			((PieceMovedResponse)retMsg).setPiecemoved(pieceEvent.getPieceMoved());
-			((PieceMovedResponse)retMsg).setPlayerid(pieceEvent.getPlayerID());
+			retMsg.setGameid(game.getGameid());
+			retMsg.setMovedfrom(pieceEvent.getFrom());
+			retMsg.setMovedto(pieceEvent.getTo());
+			retMsg.setPiecemoved(pieceEvent.getPieceMoved());
+			retMsg.setPlayerid(pieceEvent.getPlayerID());
 			UserInfo userInfo = db.getProfilebyDisplayName(name);
 			retMsg.setRecipientSessionId(useridToSessionId(userInfo.getUserId()));
 			synchronized (messagesToSend){
