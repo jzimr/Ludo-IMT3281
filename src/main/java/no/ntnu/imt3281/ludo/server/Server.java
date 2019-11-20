@@ -105,6 +105,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						synchronized (clients) {
 							clients.add(c);
 						}
+						System.out.println("Clients connceted: " + clients.size());
 					} catch (IOException e) {
 						System.err.println("Unable to create client from "+s.getInetAddress().getHostName());
 					}
@@ -212,9 +213,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				try {
 					Client client = disconnectedClients.take();
 					synchronized (clients) {
-						System.out.println("Removed client " + client.getUserId());
 						clients.remove(client);
 						removeClientsFromModules(client.getUserId());
+						System.out.println("Clients connceted: " + clients.size());
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -273,7 +274,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		ArrayList<Ludo> games = (ArrayList<Ludo>) activeLudoGames.clone();
 			UserInfo info = db.getProfile(userId);
 			for(Ludo game : games) {
-				if(game.getPlayerID(info.getDisplayName()) != -1) { //User is in this game.
+				if(game.getPlayerID(info.getDisplayName()) != -1 && game.getActivePlayers().length > 1) { //User is in this game. And there are more than 1 player active
 					game.removePlayer(info.getDisplayName());
 
 					UserLeftGameResponse retMsg = new UserLeftGameResponse("UserLeftGameResponse");
@@ -296,6 +297,9 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 				}
 			}
+
+		System.out.println("Finished removing clients from modules");
+
 	}
 
 	/**
@@ -1588,7 +1592,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	 * @return true if everything is fine, false is something missmatch.
 	 */
 	private boolean securityCheck(String userid, String sessionid) {
-		System.out.println(userid + " " + sessionid);
+		System.out.println("Security check: " + userid + " " + sessionid);
 		String sessUserId = sessionIdToUserId(sessionid);
 		return (sessUserId.contentEquals(userid));
 	}
