@@ -32,7 +32,7 @@
                                     <Font size="24.0" />
                                  </font>
                               </Label>
-                              <Button fx:id="editDisplayName" disable="true" mnemonicParsing="false" onAction="#editDisplayNameButton" prefHeight="20.0" prefWidth="40.0" text="edit" visible="false">
+                              <Button fx:id="editDisplayName" disable="true" mnemonicParsing="false" onAction="#editDisplayNameButton" text="%profile.editBtn" visible="false" HBox.hgrow="ALWAYS">
                                  <HBox.margin>
                                     <Insets bottom="3.0" left="10.0" />
                                  </HBox.margin>
@@ -47,7 +47,7 @@
                               <Insets top="20.0" />
                            </VBox.margin>
                         </Label>
-                        <Button fx:id="editPassword" disable="true" mnemonicParsing="false" onAction="#editPasswordButton" prefHeight="25.0" prefWidth="95.0" text="edit password" visible="false">
+                        <Button fx:id="editPassword" disable="true" mnemonicParsing="false" onAction="#editPasswordButton" text="%profile.editPassBtn" visible="false">
                            <VBox.margin>
                               <Insets top="100.0" />
                            </VBox.margin>
@@ -62,9 +62,9 @@
                   <Insets left="30.0" top="40.0" />
                </VBox.margin>
             </HBox>
-            <Button fx:id="editAvatar" disable="true" mnemonicParsing="false" onAction="#editAvatarButton" prefHeight="20.0" prefWidth="40.0" text="edit" visible="false">
+            <Button fx:id="editAvatar" disable="true" mnemonicParsing="false" onAction="#editAvatarButton" text="%profile.editBtn" visible="false" VBox.vgrow="ALWAYS">
                <VBox.margin>
-                  <Insets left="130.0" top="5.0" />
+                  <Insets left="90.0" top="5.0" />
                </VBox.margin>
             </Button>
             <HBox alignment="CENTER" prefHeight="486.0" prefWidth="1017.0">

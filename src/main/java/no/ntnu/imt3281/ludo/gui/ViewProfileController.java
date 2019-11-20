@@ -2,6 +2,8 @@ package no.ntnu.imt3281.ludo.gui;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -17,14 +19,14 @@ import no.ntnu.imt3281.ludo.Exceptions.InvalidImageException;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.client.ImageManager;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.UserWantToEditProfileResponseListener;
-import no.ntnu.imt3281.ludo.logic.messages.UserWantToEditProfile;
-import no.ntnu.imt3281.ludo.logic.messages.UserWantToEditProfileResponse;
-import no.ntnu.imt3281.ludo.logic.messages.UserWantToViewProfile;
-import no.ntnu.imt3281.ludo.logic.messages.UserWantToViewProfileResponse;
+import no.ntnu.imt3281.ludo.gui.ServerListeners.UserWantToViewProfileResponseListener;
+import no.ntnu.imt3281.ludo.logic.messages.*;
 
 import java.io.File;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
-public class ViewProfileController implements UserWantToEditProfileResponseListener {
+public class ViewProfileController implements UserWantToEditProfileResponseListener, UserWantToViewProfileResponseListener {
 
     @FXML
     private ImageView avatarImage;
@@ -51,6 +53,7 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
     private Text wonText;
 
     private ClientSocket clientSocket;
+    private ResourceBundle i18Bundle;
 
     // create a new dialog that contains our name in the field already
     TextInputDialog displayNameDialog;
@@ -58,6 +61,12 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
 
     // we save the image in form of bytes as well
     byte[] imageString;
+
+    @FXML
+    public void initialize() {
+        Locale locale = Locale.getDefault();
+        i18Bundle = ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game", locale);
+    }
 
 
     public void setup(ClientSocket clientSocket, final UserWantToViewProfileResponse response, boolean isOurProfile) {
@@ -96,14 +105,14 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
 
                 // setup dialog for changing display name
                 displayNameDialog = new TextInputDialog(clientSocket.getDisplayName());
-                displayNameDialog.setTitle("Edit Profile");
-                displayNameDialog.setHeaderText("Enter name");
+                displayNameDialog.setTitle(i18Bundle.getString("profile.windowTxt"));
+                displayNameDialog.setHeaderText(i18Bundle.getString("profile.newNameTxt"));
                 displayNameDialog.setGraphic(null);
                 displayNameDialog.getDialogPane().setPrefWidth(400.0);
 
                 // we create a custom password dialog with two fields
                 passwordDialog = new Dialog();
-                passwordDialog.setTitle("Edit Profile");
+                passwordDialog.setTitle(i18Bundle.getString("profile.windowTxt"));
                 passwordDialog.setGraphic(null);
                 passwordDialog.getDialogPane().setPrefWidth(400.0);
 
@@ -117,10 +126,10 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
 
                 PasswordField newPassword = new PasswordField();
                 newPassword.setId("newPassword");
-                newPassword.setPromptText("Enter a new password");
+                newPassword.setPromptText(i18Bundle.getString("profile.newPassword"));
                 PasswordField retypePassword = new PasswordField();
                 retypePassword.setId("retypePassword");
-                retypePassword.setPromptText("Retype password");
+                retypePassword.setPromptText(i18Bundle.getString("profile.retypePassword"));
                 Text responseMessage = new Text();
                 responseMessage.setStyle("-fx-font-weight: bold");
 
@@ -148,7 +157,7 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
 
         // check if user chose an image
         if (!ImageManager.isImage(path)) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Chosen file is not an image", ButtonType.OK);
+            Alert alert = new Alert(Alert.AlertType.ERROR, i18Bundle.getString("msg.fileNotImage"), ButtonType.OK);
             alert.showAndWait();
             return;
         }
@@ -185,7 +194,7 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
                     if (newPasswordText.isEmpty() || retypePasswordText.isEmpty()) {
                         Platform.runLater(() -> {
                             responseMessage.setStyle("-fx-fill: red");
-                            responseMessage.setText("You need to fill in both fields!");
+                            responseMessage.setText(i18Bundle.getString("msg.needBothFields"));
                         });
                         event.consume();
                         return;
@@ -195,7 +204,7 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
                     else if (!newPasswordText.equals(retypePasswordText)) {
                         Platform.runLater(() -> {
                             responseMessage.setStyle("-fx-fill: red");
-                            responseMessage.setText("Passwords do not match!");
+                            responseMessage.setText(i18Bundle.getString("msg.passNoMatch"));
                         });
                         event.consume();
                         return;
@@ -205,7 +214,7 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
                     else if (newPasswordText.length() < 8) {
                         Platform.runLater(() -> {
                             responseMessage.setStyle("-fx-fill: red");
-                            responseMessage.setText("Password must be at least 8 characters!");
+                            responseMessage.setText(i18Bundle.getString("msg.passLeastChar"));
                         });
                         event.consume();
                         return;
@@ -215,18 +224,13 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
                     okButton.setDisable(true);
                     Platform.runLater(() -> {
                         responseMessage.setStyle("-fx-fill: black");
-                        responseMessage.setText("Waiting for server...");
+                        responseMessage.setText(i18Bundle.getString("msg.waitingForServer"));
                     });
                     // send message to server
                     clientSocket.sendMessageToServer(new UserWantToEditProfile("UserWantToEditProfile",
                             clientSocket.getDisplayName(), imageString, newPasswordText));
                     event.consume();
                     return;
-
-                    // wait for response from server to verify if we did change displayname or not
-                    //while(true){
-
-                    //}
                 }
         );
 
@@ -236,7 +240,7 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
     @FXML
     void editDisplayNameButton(ActionEvent e) {
         displayNameDialog.getEditor().setText(clientSocket.getDisplayName());
-        displayNameDialog.setContentText("New name:");
+        displayNameDialog.setContentText(i18Bundle.getString("profile.newNameContent"));
 
         final Button okButton = (Button) displayNameDialog.getDialogPane().lookupButton(ButtonType.OK);
         okButton.setDisable(false);
@@ -247,20 +251,20 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
 
                     // name can't be empty
                     if (textInput.isEmpty()) {
-                        displayNameDialog.setContentText("Name can't be empty!");
+                        displayNameDialog.setContentText(i18Bundle.getString("msg.profileEmpty"));
                         event.consume();
                         return;
                     }
 
                     // name can't exceed 24 characters
                     else if (textInput.length() > 24) {
-                        displayNameDialog.setContentText("Name can't exceed 24 characters!");
+                        displayNameDialog.setContentText(i18Bundle.getString("msg.exceedNameChars"));
                         event.consume();
                         return;
                     }
                     // name can't start or end with a space (' ')
                     else if (textInput.substring(0, 1).equals(" ") || textInput.substring(textInput.length() - 1).equals(" ")) {
-                        displayNameDialog.setContentText("Name can't start or end with a ' '");
+                        displayNameDialog.setContentText(i18Bundle.getString("msg.nameCantStartWith"));
                         event.consume();
                         return;
                     }
@@ -272,7 +276,7 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
 
                     // disable button until we have received answer
                     okButton.setDisable(true);
-                    displayNameDialog.setContentText("Waiting for server...");
+                    displayNameDialog.setContentText(i18Bundle.getString("msg.waitingForServer"));
                     // send message to server
                     clientSocket.sendMessageToServer(new UserWantToEditProfile("UserWantToEditProfile", textInput, imageString, ""));
                     event.consume();
@@ -297,7 +301,9 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
                 if (passwordDialog.isShowing()) passwordDialog.close();
             });
 
-            // refresh page to view the newly updated profile
+            // register listener to update our profile page on success
+            clientSocket.addUserWantToViewProfileResponseListener(this);
+            // send message to server so we can refresh our page
             clientSocket.sendMessageToServer(new UserWantToViewProfile("UserWantToViewProfile", clientSocket.getDisplayName()));
             return;
         }
@@ -309,7 +315,7 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
                 // user tried to edit displayname
                 if (displayNameDialog.isShowing()) {
                     final Button okButton = (Button) displayNameDialog.getDialogPane().lookupButton(ButtonType.OK);
-                    displayNameDialog.setContentText(response.getResponse());
+                    displayNameDialog.setContentText(i18Bundle.getString(response.getResponse()));
                     okButton.setDisable(false);
                 }
 
@@ -318,10 +324,46 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
                     final Button okButton = (Button) passwordDialog.getDialogPane().lookupButton(ButtonType.OK);
                     final Text responseMessage = (Text) ((VBox) passwordDialog.getDialogPane().getContent()).getChildren().get(2);
                     responseMessage.setStyle("-fx-fill: red");
-                    responseMessage.setText(response.getResponse());
+                    responseMessage.setText(i18Bundle.getString(response.getResponse()));
                     okButton.setDisable(false);
                 }
             }
         });
     }
+
+    /**
+     * We use this listener to refresh our profile page when the user has changed something so he can instantly
+     * see the changes.
+     *
+     * @param response
+     */
+    @Override
+    public void userWantToViewProfileResponseEvent(UserWantToViewProfileResponse response) {
+        // set data
+        avatarImage.setImage(ImageManager.convertBytesToImage(response.getImageString()));
+        displayNameText.setText(response.getDisplayName());
+    }
+
+    /**
+     * Here we only want to get if we are viewing our own profile
+     *
+     * @param displayname
+     * @return
+     */
+    @Override
+    public boolean waitingForProfile(String displayname) {
+        return clientSocket.getDisplayName().equals(displayname);
+    }
+
+    /**
+     * Called when the tab of this controller is closed.
+     * Here we want to handle stuff like sending message to server.
+     */
+    public EventHandler<Event> onTabClose = new EventHandler<Event>() {
+        @Override
+        public void handle(Event arg0) {
+            // remove listeners from clientsocket
+            clientSocket.removeUserWantToViewProfileResponseListener(ViewProfileController.this);
+        }
+    };
 }

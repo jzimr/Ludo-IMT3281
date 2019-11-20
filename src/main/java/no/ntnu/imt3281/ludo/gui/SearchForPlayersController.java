@@ -19,6 +19,8 @@ import no.ntnu.imt3281.ludo.logic.messages.UserWantsUsersList;
 import no.ntnu.imt3281.ludo.logic.messages.UsersListResponse;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class SearchForPlayersController implements UsersListResponseListener {
 
@@ -39,6 +41,7 @@ public class SearchForPlayersController implements UsersListResponseListener {
 
     private ClientSocket clientSocket;
     ArrayList<String> playersInvited = new ArrayList<>();   // the arraylist holding players invited
+    private ResourceBundle i18Bundle;
 
     /**
      * Method to pass client socket from LudoController to setup listeners
@@ -51,6 +54,8 @@ public class SearchForPlayersController implements UsersListResponseListener {
     @FXML
     public void initialize() {
         listViewSetup(false);
+        Locale locale = Locale.getDefault();
+        i18Bundle = ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game", locale);
     }
 
     /**
@@ -73,7 +78,7 @@ public class SearchForPlayersController implements UsersListResponseListener {
 
                     // button next to each item in listview to invite players
                     Button button = new Button();
-                    button.setText("Invite");
+                    button.setText(i18Bundle.getString("challPlayers.invBtn"));
 
                     HBox hbox = new HBox();
                     hbox.getChildren().addAll(label, button);
@@ -117,7 +122,7 @@ public class SearchForPlayersController implements UsersListResponseListener {
     private void invitePlayer(String displayName, Button inviteButton) {
         if (playersInvited.size() < 3) {
             playersInvited.add(displayName);
-            playersInvitedText.setText("Players Invited: " + playersInvited.size() + "/3");
+            playersInvitedText.setText(i18Bundle.getString("challPlayers.invPlayerrs") + " " + playersInvited.size() + "/3");
         }
 
         // player already invited, we disable the invite button for that player

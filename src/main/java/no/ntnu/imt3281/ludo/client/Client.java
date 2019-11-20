@@ -10,31 +10,32 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 /**
- * 
- * This is the main class for the client. 
+ * This is the main class for the client.
  * **Note, change this to extend other classes if desired.**
- * 
- * @author 
  *
+ * @author
  */
 public class Client extends Application {
 
-	@Override
-	public void start(Stage primaryStage) {
-		try {
-			//AnchorPane root = new FXMLLoader(getClass().getResource("../gui/Ludo.fxml")).load();
-			AnchorPane root = FXMLLoader.load(getClass().getResource("../gui/Ludo.fxml"));
-			Scene scene = new Scene(root);
-			primaryStage.setScene(scene);
-			primaryStage.show();
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
+    @Override
+    public void start(Stage primaryStage) {
+        try {
+            Locale locale = new Locale("NO", "no");
+            ResourceBundle bundle = ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game", locale);
+            AnchorPane root = FXMLLoader.load(getClass().getResource("../gui/Ludo.fxml"), bundle);
+            Scene scene = new Scene(root);
+            primaryStage.setScene(scene);
+            primaryStage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	public static void main(String[] args) {
-		launch(args);
-	}
+    public static void main(String[] args) {
+        launch(args);
+    }
 }

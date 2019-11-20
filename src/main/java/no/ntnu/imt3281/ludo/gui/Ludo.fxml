@@ -13,34 +13,34 @@
          <top>
             <MenuBar BorderPane.alignment="CENTER">
               <menus>
-                <Menu mnemonicParsing="false" text="File">
+                <Menu mnemonicParsing="false" text="%toolbar.file">
                   <items>
-                        <MenuItem fx:id="connect" mnemonicParsing="false" onAction="#connectToServer" text="Connect" />
-                    <MenuItem mnemonicParsing="false" text="Close" />
+                        <MenuItem fx:id="connect" mnemonicParsing="false" onAction="#connectToServer" text="%toolbar.connect" />
+                    <MenuItem mnemonicParsing="false" text="%toolbar.close" />
                   </items>
                 </Menu>
-                <Menu mnemonicParsing="false" text="Game">
+                <Menu mnemonicParsing="false" text="%toolbar.game">
                   <items>
-                    <MenuItem fx:id="random" mnemonicParsing="false" onAction="#joinRandomGame" text="Random game" />
-                        <MenuItem fx:id="challengeButton" mnemonicParsing="false" onAction="#challengePlayers" text="Challenge players" />
+                    <MenuItem fx:id="random" mnemonicParsing="false" onAction="#joinRandomGame" text="%toolbar.rndGame" />
+                        <MenuItem fx:id="challengeButton" mnemonicParsing="false" onAction="#challengePlayers" text="%toolbar.challPlayers" />
                   </items>
                 </Menu>
-                  <Menu mnemonicParsing="false" text="Chat">
+                  <Menu mnemonicParsing="false" text="%toolbar.chat">
                     <items>
-                      <MenuItem fx:id="joinRoom" mnemonicParsing="false" onAction="#joinChatRoom" text="Join room" />
-                        <MenuItem fx:id="listRooms" mnemonicParsing="false" onAction="#listChatRooms" text="List rooms" />
+                      <MenuItem fx:id="joinRoom" mnemonicParsing="false" onAction="#joinChatRoom" text="%toolbar.joinRoom" />
+                        <MenuItem fx:id="listRooms" mnemonicParsing="false" onAction="#listChatRooms" text="%toolbar.listRooms" />
                     </items>
                   </Menu>
-                  <Menu mnemonicParsing="false" text="Community">
+                  <Menu mnemonicParsing="false" text="%toolbar.community">
                     <items>
-                      <MenuItem fx:id="myProfile" mnemonicParsing="false" onAction="#viewMyProfile" text="My Profile" />
-                        <MenuItem fx:id="otherProfiles" mnemonicParsing="false" onAction="#findProfile" text="Find Profile" />
-                        <MenuItem fx:id="leaderboard" mnemonicParsing="false" onAction="#showLeaderboard" text="Leaderboards" />
+                      <MenuItem fx:id="myProfile" mnemonicParsing="false" onAction="#viewMyProfile" text="%toolbar.myProfile" />
+                        <MenuItem fx:id="otherProfiles" mnemonicParsing="false" onAction="#findProfile" text="%toolbar.findProfile" />
+                        <MenuItem fx:id="leaderboard" mnemonicParsing="false" onAction="#showLeaderboard" text="%toolbar.leaderboards" />
                     </items>
                   </Menu>
-                <Menu mnemonicParsing="false" text="Help">
+                <Menu mnemonicParsing="false" text="%toolbar.help">
                   <items>
-                    <MenuItem fx:id="about" mnemonicParsing="false" onAction="#aboutHelp" text="About" />
+                    <MenuItem fx:id="about" mnemonicParsing="false" onAction="#aboutHelp" text="%toolbar.about" />
                   </items>
                 </Menu>
               </menus>

@@ -9,6 +9,9 @@ import javafx.scene.text.Text;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.logic.messages.UserJoinChat;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 public class JoinChatRoomController {
 
     @FXML
@@ -21,6 +24,14 @@ public class JoinChatRoomController {
     private Text responseMessage;
 
     private ClientSocket clientSocket;
+    private ResourceBundle i18Bundle;
+
+    @FXML
+    public void initialize(){
+        // for i18n
+        Locale locale = Locale.getDefault();
+        i18Bundle = ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game", locale);
+    }
 
     /**
      * Method to pass client socket from LudoController to this
@@ -40,7 +51,7 @@ public class JoinChatRoomController {
 
         // textbox cannot be empty
         if(chatName.isEmpty()){
-            responseMessage.setText("Chat room cannot be empty");
+            responseMessage.setText(i18Bundle.getString("msg.needBothFields"));
             return;
         }
 
@@ -62,7 +73,7 @@ public class JoinChatRoomController {
             } else {
                 responseMessage.setStyle("-fx-fill: green");
             }
-            responseMessage.setText(message);
+            responseMessage.setText(i18Bundle.getString(message));
         });
     }
 }

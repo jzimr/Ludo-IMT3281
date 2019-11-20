@@ -2,6 +2,7 @@ package no.ntnu.imt3281.ludo.gui;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -50,6 +51,8 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     private Dialog searchProfileDialog;
 
+    ResourceBundle i18Bundle;
+
     // controllers
     private LoginController loginController = null;
     private JoinChatRoomController joinChatRoomController = null;
@@ -60,20 +63,29 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     @FXML
     public void initialize() {
+        // for i18n
+        Locale locale = Locale.getDefault();
+        i18Bundle = ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game", locale);
+
         // setup dialog for searching a profile
         searchProfileDialog = new Dialog();
         // we create a custom dialog with an input field and a response field
-        searchProfileDialog.setTitle("Search profile");
+        searchProfileDialog.setTitle(i18Bundle.getString("findProfile.windowTxt"));
         searchProfileDialog.setGraphic(null);
         searchProfileDialog.getDialogPane().setPrefWidth(400.0);
         // Set the button types.
         searchProfileDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        // for internationalization
+        final Button okBtn = (Button) searchProfileDialog.getDialogPane().lookupButton(ButtonType.OK);
+        final Button cancelBtn = (Button) searchProfileDialog.getDialogPane().lookupButton(ButtonType.CANCEL);
+        okBtn.setText(i18Bundle.getString("general.okBtn"));
+        cancelBtn.setText(i18Bundle.getString("general.cancelBtn"));
         VBox vbox = new VBox();
         vbox.setPadding(new Insets(10, 80, 5, 80));
         vbox.setSpacing(10.0);
         TextField enterProfile = new TextField();
         enterProfile.setId("enterProfile");
-        enterProfile.setPromptText("Enter name of profile");
+        enterProfile.setPromptText(i18Bundle.getString("findProfile.searchTip"));
         Text responseMessage = new Text();
         responseMessage.setStyle("-fx-font-weight: bold");
         vbox.getChildren().addAll(enterProfile, responseMessage);
@@ -85,7 +97,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         tabbedPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("Login.fxml"));
-        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game"));
 
         clientSocket = new ClientSocket();
 
@@ -133,13 +145,13 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     public void joinChatRoom(ActionEvent e) {
         // Here we just launch a new window where the user can write in his values
         FXMLLoader loader = new FXMLLoader(getClass().getResource("JoinChatRoom.fxml"));
-        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game"));
 
         try {
             Parent root = (Parent) loader.load();
             Stage stage = new Stage();
             stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setTitle("Join Chat Room");
+            stage.setTitle(i18Bundle.getString("tabs.joinChatRoom"));
             stage.setScene(new Scene(root));
             stage.show();
 
@@ -156,7 +168,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
      */
     private void addNewChatTab(String chatName, ChatJoinResponse message) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("ChatRoom.fxml"));
-        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game"));
 
         Tab chatTab = addNewTab(loader, chatName);
         if (chatTab == null) return;
@@ -177,7 +189,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
     private void addNewGameTab(String gameName, String gameId, String[] players) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("GameBoard.fxml"));
-        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game"));
 
         Tab gameTab = addNewTab(loader, gameName);
 
@@ -229,7 +241,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     @FXML
     public void connectToServer(ActionEvent e) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("Login.fxml"));
-        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game"));
 
         // switch to login tab if it exists
         for (Tab tab : tabbedPane.getTabs()) {
@@ -265,9 +277,9 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         }
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("SearchForPlayers.fxml"));
-        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game"));
 
-        Tab searchForPlayersTab = addNewTab(loader, "SearchForPlayers");
+        Tab searchForPlayersTab = addNewTab(loader, "Search for players");
 
         searchForPlayersController = loader.getController();
         searchForPlayersController.setup(clientSocket);
@@ -281,7 +293,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     @FXML
     public void listChatRooms(ActionEvent e) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("ChatRoomsList.fxml"));
-        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game"));
 
         Tab chatRoomsTab = addNewTab(loader, "Chat Rooms");
 
@@ -313,7 +325,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                     if (searchProfileText.isEmpty()) {
                         Platform.runLater(() -> {
                             responseMessage.setStyle("-fx-fill: red");
-                            responseMessage.setText("Profile name can't be empty!");
+                            responseMessage.setText(i18Bundle.getString("msg.profileEmpty"));
                         });
                         event.consume();
                         return;
@@ -323,7 +335,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                     okButton.setDisable(true);
                     Platform.runLater(() -> {
                         responseMessage.setStyle("-fx-fill: black");
-                        responseMessage.setText("Waiting for server...");
+                        responseMessage.setText(i18Bundle.getString("msg.waitingForServer"));
                         // don't let client edit as long as we're waiting for the server
                         responseMessage.setDisable(true);
                     });
@@ -353,7 +365,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     @FXML
     void showLeaderboard(ActionEvent event) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("Leaderboard.fxml"));
-        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game"));
 
         Tab leaderboardTab = addNewTab(loader, "Leaderboard");
 
@@ -385,10 +397,10 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         if (joinChatRoomController != null) {
             // if user could not join chat room, display an error message to user
             if (!response.isStatus()) {
-                joinChatRoomController.setResponseMessage(response.getResponse(), true);
+                joinChatRoomController.setResponseMessage(i18Bundle.getString(response.getResponse()), true);
                 return;
             } else {
-                joinChatRoomController.setResponseMessage(response.getResponse(), false);
+                joinChatRoomController.setResponseMessage(i18Bundle.getString(response.getResponse()), false);
             }
         }
 
@@ -448,7 +460,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         // close the "Search For Players" tab
         if (searchForPlayersController != null) {
             Platform.runLater(() -> {
-                tabbedPane.getTabs().remove(tabbedPane.getTabs().stream().filter(tab -> tab.getText() == "SearchForPlayers").findFirst().get());
+                tabbedPane.getTabs().remove(tabbedPane.getTabs().stream().filter(tab -> tab.getText().equals("Search For Players")).findFirst().get());
             });
             searchForPlayersController = null;
         }
@@ -497,7 +509,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     @Override
     public void userWantToViewProfileResponseEvent(UserWantToViewProfileResponse response) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("ViewProfile.fxml"));
-        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.i18n"));
+        loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game"));
         ViewProfileController controller = viewProfileControllers.get(response.getUserId());
 
         // we remove the listener from the server again
@@ -512,7 +524,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                     final TextField searchProfile = (TextField) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(0);
                     final Text responseMessage = (Text) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(1);
                     responseMessage.setStyle("-fx-fill: red");
-                    responseMessage.setText(response.getMessage());
+                    responseMessage.setText(i18Bundle.getString(response.getMessage()));
                     okButton.setDisable(false);
                     searchProfile.setDisable(false);
                 });
@@ -542,14 +554,15 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
             return;
         }
 
+        // tab does not exist yet
         Tab tab = addNewTab(loader, "Profile: " + response.getDisplayName());
         // we set the id of the tab
         tab.setId("Profile-" + response.getUserId());
 
         controller = loader.getController();
-        controller.setup(clientSocket, response, response.getUserId().
+        tab.setOnClosed(controller.onTabClose);
+        controller.setup(clientSocket, response, response.getUserId().equals(clientSocket.getUserId()));
 
-                equals(clientSocket.getUserId()));
         // add to hashmap for later retrieval
         viewProfileControllers.put(response.getUserId(), controller);
     }
@@ -567,6 +580,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
             final TextField searchProfile = (TextField) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(0);
             return searchProfile.getText().equals(displayname);
         } else if (clientSocket.getDisplayName().equals(displayname)) {
+            System.out.println("yes");
             return true;
         }
         // else false

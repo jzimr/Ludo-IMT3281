@@ -18,6 +18,8 @@ import no.ntnu.imt3281.ludo.gui.ServerListeners.RegisterResponseListener;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 
 import java.sql.Connection;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class LoginController implements RegisterResponseListener {
 
@@ -37,6 +39,13 @@ public class LoginController implements RegisterResponseListener {
     private CheckBox rememberMeBox;
 
     private ClientSocket clientSocket;
+    private ResourceBundle i18Bundle;
+
+    @FXML
+    public void initialize(){
+        Locale locale = Locale.getDefault();
+        i18Bundle = ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game", locale);
+    }
 
     /**
      * Method to pass client socket from LudoController to this
@@ -75,7 +84,7 @@ public class LoginController implements RegisterResponseListener {
 
         // all text fields should be filled out
         if (serverAddress.isEmpty() || password.isEmpty() || username.isEmpty()) {
-            setResponseMessage("Server address, username and password can't be empty!", true);
+            setResponseMessage(i18Bundle.getString("msg.needBothFields"), true);
             return;
         }
 
@@ -118,19 +127,19 @@ public class LoginController implements RegisterResponseListener {
 
         // all text fields should be filled out
         if (serverAddress.isEmpty() || password.isEmpty() || username.isEmpty()) {
-            setResponseMessage("Server address, username and password can't be empty!", true);
+            setResponseMessage(i18Bundle.getString("msg.needBothFields"), true);
             return;
         }
 
         // all text fields should be filled out
         if (password.length() < 8) {
-            setResponseMessage("Password must be at least 8 characters long!", true);
+            setResponseMessage(i18Bundle.getString("msg.passLeastChar"), true);
             return;
         }
 
         // username can't exceed 24 characters
         if(username.length() >= 24){
-            setResponseMessage("Username can be max 24 characters long!", true);
+            setResponseMessage(i18Bundle.getString("msg.exceedNameChars"), true);
             return;
         }
 
@@ -151,7 +160,7 @@ public class LoginController implements RegisterResponseListener {
 
     public void setLoginResponseMessage(String message, boolean isSuccess){
         if(isSuccess){
-            setResponseMessage("Login success", false);
+            setResponseMessage(i18Bundle.getString("msg.loginSuccess"), false);
         } else {
             setResponseMessage(message, true);
         }
@@ -160,7 +169,7 @@ public class LoginController implements RegisterResponseListener {
     @Override
     public void registerResponseEvent(RegisterResponse response) {
         if(response.isRegisterStatus()){
-            setResponseMessage("Register success", false);
+            setResponseMessage(i18Bundle.getString("msg.registerSuccess"), false);
         } else {
             setResponseMessage(response.getResponse(), true);
         }
@@ -185,17 +194,17 @@ public class LoginController implements RegisterResponseListener {
         } catch (NumberFormatException e) {
             e.printStackTrace();
             // wrong port probably, notify client
-            setResponseMessage("The server address is in wrong format. Correct format is <serverIP>:<port>", true);
+            setResponseMessage(i18Bundle.getString("msg.wrongServerFormat"), true);
             return false;
         }
 
         // Send specific messages to user in case of success
         switch(responseCode){
             case CONNECTION_OTHER_ERROR:
-                setResponseMessage("Some error happened, could not connect.", true);
+                setResponseMessage(i18Bundle.getString("msg.someError"), true);
                 return false;
             case CONNECTION_REFUSED:
-                setResponseMessage("Could not establish connection to server", true);
+                setResponseMessage(i18Bundle.getString("msg.connectFail"), true);
                 return false;
             case CONNECTION_SUCCESS:
                 return true;
@@ -211,7 +220,7 @@ public class LoginController implements RegisterResponseListener {
             } else {
                 responseMessage.setStyle("-fx-fill: green");
             }
-            responseMessage.setText(message);
+            responseMessage.setText(i18Bundle.getString(message));
         });
     }
 }

@@ -16,12 +16,12 @@
          <children>
             <HBox alignment="CENTER" prefHeight="83.0" prefWidth="1017.0">
                <children>
-                  <Label text="Top Ten Wins">
+                  <Label text="%leaderboards.winsTxt">
                      <font>
                         <Font name="System Bold" size="30.0" />
                      </font>
                   </Label>
-                  <Label text="Top Ten Plays">
+                  <Label text="%leaderboards.playsTxt">
                      <font>
                         <Font name="System Bold" size="30.0" />
                      </font>
@@ -33,7 +33,7 @@
             </HBox>
             <HBox alignment="CENTER_LEFT" prefHeight="66.0" prefWidth="1017.0">
                <children>
-                  <Label text="Place">
+                  <Label text="%leaderboards.place">
                      <font>
                         <Font size="24.0" />
                      </font>
@@ -41,7 +41,7 @@
                         <Insets left="10.0" />
                      </HBox.margin>
                   </Label>
-                  <Label text="Name">
+                  <Label text="%leaderboards.name">
                      <font>
                         <Font size="24.0" />
                      </font>
@@ -49,7 +49,7 @@
                         <Insets left="60.0" />
                      </HBox.margin>
                   </Label>
-                  <Label text="Wins">
+                  <Label text="%leaderboards.wins">
                      <font>
                         <Font size="24.0" />
                      </font>
@@ -57,7 +57,7 @@
                         <Insets left="200.0" />
                      </HBox.margin>
                   </Label>
-                  <Label text="Place">
+                  <Label text="%leaderboards.place">
                      <font>
                         <Font size="24.0" />
                      </font>
@@ -65,7 +65,7 @@
                         <Insets left="80.0" />
                      </HBox.margin>
                   </Label>
-                  <Label text="Name">
+                  <Label text="%leaderboards.name">
                      <font>
                         <Font size="24.0" />
                      </font>
@@ -73,7 +73,7 @@
                         <Insets left="60.0" />
                      </HBox.margin>
                   </Label>
-                  <Label text="Plays">
+                  <Label text="%leaderboard.plays">
                      <font>
                         <Font size="24.0" />
                      </font>

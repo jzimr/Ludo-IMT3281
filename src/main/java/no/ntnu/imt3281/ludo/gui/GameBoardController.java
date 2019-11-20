@@ -168,7 +168,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     private int ourPlayerId;
     private ImageView[] ourPieces;      // same indexing as in Ludo logic class
     private int diceRolled = -1;        // -1 if dice has not been thrown by player yet, else 1-6
-    private Timeline throwDiceAnim;
 
     @FXML
     public void initialize() {
@@ -211,6 +210,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         clientSocket.addDiceThrowResponseListener(this);
         clientSocket.addPieceMovedResponseListener(this);
         clientSocket.addSentMessageResponseListener(this);
+        clientSocket.addUserWantToViewProfileResponseListener(this);
 
         // we send message to server that we want to join the game chat
         clientSocket.sendMessageToServer(new UserJoinChat("UserJoinChat", gameId, clientSocket.getUserId()));
@@ -443,7 +443,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             // disconnect user from the game
             clientSocket.sendMessageToServer(new UserLeftGame("UserLeftGame", gameId));
             clientSocket.sendMessageToServer(new UserLeftChatRoom("UserLeftChatRoom", clientSocket.getUserId(), gameId));
-            // todo remove from hashmap in LudoConntroller
         }
     };
 
@@ -464,7 +463,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
      */
     @Override
     public void pieceMoved(PieceEvent pieceEvent) {
-        System.out.println("(Event) Moved piece " + pieceEvent.getPieceMoved() + " of player " + pieceEvent.getPlayerID() + " from " + pieceEvent.getFrom() + " to " + pieceEvent.getTo());
         // need to run code in main JavaFX thread
         Platform.runLater(() -> {
             int movedPlayerId = pieceEvent.getPlayerID();
@@ -483,10 +481,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
                 // get the piece this event was for
                 Node piece = getNodeFromGridPane(homeGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
-                if (piece == null) {  // fixes a nasty bug when moving sometimes
-                    System.out.println("(GUI) could not move piece because piece == null");
-                    return;
-                }
 
                 homeGrid.getChildren().remove(piece);                       // remove from parent
                 movingGrid.getChildren().add(piece);                        // add to new parent
@@ -497,13 +491,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 gridPositionTo = GlobalToGridBoard.globalToGridCoordinations(globalPositionTo);
 
                 Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
-                // todo delete rest as well if all goes well
-                /*
-                if (piece == null) {   // fixes a nasty bug when moving sometimes
-                    System.out.println("(GUI) could not move piece because piece == null");
-                    return;
-                }
-                 */
 
                 movingGrid.getChildren().remove(piece);                     // remove from parent
                 homeGrid.getChildren().add(piece);                          // add to new parent
@@ -511,21 +498,17 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
                 GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
             } else {                                                                // all other board movements
                 Node piece = getNodeFromGridPane(movingGrid, gridPositionFrom.row, gridPositionFrom.column, movedPlayerId, movedPieceId);
-                if (piece == null) {  // fixes a nasty bug when moving sometimes
-                    System.out.println("(GUI) could not move piece because piece == null");
-                    return;
-                }
-                System.out.println(gridPositionFrom.row + ", " + gridPositionFrom.column + ", " + movedPieceId + ", " + movedPlayerId);
-                System.out.println(piece);
 
                 GridPane.setRowIndex(piece, gridPositionTo.row);            // set the specified row moved to
                 GridPane.setColumnIndex(piece, gridPositionTo.column);      // set the specified column moved to
             }
-
-            System.out.println("(GUI) Moved piece " + movedPieceId + " of player " + movedPlayerId + " to coordinates(" + gridPositionTo.row + ", " + gridPositionTo.column + ")");
         });
     }
 
+    /**
+     * When a player event on client side has happened.
+     * @param event PlayerEvent containing info about what state the player is in.
+     */
     @Override
     public void playerStateChanged(PlayerEvent event) {
         final int playerId = event.getPlayerID();
