@@ -6,6 +6,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -43,6 +44,9 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     private MenuItem leaderboard;
     @FXML
     private MenuItem about;
+
+    @FXML
+    private MenuItem close_btn;
 
     @FXML
     private TabPane tabbedPane;
@@ -134,6 +138,16 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         clientSocket.addCreateGameResponseListener(this);
         clientSocket.addSendGameInvitationsResponseListener(this);
         clientSocket.addUserJoinedGameResponseListener(this);
+    }
+
+    /**
+     * When user wants to close the client
+     * @param e
+     */
+    @FXML
+    public void closeClient(ActionEvent e){
+        Platform.exit();
+        System.exit(0);
     }
 
     /**

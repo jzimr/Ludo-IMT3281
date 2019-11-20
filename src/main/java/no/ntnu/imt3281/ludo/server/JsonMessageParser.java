@@ -126,7 +126,7 @@ public class JsonMessageParser {
         } catch (IOException e) {
             e.printStackTrace();
         } catch(NullPointerException e) {
-            System.out.println(e.getMessage());
+            System.out.println("Null pointer on JsonMessageParser " + e.toString());
         }
         return null;
     }
