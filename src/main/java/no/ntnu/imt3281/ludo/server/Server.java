@@ -274,14 +274,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		ArrayList<Ludo> games = (ArrayList<Ludo>) activeLudoGames.clone();
 			UserInfo info = db.getProfile(userId);
 			for(Ludo game : games) {
-				if(game.getPlayerID(info.getDisplayName()) != -1 && game.getActivePlayers().length > 1) { //User is in this game. And there are more than 1 player active
+				if(game.getPlayerID(info.getDisplayName()) != -1) { //User is in this game. And there are more than 1 player active
 					game.removePlayer(info.getDisplayName());
-
 					UserLeftGameResponse retMsg = new UserLeftGameResponse("UserLeftGameResponse");
 					retMsg.setDisplayname(info.getDisplayName());
 					retMsg.setGameid(game.getGameid());
 
-					game.removePlayer(info.getDisplayName());
 					for(String name : game.getActivePlayers()){
 						if (!name.contentEquals(info.getDisplayName())){
 							UserInfo userInfo = db.getProfilebyDisplayName(name);
@@ -296,9 +294,12 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 
 
 				}
-			}
 
-		System.out.println("Finished removing clients from modules");
+				if(game.getActivePlayers().length < 1) { //Remove game since everyone has left.
+					activeLudoGames.remove(game);
+				}
+
+			}
 
 	}
 
