@@ -323,6 +323,24 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 	}
 
 	/**
+	 *	Checks if the user is already logged in.
+	 * @param userid userid of the user who is logging in.
+	 * @return true if user is already logged in. False if user is not logged in
+	 */
+	private boolean alreadyLogged(String userid){
+
+		Iterator<Client> iterator = clients.iterator();
+		while(iterator.hasNext()){
+			Client c = iterator.next();
+			if (c.getUserId() != null && c.getUserId().contentEquals(userid)){
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Determines what function is to be called by checking what action a message
 	 * that comes from a client is.
 	 * @param action
@@ -556,20 +574,24 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 				retMsg.setResponse("OK");
 
 				String userid = db.getUserId(action.getUsername());
-				retMsg.setUserid(userid);
-				setUseridToClient(action.getRecipientSessionId(), userid);
-				UserInfo info = db.getProfile(userid);
-				retMsg.setDisplayname(info.getDisplayName());
+				if (!alreadyLogged(userid)){
+					retMsg.setUserid(userid);
+					setUseridToClient(action.getRecipientSessionId(), userid);
+					UserInfo info = db.getProfile(userid);
+					retMsg.setDisplayname(info.getDisplayName());
 
-				int tokenCount = db.countSessionToken(userid);
+					int tokenCount = db.countSessionToken(userid);
 
-				if (tokenCount > 0) { //Terminate existing token before inserting the new one.
-					db.terminateSessionToken(userid);
-					db.insertSessionToken(action.getRecipientSessionId(), userid);
+					if (tokenCount > 0) { //Terminate existing token before inserting the new one.
+						db.terminateSessionToken(userid);
+						db.insertSessionToken(action.getRecipientSessionId(), userid);
+					} else {
+						db.insertSessionToken(action.getRecipientSessionId(), userid);
+					}
 				} else {
-					db.insertSessionToken(action.getRecipientSessionId(), userid);
+					retMsg.setResponse("User already logged in. Please log out before trying again.");
+					retMsg.setLoginStatus(false);
 				}
-
 
 			} else {
 				retMsg.setResponse("Username and/or password are incorrect");
@@ -602,11 +624,15 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 			if(status) {
 				retMsg.setResponse("Login was successful");
 				String userid = db.getUserIdBySession(retMsg.getRecipientSessionId());
-
-				retMsg.setUserid(userid);
-				setUseridToClient(action.getRecipientSessionId(), userid);
-				UserInfo info = db.getProfile(userid);
-				retMsg.setDisplayname(info.getDisplayName());
+				if (!alreadyLogged(userid)){
+					retMsg.setUserid(userid);
+					setUseridToClient(action.getRecipientSessionId(), userid);
+					UserInfo info = db.getProfile(userid);
+					retMsg.setDisplayname(info.getDisplayName());
+				} else {
+					retMsg.setResponse("User already logged in. Please log out before trying again.");
+					retMsg.setLoginStatus(false);
+				}
 
 			} else {
 				retMsg.setResponse("Session token are invalid. Try again");
@@ -936,7 +962,7 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 		Iterator<Client> c = clients.iterator();
 		while(c.hasNext()) {
 			Client client = c.next();
-			if (client.getUserId().contentEquals(userid)) {
+			if (client.getUserId() != null && client.getUserId().contentEquals(userid)) {
 				return client.getUuid();
 			}
 		}
@@ -1114,10 +1140,13 @@ public class Server implements DiceListener, PieceListener, PlayerListener {
 						Message userLeftChatRoomResponse = new UserLeftChatRoomResponse("UserLeftChatRoomResponse");
 						((UserLeftChatRoomResponse)userLeftChatRoomResponse).setDisplayname(info.getDisplayName());
 						((UserLeftChatRoomResponse)userLeftChatRoomResponse).setChatroomname(chatroomname);
-						userLeftChatRoomResponse.setRecipientSessionId(useridToSessionId(UserId));
+						String sessionid = useridToSessionId(UserId);
+						if (sessionid != null ) {
+							userLeftChatRoomResponse.setRecipientSessionId(useridToSessionId(UserId));
 
-						synchronized (messagesToSend) {
-							messagesToSend.add(userLeftChatRoomResponse); //Send message.
+							synchronized (messagesToSend) {
+								messagesToSend.add(userLeftChatRoomResponse); //Send message.
+							}
 						}
 					}
 				return;
