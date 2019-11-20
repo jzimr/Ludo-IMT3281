@@ -165,7 +165,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
             Parent root = (Parent) loader.load();
             Stage stage = new Stage();
             stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setTitle(i18Bundle.getString("tabs.joinChatRoom"));
+            stage.setTitle(i18Bundle.getString("toolbar.joinRoom"));
             stage.setScene(new Scene(root));
             stage.show();
 
@@ -356,6 +356,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
                     // we register the listener so we get the profile from the server
                     clientSocket.addUserWantToViewProfileResponseListener(this);
+                    System.out.println("yup1");
 
                     // send message to server
                     clientSocket.sendMessageToServer(new UserWantToViewProfile("UserWantToViewProfile", searchProfileText));
@@ -534,10 +535,13 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         // we remove the listener from the server again
         clientSocket.removeUserWantToViewProfileResponseListener(this);
 
+        System.out.println("wtf dud");
+
         // user is searching for a profile
         if (searchProfileDialog.isShowing()) {
             // profile does not exist
             if (response.getMessage() != null && !response.getMessage().isEmpty()) {
+                System.out.println("lol");
                 Platform.runLater(() -> {
                     final Button okButton = (Button) searchProfileDialog.getDialogPane().lookupButton(ButtonType.OK);
                     final TextField searchProfile = (TextField) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(0);
@@ -549,6 +553,8 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                 });
                 return;
             }
+
+            System.out.println("sure dud");
 
             // else success, we close the dialog
             Platform.runLater(() -> searchProfileDialog.close());
@@ -594,15 +600,11 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
      */
     @Override
     public boolean waitingForProfile(String displayname) {
+        System.out.println("waiting for profile");
         // if we are wanting to get a specific profile OR we want to view our own profile, return true
-        if (searchProfileDialog.isShowing()) {
-            final TextField searchProfile = (TextField) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(0);
-            return searchProfile.getText().equals(displayname);
-        } else if (clientSocket.getDisplayName().equals(displayname)) {
-            System.out.println("yes");
+        if (searchProfileDialog.isShowing() || clientSocket.getDisplayName().equals(displayname)) {
             return true;
         }
-        // else false
         return false;
     }
 }

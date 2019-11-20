@@ -194,7 +194,7 @@
                                  </GridPane.margin>
                                  <children>
                                     <VBox />
-                                    <ImageView fx:id="player1Active" fitHeight="30.0" fitWidth="30.0" layoutX="105.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="player1Active" fitHeight="30.0" fitWidth="30.0" layoutX="105.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true" visible="false">
                                        <image>
                                           <Image url="@../../../../../images/rolldice.png" />
                                        </image>
@@ -214,7 +214,7 @@
                                  </GridPane.margin>
                                  <children>
                                     <VBox />
-                                    <ImageView fx:id="player2Active" fitHeight="30.0" fitWidth="30.0" layoutX="105.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="player2Active" fitHeight="30.0" fitWidth="30.0" layoutX="105.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true" visible="false">
                                        <image>
                                           <Image url="@../../../../../images/rolldice.png" />
                                        </image>
@@ -233,7 +233,7 @@
                                  </GridPane.margin>
 								 <children>
                                     <VBox />
-                                    <ImageView fx:id="player3Active" fitHeight="30.0" fitWidth="30.0" layoutX="105.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="player3Active" fitHeight="30.0" fitWidth="30.0" layoutX="105.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true" visible="false">
                                        <image>
                                           <Image url="@../../../../../images/rolldice.png" />
                                        </image>
@@ -252,7 +252,7 @@
                                  </GridPane.margin>
                                                                   <children>
                                     <VBox />
-                                    <ImageView fx:id="player4Active" fitHeight="30.0" fitWidth="30.0" layoutX="105.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="player4Active" fitHeight="30.0" fitWidth="30.0" layoutX="105.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true" visible="false">
                                        <image>
                                           <Image url="@../../../../../images/rolldice.png" />
                                        </image>

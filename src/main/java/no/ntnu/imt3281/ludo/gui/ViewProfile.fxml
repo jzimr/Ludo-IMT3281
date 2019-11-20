@@ -41,7 +41,7 @@
                         </HBox>
                         <Label fx:id="userIdText" text="User-id: {}" textFill="#575757b0">
                            <font>
-                              <Font size="22.0" />
+                              <Font size="20.0" />
                            </font>
                            <VBox.margin>
                               <Insets top="20.0" />

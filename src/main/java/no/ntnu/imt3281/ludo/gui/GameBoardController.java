@@ -661,8 +661,15 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         // go through all players and set the imageview representing a player
         for(int i = 0; i < players.length; i++){
             if(players[i].equals(response.getDisplayName())){
-                // we convert the image bytes to an image and set it in the GUI
-                playersActive[i].setImage(ImageManager.convertBytesToImage(response.getImageString()));
+                // if there is an image to even load
+                if(response.getImageString() != null){
+                    // we convert the image bytes to an image and set it in the GUI
+                    playersActive[i].setImage(ImageManager.convertBytesToImage(response.getImageString()));
+                } else {
+                    // else we set default image of player
+                    playersActive[i].setImage(new Image("images/default-pic.png"));
+                }
+                playersActive[i].setVisible(true);
             }
         }
     }

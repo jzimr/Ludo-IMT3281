@@ -56,6 +56,9 @@ public class SearchForPlayersController implements UsersListResponseListener {
         listViewSetup(false);
         Locale locale = Locale.getDefault();
         i18Bundle = ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game", locale);
+
+        // setting default text
+        playersInvitedText.setText(i18Bundle.getString("challPlayers.invPlayers") + " " + playersInvited.size() + "/3");
     }
 
     /**
@@ -122,7 +125,7 @@ public class SearchForPlayersController implements UsersListResponseListener {
     private void invitePlayer(String displayName, Button inviteButton) {
         if (playersInvited.size() < 3) {
             playersInvited.add(displayName);
-            playersInvitedText.setText(i18Bundle.getString("challPlayers.invPlayerrs") + " " + playersInvited.size() + "/3");
+            playersInvitedText.setText(i18Bundle.getString("challPlayers.invPlayers") + " " + playersInvited.size() + "/3");
         }
 
         // player already invited, we disable the invite button for that player

@@ -73,7 +73,7 @@ public class JoinChatRoomController {
             } else {
                 responseMessage.setStyle("-fx-fill: green");
             }
-            responseMessage.setText(i18Bundle.getString(message));
+            responseMessage.setText(message);
         });
     }
 }
