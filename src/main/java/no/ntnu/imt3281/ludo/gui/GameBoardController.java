@@ -35,6 +35,8 @@ import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class GameBoardController implements UserLeftGameResponseListener, GameHasStartedResponseListener, DiceThrowResponseListener,
         PieceMovedResponseListener, SentMessageResponseListener, UserWantToViewProfileResponseListener,
@@ -168,6 +170,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     private int ourPlayerId;
     private ImageView[] ourPieces;      // same indexing as in Ludo logic class
     private int diceRolled = -1;        // -1 if dice has not been thrown by player yet, else 1-6
+    private ResourceBundle i18Bundle;
 
     @FXML
     public void initialize() {
@@ -185,6 +188,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         // make all playernames empty
         for(Label player : playerNames)
             player.setText("...");
+
+        // for i18n
+        Locale locale = Locale.getDefault();
+        i18Bundle = ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game", locale);
     }
 
     /**
@@ -450,6 +457,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     LUDO GAME LISTENERS
      */
 
+    /**
+     * When a dice is thrown by logic class
+     * @param diceEvent returns data about dice rolled
+     */
     @Override
     public void diceThrown(DiceEvent diceEvent) {
         Platform.runLater(() -> diceThrown.setImage(diceImages[diceEvent.getDiceRolled() - 1]));
@@ -550,10 +561,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
             }
         }
 
-        // a player won, so we disable further movements
+        // a player won, so we disable further movements and show the "prize"
         else if (event.getPlayerEvent().equals(PlayerEvent.WON)) {
             Platform.runLater(() -> {
-                winText.setText(players[playerId] + " Won!");
+                winText.setText(players[playerId] + " " + i18Bundle.getString("ludogameboard.won"));
                 winWindow.setVisible(true);
                 winWindow.setDisable(false);
                 throwTheDice.setDisable(true);
