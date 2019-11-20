@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import javafx.scene.control.Alert;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.*;
 import no.ntnu.imt3281.ludo.logic.messages.*;
 import no.ntnu.imt3281.ludo.server.ChatMessage;
@@ -13,6 +14,8 @@ import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class ClientSocket {
@@ -23,6 +26,7 @@ public class ClientSocket {
     private String displayName = null;
     protected BufferedWriter bw;
     protected BufferedReader br;
+    private ResourceBundle i18Bundle;
 
     /**
      * Types of results we can get when user tries to connect to a server
@@ -51,6 +55,12 @@ public class ClientSocket {
     private ArrayBlockingQueue<UserWantToViewProfileResponseListener> userWantToViewProfileResponseListeners = new ArrayBlockingQueue<>(100);
     private UserWantToEditProfileResponseListener userWantToEditProfileResponseListener = null;
     private LeaderboardResponseListener leaderboardResponseListener = null;
+
+    public ClientSocket(){
+        // for i18n
+        Locale locale = Locale.getDefault();
+        i18Bundle = ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game", locale);
+    }
 
     /**
      * Create a connection from client to server
@@ -82,9 +92,6 @@ public class ClientSocket {
                 br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
             }
-            //connection = new Socket(serverIP, port);
-            //bw = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
-            //br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
             listenToServer();
 
@@ -375,6 +382,12 @@ public class ClientSocket {
 
                     LeaderboardResponse message18 = new LeaderboardResponse(action, topPlayedList, topWonList);
                     leaderboardResponseListener.leaderboardResponseEvent(message18);
+                    break;
+                case "ErrorMessageResponse":
+                    // in case of an error message we just display a popup to the user
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle(i18Bundle.getString("server.genericError"));
+                    alert.setContentText(i18Bundle.getString(jsonNode.get("message").asText()));
                     break;
                 default:
                     System.out.println("Json not recognized: " + jsonMessage);
