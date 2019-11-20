@@ -447,7 +447,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     @Override
     public void loginResponseEvent(LoginResponse response) {
         if (loginController != null) {
-            loginController.setLoginResponseMessage(response.getResponse(), response.isLoginStatus());
+            loginController.setLoginResponseMessage(i18Bundle.getString(response.getResponse()), response.isLoginStatus());
         }
 
         // if user did not manage to log in

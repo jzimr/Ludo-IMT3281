@@ -160,7 +160,7 @@ public class LoginController implements RegisterResponseListener {
 
     public void setLoginResponseMessage(String message, boolean isSuccess){
         if(isSuccess){
-            setResponseMessage(i18Bundle.getString("msg.loginSuccess"), false);
+            setResponseMessage(message, false);
         } else {
             setResponseMessage(message, true);
         }
@@ -169,9 +169,9 @@ public class LoginController implements RegisterResponseListener {
     @Override
     public void registerResponseEvent(RegisterResponse response) {
         if(response.isRegisterStatus()){
-            setResponseMessage(i18Bundle.getString("msg.registerSuccess"), false);
+            setResponseMessage(i18Bundle.getString(response.getResponse()), false);
         } else {
-            setResponseMessage(response.getResponse(), true);
+            setResponseMessage(i18Bundle.getString(response.getResponse()), true);
         }
     }
 
@@ -220,7 +220,7 @@ public class LoginController implements RegisterResponseListener {
             } else {
                 responseMessage.setStyle("-fx-fill: green");
             }
-            responseMessage.setText(i18Bundle.getString(message));
+            responseMessage.setText(message);
         });
     }
 }
