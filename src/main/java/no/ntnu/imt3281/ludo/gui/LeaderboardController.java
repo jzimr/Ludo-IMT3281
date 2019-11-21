@@ -23,10 +23,17 @@ public class LeaderboardController implements LeaderboardResponseListener {
     @FXML
     private ListView<TopTenList.PlayedEntry> topPlaysList;
 
+    /**
+     * Setup necessary stuff for this class
+     * @param clientSocket
+     */
     public void setup(ClientSocket clientSocket){
         clientSocket.addLeaderboardResponseListener(this);
     }
 
+    /**
+     * Here we initialize the listview's to show the top ten in a leaderboard
+     */
     @FXML
     public void initialize(){
         // configure the cell for each row
@@ -37,6 +44,7 @@ public class LeaderboardController implements LeaderboardResponseListener {
                 if(empty) {
                     setGraphic(null);
                 } else {
+                    // we configure each row and make it look nice
                     StackPane pane = new StackPane();
                     pane.setAlignment(Pos.CENTER_LEFT);
 
@@ -68,6 +76,7 @@ public class LeaderboardController implements LeaderboardResponseListener {
                 if(empty) {
                     setGraphic(null);
                 } else {
+                    // we configure each row and make it look nice
                     StackPane pane = new StackPane();
                     pane.setAlignment(Pos.CENTER_LEFT);
 

@@ -201,6 +201,12 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         }
     }
 
+    /**
+     * Initialize a new game tab
+     * @param gameName
+     * @param gameId
+     * @param players
+     */
     private void addNewGameTab(String gameName, String gameId, String[] players) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("GameBoard.fxml"));
         loader.setResources(ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game"));
@@ -219,7 +225,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     }
 
     /**
-     * Create a new tab and attach it to our "tabbedPane" manager
+     * Create a new generic tab and attach it to our "tabbedPane" manager
      *
      * @param loader  FXMLLoader
      * @param tabName the name of the new tab
@@ -283,6 +289,10 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         clientSocket.sendMessageToServer(new UserDoesRandomGameSearch("UserDoesRandomGameSearch", clientSocket.getUserId()));
     }
 
+    /**
+     * User wants to search for players to start a game with
+     * @param event
+     */
     @FXML
     void challengePlayers(ActionEvent event) {
         // if this tab already exists remove it first
@@ -318,7 +328,10 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         clientSocket.sendMessageToServer(new UserListChatrooms("UserListChatrooms"));
     }
 
-
+    /**
+     * User wants to find a specific profile
+     * @param e
+     */
     @FXML
     void findProfile(ActionEvent e) {
         final Button okButton = (Button) searchProfileDialog.getDialogPane().lookupButton(ButtonType.OK);
@@ -356,7 +369,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
 
                     // we register the listener so we get the profile from the server
                     clientSocket.addUserWantToViewProfileResponseListener(this);
-                    System.out.println("yup1");
 
                     // send message to server
                     clientSocket.sendMessageToServer(new UserWantToViewProfile("UserWantToViewProfile", searchProfileText));
@@ -526,6 +538,10 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         }
     }
 
+    /**
+     * Listener to get the profile we requested from the server
+     * @param response
+     */
     @Override
     public void userWantToViewProfileResponseEvent(UserWantToViewProfileResponse response) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("ViewProfile.fxml"));
@@ -535,13 +551,10 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         // we remove the listener from the server again
         clientSocket.removeUserWantToViewProfileResponseListener(this);
 
-        System.out.println("wtf dud");
-
         // user is searching for a profile
         if (searchProfileDialog.isShowing()) {
             // profile does not exist
             if (response.getMessage() != null && !response.getMessage().isEmpty()) {
-                System.out.println("lol");
                 Platform.runLater(() -> {
                     final Button okButton = (Button) searchProfileDialog.getDialogPane().lookupButton(ButtonType.OK);
                     final TextField searchProfile = (TextField) ((VBox) searchProfileDialog.getDialogPane().getContent()).getChildren().get(0);
@@ -553,8 +566,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
                 });
                 return;
             }
-
-            System.out.println("sure dud");
 
             // else success, we close the dialog
             Platform.runLater(() -> searchProfileDialog.close());

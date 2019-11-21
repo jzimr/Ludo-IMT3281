@@ -68,7 +68,12 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
         i18Bundle = ResourceBundle.getBundle("no.ntnu.imt3281.I18N.Game", locale);
     }
 
-
+    /**
+     * Setup this object with the necessary information
+     * @param clientSocket
+     * @param response
+     * @param isOurProfile
+     */
     public void setup(ClientSocket clientSocket, final UserWantToViewProfileResponse response, boolean isOurProfile) {
         this.clientSocket = clientSocket;
 
@@ -142,6 +147,14 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
         });
     }
 
+    /**
+     * When user wants to edit his avatar image
+     * <p>
+     *     Pressing this opens up a dialog where user can
+     *     choose an image to change to.
+     * </p>
+     * @param event
+     */
     @FXML
     void editAvatarButton(ActionEvent event) {
         // dialog for user to choose a file to upload
@@ -176,6 +189,11 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
         clientSocket.sendMessageToServer(new UserWantToEditProfile("UserWantToEditProfile", clientSocket.getDisplayName(), image, ""));
     }
 
+    /**
+     * User wants to edit his password
+     *
+     * @param e
+     */
     @FXML
     void editPasswordButton(ActionEvent e) {
         final Button okButton = (Button) passwordDialog.getDialogPane().lookupButton(ButtonType.OK);
@@ -237,6 +255,14 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
         passwordDialog.showAndWait();
     }
 
+    /**
+     * The user wants to edit his display name
+     * <p>
+     *     As of how it is setup, the new displayname has
+     *     to be unique to be able to change it
+     * </p>
+     * @param e
+     */
     @FXML
     void editDisplayNameButton(ActionEvent e) {
         displayNameDialog.getEditor().setText(clientSocket.getDisplayName());
@@ -292,6 +318,10 @@ public class ViewProfileController implements UserWantToEditProfileResponseListe
         displayNameDialog.showAndWait();
     }
 
+    /**
+     * We check if user successfully changed his profile. If not show message to user
+     * @param response
+     */
     @Override
     public void userWantToEditProfileResponseEvent(UserWantToEditProfileResponse response) {
         // success

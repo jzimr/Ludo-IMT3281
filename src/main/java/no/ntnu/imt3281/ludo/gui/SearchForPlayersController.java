@@ -106,6 +106,14 @@ public class SearchForPlayersController implements UsersListResponseListener {
         });
     }
 
+    /**
+     * When user pressed button to search for players
+     * <p>
+     *     Here we send a message to the server with the
+     *     specific search query that we entered
+     * </p>
+     * @param event
+     */
     @FXML
     void searchPlayersButton(ActionEvent event) {
         String queryText = searchTextField.getText();

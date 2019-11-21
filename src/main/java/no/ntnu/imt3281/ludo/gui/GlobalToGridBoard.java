@@ -1,5 +1,8 @@
 package no.ntnu.imt3281.ludo.gui;
 
+/**
+ * Using this class to map global ludo board positions to the gridboard coordinates in the GUI
+ */
 public class GlobalToGridBoard {
     /**
      * Class for holding the position in cell coordinates
@@ -142,6 +145,11 @@ public class GlobalToGridBoard {
             new CellCoordinates(7, 6)
     };
 
+    /**
+     * Get the cell coordinates in a gridboard from the global ludo board position
+     * @param ludoBoardPosition the global position of the ludoboard to get
+     * @return
+     */
     public static CellCoordinates globalToGridCoordinations(int ludoBoardPosition){
         return cellCoordinates[ludoBoardPosition];
     }

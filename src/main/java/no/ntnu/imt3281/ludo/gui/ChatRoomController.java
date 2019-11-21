@@ -11,7 +11,6 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Font;
-import javafx.util.Callback;
 import no.ntnu.imt3281.ludo.client.ClientSocket;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.ChatJoinNewUserResponseListener;
 import no.ntnu.imt3281.ludo.gui.ServerListeners.SentMessageResponseListener;
@@ -134,6 +133,11 @@ public class ChatRoomController implements SentMessageResponseListener, ChatJoin
         chatTextInput.clear();
     }
 
+    /**
+     * If this chat room equals the name of the parameter
+     * @param chatName the name of chat to compare to
+     * @return true if match, else false
+     */
     @Override
     public boolean equalsChatRoomId(String chatName) {
         return this.chatRoomName.equals(chatName);

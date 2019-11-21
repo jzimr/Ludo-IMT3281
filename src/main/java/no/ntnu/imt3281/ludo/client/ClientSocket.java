@@ -420,6 +420,7 @@ public class ClientSocket {
         return connected;
     }
 
+
     /**
      * Here we register all listeners for all the server messages we get, so we can delegate
      * them on to the GUI part of the application

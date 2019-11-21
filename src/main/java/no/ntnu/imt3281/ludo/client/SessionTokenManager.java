@@ -7,6 +7,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+/**
+ * This class is used to manage the client-server tokens
+ */
 public class SessionTokenManager {
 
     public static class SessionData{

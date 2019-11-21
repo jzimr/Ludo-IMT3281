@@ -158,6 +158,11 @@ public class LoginController implements RegisterResponseListener {
         clientSocket.sendMessageToServer(register);
     }
 
+    /**
+     * Show to the user if we successfully logged in or if an error happened
+     * @param message the message to show to user
+     * @param isSuccess if true, shows green text to mark success, else shows red text to mark an error
+     */
     public void setLoginResponseMessage(String message, boolean isSuccess){
         if(isSuccess){
             setResponseMessage(message, false);
@@ -166,8 +171,13 @@ public class LoginController implements RegisterResponseListener {
         }
     }
 
+    /**
+     * Listener that checks if we registered successfully or not
+     * @param response
+     */
     @Override
     public void registerResponseEvent(RegisterResponse response) {
+        // show a response to the client
         if(response.isRegisterStatus()){
             setResponseMessage(i18Bundle.getString(response.getResponse()), false);
         } else {
@@ -213,6 +223,11 @@ public class LoginController implements RegisterResponseListener {
         }
     }
 
+    /**
+     * Show a message to the user if all went gucci or if failures happened
+     * @param message the message to show
+     * @param isError if true, shows red text, else shows green text
+     */
     private void setResponseMessage(String message, boolean isError){
         Platform.runLater(() -> {
             if(isError){

@@ -195,7 +195,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     }
 
     /**
-     * Setup necessary stuff for this object
+     * Setup necessary stuff for this object (adding listeners, sending necessary messages to server)
      *
      * @param clientSocket for client-server communcation
      */
@@ -335,13 +335,20 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         clientSocket.sendMessageToServer(new UserDoesPieceMove("UserDoesPieceMove", gameId, ourPlayerId, pieceId, localPiecePosition, moveTo));
     }
 
-
+    /**
+     * Called when a user in the game left the game
+     * @param response
+     */
     @Override
     public void userLeftGameResponseEvent(UserLeftGameResponse response) {
         // remove from ludo logic
         ludoGame.removePlayer(response.getDisplayname());
     }
 
+    /**
+     * Called when all players have joined and we can start playing the game
+     * @param response
+     */
     @Override
     public void gameHasStartedResponseEvent(GameHasStartedResponse response) {
         // enable button  and set highlight for the user whose turn it is (red automatically)
@@ -434,7 +441,9 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
     /**
      * Called when the tab of this controller is closed.
-     * Here we want to handle stuff like sending message to server.
+     * <p>
+     *     Here we want to handle stuff like sending message to server.
+     * </p>
      */
     public EventHandler<Event> onTabClose = new EventHandler<Event>() {
         @Override
@@ -517,14 +526,12 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     }
 
     /**
-     * When a player event on client side has happened.
+     * When a player event on client side has happened (like player left game or it's another player's turn)
      * @param event PlayerEvent containing info about what state the player is in.
      */
     @Override
     public void playerStateChanged(PlayerEvent event) {
         final int playerId = event.getPlayerID();
-
-        System.out.println("Got player change event " + event.getPlayerEvent() + " on player " + event.getPlayerID());
 
         // user left game, let's disable his GUI for all other players
         if (event.getPlayerEvent().equals(PlayerEvent.LEFTGAME)) {
@@ -544,7 +551,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
             // it's our turn again, enable throwdice button
             if (event.getPlayerID() == ourPlayerId) {
-                System.out.println("Playing: Enable button");
                 throwTheDice.setDisable(false);
             }
         }
@@ -556,7 +562,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
 
             // our turn is done, disabling button
             if (event.getPlayerID() == ourPlayerId) {
-                System.out.println("Waiting: Disable button");
                 throwTheDice.setDisable(true);
             }
         }
@@ -573,7 +578,7 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     }
 
     /**
-     * Helper function to retrieve the Node in a specific cell in a grid.
+     * Helper function to retrieve the playerPiece Node in a specific cell in a grid.
      * <p>
      * Need to send playerId and movedPieceID to identify a piece to be moved if there are multiple
      * pieces in the same cell.
@@ -587,7 +592,6 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
     private Node getNodeFromGridPane(GridPane gridPane, int row, int col, int playerId, int movedPieceId) {
         for (Node node : gridPane.getChildren()) {
             if (GridPane.getRowIndex(node) == row && GridPane.getColumnIndex(node) == col) {
-                System.out.println(node.getId() + ", " + redPieces[movedPieceId].getId() + ", " + playerId);
                 if ((node.getId().equals(redPieces[movedPieceId].getId()) && playerId == 0)      // here we get the
                         || (node.getId().equals(bluePieces[movedPieceId].getId()) && playerId == 1)     // correct pieces
                         || (node.getId().equals(yellowPieces[movedPieceId].getId()) && playerId == 2)   // of the players we
@@ -598,7 +602,9 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         return null;
     }
 
-    // CHAT FUNCTIONS
+    /*
+    CHAT LISTENERS
+     */
 
     /**
      * When user pressed "Enter" let him send text message
@@ -621,6 +627,10 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         sendMessage();
     }
 
+    /**
+     * When we receive a message that was sent by us or another user, we add it to the chat box
+     * @param response
+     */
     @Override
     public void sentMessageResponseEvent(SentMessageResponse response) {
         // convert time to local time
@@ -661,12 +671,29 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         textToSay.clear();
     }
 
+    /**
+     * Check if this chat room matches the chatname in the parameter
+     * <p>
+     *     The chatroom name in a game is automatically the game id. Therefore we compare the
+     *     gameId to the parameter name.
+     * </p>
+     * @param chatName
+     * @return
+     */
     @Override
     public boolean equalsChatRoomId(String chatName) {
         // we decided that the chatId for a game is the gameId
         return gameId.equals(chatName);
     }
 
+    /**
+     * When we request the profile of a user.
+     * <p>
+     *     We use this listener here to get the profile pictures of the players who've
+     *     joined the game.
+     * </p>
+     * @param response
+     */
     @Override
     public void userWantToViewProfileResponseEvent(UserWantToViewProfileResponse response) {
         // go through all players and set the imageview representing a player
@@ -685,6 +712,11 @@ public class GameBoardController implements UserLeftGameResponseListener, GameHa
         }
     }
 
+    /**
+     * Check if we are waiting to get profile information about a particular user from the server
+     * @param displayname
+     * @return true if we are waiting for a particular profile, else false
+     */
     @Override
     public boolean waitingForProfile(String displayname) {
         return Arrays.stream(players).anyMatch(p -> p.equals(displayname));

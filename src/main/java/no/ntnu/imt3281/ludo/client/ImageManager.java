@@ -20,7 +20,6 @@ public class ImageManager {
      * @return true if filepath is image, else false
      */
     public static boolean isImage(String path){
-        System.out.println(path);
         BufferedImage image;
         try{
             // imageIO.read returns "null" if image could not be read
@@ -38,6 +37,12 @@ public class ImageManager {
         return true;
     }
 
+    /**
+     * Convert an Image to a byte array
+     * @param path the full path to the image file
+     * @return the image in []byte
+     * @throws InvalidImageException if the file is larger than 2MB or the image could not be read
+     */
     public static byte[] convertImageToBytes(String path) throws InvalidImageException {
         BufferedImage image;
         byte[] newFileBytes;
@@ -68,6 +73,11 @@ public class ImageManager {
         return newFileBytes;
     }
 
+    /**
+     * Convert an array of bytes to a JavaFX image object
+     * @param imageData the byte array to decode
+     * @return the image
+     */
     public static javafx.scene.image.Image convertBytesToImage(byte[] imageData){
         return new javafx.scene.image.Image(new ByteArrayInputStream(imageData));
     }

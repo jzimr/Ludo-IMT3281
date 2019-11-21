@@ -1,5 +1,7 @@
 package no.ntnu.imt3281.ludo.logic;
 
+import java.util.Objects;
+
 /**
  * Event object containing data about the dice rolled
  */
@@ -51,5 +53,10 @@ public class DiceEvent {
         }
 
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ludoGame, playerID, diceRolled);
     }
 }

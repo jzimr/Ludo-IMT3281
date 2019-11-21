@@ -75,7 +75,7 @@ public class GameInvitationAlert extends Alert {
             clientSocket.sendMessageToServer(new UserDoesGameInvitationAnswer("UserDoesGameInvitationAnswer",
                     true, clientSocket.getUserId(), gameId));
         } else {
-            // if user closed out window of pressed "Decline"
+            // if user closed the window or pressed "Decline"
             clientSocket.sendMessageToServer(new UserDoesGameInvitationAnswer("UserDoesGameInvitationAnswer",
                     false, clientSocket.getUserId(), gameId));
         }
