@@ -119,7 +119,6 @@ public class ClientSocket {
             return false;
         }
     }
-
     /**
      * Send an event message to the server
      *

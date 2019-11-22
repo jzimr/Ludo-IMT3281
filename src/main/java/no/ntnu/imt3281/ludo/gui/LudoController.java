@@ -297,7 +297,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
     void challengePlayers(ActionEvent event) {
         // if this tab already exists remove it first
         if (searchForPlayersController != null) {
-            tabbedPane.getTabs().remove(tabbedPane.getTabs().stream().filter(tab -> tab.getText() == "SearchForPlayers").findFirst().get());
+            tabbedPane.getTabs().remove(tabbedPane.getTabs().stream().filter(tab -> tab.getText() == "Search for players").findFirst().get());
         }
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("SearchForPlayers.fxml"));
@@ -492,7 +492,7 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
         // close the "Search For Players" tab
         if (searchForPlayersController != null) {
             Platform.runLater(() -> {
-                tabbedPane.getTabs().remove(tabbedPane.getTabs().stream().filter(tab -> tab.getText().equals("Search For Players")).findFirst().get());
+                tabbedPane.getTabs().remove(tabbedPane.getTabs().stream().filter(tab -> tab.getText().equals("Search For players")).findFirst().get());
             });
             searchForPlayersController = null;
         }
@@ -611,7 +611,6 @@ public class LudoController implements ChatJoinResponseListener, LoginResponseLi
      */
     @Override
     public boolean waitingForProfile(String displayname) {
-        System.out.println("waiting for profile");
         // if we are wanting to get a specific profile OR we want to view our own profile, return true
         if (searchProfileDialog.isShowing() || clientSocket.getDisplayName().equals(displayname)) {
             return true;

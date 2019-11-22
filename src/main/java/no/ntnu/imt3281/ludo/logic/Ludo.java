@@ -222,9 +222,8 @@ public class Ludo {
         if (playerListener != null) {
             playerListener.playerStateChanged(new PlayerEvent(this, getPlayerID(playerName), PlayerEvent.LEFTGAME));
         }
-        // if it's this player's turn, skip it. Only need to skip if there are more than 1 player left.
-        // If there are no more players no need to skip the turn.
-        if (activePlayer() == getPlayerID(playerName) && getActivePlayers().length > 1){
+        // if it's this player's turn, skip it
+        if (activePlayer() == getPlayerID(playerName) && getActivePlayers().length >= 1){
             nextPlayerTurn();
         }
     }
