@@ -50,6 +50,7 @@ public class ServerTest {
         //Wipe db and setup server.
 
         try {
+            Database testDatabase = Database.constructTestDatabase("jdbc:derby:./ludoTestDB");
             Connection testConnection = DriverManager.getConnection("jdbc:derby:./ludoTestDB");
             Statement statement = testConnection.createStatement();
             statement.execute("DROP TABLE chat_log");
@@ -86,7 +87,7 @@ public class ServerTest {
 
         String gotMessage = br_client_1.readLine();
         System.out.println("Got Message: " + gotMessage); //Mainly for debugging purposes
-        assertTrue(gotMessage.contains("Registration successful"));
+        assertTrue(gotMessage.contains("server.registerOk"));
 
         bw_client_2.write(RegisterMessage_client_2);
         bw_client_2.newLine();
@@ -94,7 +95,7 @@ public class ServerTest {
 
         gotMessage = br_client_2.readLine();
         System.out.println("Got Message: " + gotMessage); //Mainly for debugging purposes
-        assertTrue(gotMessage.contains("Registration successful"));
+        assertTrue(gotMessage.contains("server.registerOk"));
 
         String LoginMessage_client_1 = "{\"action\" : \"UserDoesLoginManual\" ,\"username\": \"test\" ,\"recipientSessionId\":\""+client_1_session+"\" ,\"password\": \"test\"}";
         String LoginMessage_client_2 = "{\"action\" : \"UserDoesLoginManual\" ,\"username\": \"test2\" ,\"recipientSessionId\":\""+client_2_session+"\" ,\"password\": \"test2\"}";
@@ -147,7 +148,7 @@ public class ServerTest {
 
         String gotMessage = br_client_1.readLine();
         System.out.println("Got Message: " + gotMessage); //Mainly for debugging purposes
-        assertTrue(gotMessage.contentEquals("{\"action\":\"ChatJoinResponse\",\"status\":true,\"response\":\"Joined room successfully\",\"chatroomname\":\"Global\"}"));
+        assertTrue(gotMessage.contains("server.roomJoinOk"));
 
         bw_client_2.write(JoinChatMessage_client_2);
         bw_client_2.newLine();
@@ -155,7 +156,7 @@ public class ServerTest {
 
         gotMessage = br_client_2.readLine();
         System.out.println("Got Message: " + gotMessage); //Mainly for debugging purposes
-        assertTrue(gotMessage.contentEquals("{\"action\":\"ChatJoinResponse\",\"status\":true,\"response\":\"Joined room successfully\",\"chatroomname\":\"Global\"}"));
+        assertTrue(gotMessage.contains("server.roomJoinOk"));
 
         gotMessage = br_client_1.readLine();
         assertTrue(gotMessage.contentEquals("{\"action\":\"ChatJoinNewUserResponse\",\"displayname\":\"test2\",\"chatroomname\":\"Global\"}"));
@@ -167,7 +168,7 @@ public class ServerTest {
 
         gotMessage = br_client_1.readLine();
         System.out.println("Got Message: " + gotMessage); //Mainly for debugging purposes
-        assertTrue(gotMessage.contentEquals("{\"action\":\"ChatJoinResponse\",\"status\":true,\"response\":\"Room created and joined successfully\",\"chatroomname\":\"Global New\"}"));
+        assertTrue(gotMessage.contains("server.roomCreateOk"));
 
 
 
@@ -272,12 +273,63 @@ public class ServerTest {
         System.out.println("sent " + gameid);
 
         gotMessage = br_client_1.readLine();
+        gotMessage = br_client_1.readLine();
         System.out.println("Got Message Client1 : " + gotMessage); //Mainly for debugging purposes
-        assertTrue(gotMessage.contains("{\"action\":\"UserDeclinedGameInvitationResponse\",\"accepted\":false"));
+        assertTrue(gotMessage.contains("\"accepted\":false"));
 
     }
 
-    //Lobby system.
+    @Test
+    public void EclientWantsToViewProfile() throws IOException{
+        String userViewProfile = "{\"action\":\"UserWantToViewProfile\",\"displayname\":\"test2\"}";
+
+        bw_client_1.write(userViewProfile);
+        bw_client_1.newLine();
+        bw_client_1.flush();
+
+        String gotMessage = br_client_1.readLine();
+        System.out.println("Got Message Client1 : " + gotMessage); //Mainly for debugging purposes
+        assertTrue(gotMessage.contains("\"displayName\":\"test2\""));
+    }
+
+    @Test
+    public void FclientWantsToEditProfile() throws IOException{
+        String userEditProfile = "{\"action\":\"UserWantToEditProfile\",\"displayname\":\"testhei\",\"imageString\":null,\"password\":\"\"}";
+
+        bw_client_1.write(userEditProfile);
+        bw_client_1.newLine();
+        bw_client_1.flush();
+
+        String gotMessage = br_client_1.readLine();
+        System.out.println("Got Message Client1 : " + gotMessage); //Mainly for debugging purposes
+        assertTrue(gotMessage.contains("\"changed\":true,\"response\":\"server.userEditProfileNoPW\""));
+    }
+
+    @Test
+    public void GclientWantsTopTen() throws IOException {
+        String userEditProfile = "{\"action\":\"UserWantsLeaderboard\"}";
+
+        bw_client_1.write(userEditProfile);
+        bw_client_1.newLine();
+        bw_client_1.flush();
+
+        String gotMessage = br_client_1.readLine();
+        System.out.println("Got Message Client1 : " + gotMessage); //Mainly for debugging purposes
+        assertTrue(gotMessage.contains("{\"action\":\"LeaderboardResponse\",\"toptenplays\":"));
+    }
+
+    @Test
+    public void HclientLeavesChat() throws IOException {
+        String userLeaveChat = "{\"action\":\"UserLeftChatRoom\",\"userid\":\""+ client_1_userid +"\" ,\"chatroomname\":\"Global\"}";
+
+        bw_client_1.write(userLeaveChat);
+        bw_client_1.newLine();
+        bw_client_1.flush();
+
+        String gotMessage = br_client_1.readLine();
+        System.out.println("Got Message Client1 : " + gotMessage); //Mainly for debugging purposes
+        assertTrue(gotMessage.contains("{\"action\":\"UserLeftChatRoomResponse\",\"chatroomname\":\"Global\",\"displayname\":\"testhei\"}"));
+    }
 
 
 }
